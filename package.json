@@ -1,0 +1,28 @@
+{
+  "name": "erp-system",
+  "version": "1.0.0",
+  "main": "js/backend/server.js",
+  "scripts": {
+    "start": "node js/backend/server.js",
+    "dev": "nodemon js/backend/server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.1",
+    "express": "^4.22.1",
+    "mysql2": "^3.21.1"
+  },
+  "description": "",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rudra168/erp-project.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/rudra168/erp-project/issues"
+  },
+  "homepage": "https://github.com/rudra168/erp-project#readme"
+}
