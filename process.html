@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Process</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/toast.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <style>
+    .process-two-col {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 16px;
+      align-items: start;
+      margin-top: 16px;
+    }
+
+    @media (max-width: 980px) {
+      .process-two-col {
+        grid-template-columns: 1fr;
+      }
+    }
+
+
+    .profile-box {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      padding: 8px 12px;
+      border-radius: 999px;
+      color: #334155;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .profile-box i {
+      color: #b7791f;
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-inner">
+        <div class="brand">
+          <a href="settings.html" class="sidebar-settings-btn" data-page-key="settings" title="Settings" aria-label="Open settings">
+            <i class="fas fa-gear"></i>
+          </a>
+          <h2>ERP PANEL</h2>
+          <p>Jewellery Management</p>
+        </div>
+
+        <ul class="menu">
+          <li><a href="dashboard.html"><i class="fas fa-chart-pie"></i> Dashboard</a></li>
+          <li><a href="process.html" class="active"><i class="fas fa-screwdriver-wrench"></i> Process</a></li>
+          <li><a href="sticker.html"><i class="fas fa-barcode"></i> Sticker</a></li>
+          <li><a href="stock.html"><i class="fas fa-boxes-stacked"></i> Stock</a></li>
+          <li><a href="material-stock.html"><i class="fas fa-box-open"></i> Material Stock</a></li>
+          <li><a href="daily-report.html"><i class="fas fa-chart-line"></i> Daily Report</a></li>
+          <li><a href="invoice.html"><i class="fas fa-file-invoice"></i> Invoice</a></li>
+          <li><a href="billing.html"><i class="fas fa-money-bill-wave"></i> Billing</a></li>
+          <li><a href="return.html"><i class="fas fa-rotate-left"></i> Return</a></li>
+          <li><a href="sales-history.html"><i class="fas fa-clock-rotate-left"></i> Sales History</a></li>
+          <li><a href="expense-manager.html"><i class="fas fa-wallet"></i> Expense Manager</a></li>
+          <li><a href="transaction.html"><i class="fas fa-arrow-right-arrow-left"></i> Transaction</a></li>
+          <li><a href="transaction-reports.html"><i class="fas fa-file-lines"></i> Transaction Reports</a></li>
+          <li><a href="admin-approval.html"><i class="fas fa-user-check"></i> Admin Approval</a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div class="top-left">
+          <button class="hamburger" type="button" onclick="toggleSidebar()">
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+
+          <div class="title">
+            <h1 id="pageCompanyTitle">RPJ MANUFACTURER</h1>
+            <p>Process Management</p>
+          </div>
+        </div>
+
+        <div class="top-right">
+          <button type="button" onclick="window.print()">Print</button>
+          <div class="profile-box" id="profileBox"></div>
+        </div>
+      </div>
+
+      <section class="page active">
+        <div class="section-box">
+          <h2>Process</h2>
+          <p>Yahan lot, raw weight, loss, karigar work aur process summary manage hoga.</p>
+
+          <div class="process-two-col">
+            <div class="sub-card">
+              <h3>Process Entry</h3>
+
+              <div class="form-grid">
+                <div class="input-box">
+                  <label for="processLotNo">Lot No</label>
+                  <input id="processLotNo" type="text" placeholder="Enter Lot No" />
+                </div>
+
+                <div class="input-box">
+                  <label for="processRawWeight">Raw Weight</label>
+                  <input id="processRawWeight" type="number" step="0.001" placeholder="Enter Raw Weight" />
+                </div>
+
+                <div class="input-box">
+                  <label for="processLossWeight">Loss Weight</label>
+                  <input id="processLossWeight" type="number" step="0.001" placeholder="Enter Loss Weight" />
+                </div>
+
+                <div class="input-box">
+                  <label for="processFinalWeight">Final Weight</label>
+                  <input id="processFinalWeight" type="number" step="0.001" readonly />
+                </div>
+
+                <div class="input-box">
+                  <label for="processUsedWeight">Used Weight</label>
+                  <input id="processUsedWeight" type="number" step="0.001" readonly />
+                </div>
+
+                <div class="input-box">
+                  <label for="processBalanceWeight">Balance Weight</label>
+                  <input id="processBalanceWeight" type="number" step="0.001" readonly />
+                </div>
+              </div>
+
+              <div class="btn-row" style="margin-top:12px;">
+                <button class="primary-btn" type="button" onclick="saveProcessLot()">Save Process</button>
+                <button class="secondary-btn" type="button" onclick="clearProcessForm()">Clear</button>
+              </div>
+
+              <div id="processSummary" class="summary" style="margin-top: 16px;">
+                <h3>Summary</h3>
+                <p>Raw: 0 | Loss: 0 | Final: 0 | Used: 0 | Balance: 0</p>
+              </div>
+            </div>
+
+            <div class="sub-card">
+              <h3>Saved Process Lots</h3>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Lot No</th>
+                    <th>Raw Weight</th>
+                    <th>Loss Weight</th>
+                    <th>Final Weight</th>
+                    <th>Used Weight</th>
+                    <th>Balance</th>
+                  </tr>
+                </thead>
+                <tbody id="processTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="process-two-col">
+            <div class="sub-card">
+              <h3>Karigar Work Entry</h3>
+
+              <div class="form-grid">
+                <div class="input-box">
+                  <label for="karigarName">Karigar Name</label>
+                  <input id="karigarName" type="text" placeholder="Karigar Name" />
+                </div>
+
+                <div class="input-box">
+                  <label for="karigarLot">Lot No</label>
+                  <select id="karigarLot"></select>
+                </div>
+
+                <div class="input-box">
+                  <label for="karigarGivenWeight">Given Weight</label>
+                  <input id="karigarGivenWeight" type="number" step="0.001" placeholder="Given Weight" />
+                </div>
+
+                <div class="input-box">
+                  <label for="karigarReturnWeight">Return Weight</label>
+                  <input id="karigarReturnWeight" type="number" step="0.001" placeholder="Return Weight" />
+                </div>
+              </div>
+
+              <div class="btn-row" style="margin-top:12px;">
+                <button class="primary-btn" type="button" onclick="saveKarigarWork()">Save Work</button>
+                <button class="secondary-btn" type="button" onclick="clearKarigarForm()">Clear</button>
+              </div>
+
+              <div id="karigarList" style="margin-top: 14px;"></div>
+            </div>
+
+            <div class="sub-card">
+              <h3>Karigar Loss Report</h3>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Karigar</th>
+                    <th>Total Given</th>
+                    <th>Total Returned</th>
+                    <th>Total Loss</th>
+                  </tr>
+                </thead>
+                <tbody id="karigarLossReportBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const API_BASE = "http://localhost:8080";
+
+    function getLoggedInUser() {
+      try {
+        return JSON.parse(localStorage.getItem("erpLoggedInUser")) || null;
+      } catch (_) {
+        return null;
+      }
+    }
+
+    function getCurrentCompanyId() {
+      const user = getLoggedInUser();
+      const raw = user?.company_id ?? user?.companyId ?? null;
+      if (raw === null || raw === undefined || raw === "") return null;
+      const num = Number(raw);
+      return Number.isNaN(num) ? null : num;
+    }
+
+    function getCurrentCompanyName() {
+      const user = getLoggedInUser();
+      return String(user?.company_name || user?.companyName || "").trim();
+    }
+
+    function getCurrentUserId() {
+      const user = getLoggedInUser();
+      const raw = user?.id ?? user?.user_id ?? user?.userId ?? null;
+      if (raw === null || raw === undefined || raw === "") return null;
+      const num = Number(raw);
+      return Number.isNaN(num) ? null : num;
+    }
+
+    function isSuperAdmin() {
+      const user = getLoggedInUser();
+      const role = String(user?.role || "").toLowerCase();
+      const email = String(user?.email || "").toLowerCase();
+      return role === "superadmin" || email === "grudrapratap0@gmail.com";
+    }
+
+    function companyScopedKey(baseKey) {
+      const companyId = getCurrentCompanyId();
+      const scope = isSuperAdmin() ? "superadmin" : (companyId ?? "no_company");
+      return `${baseKey}_${scope}`;
+    }
+
+    function renderProfileBox() {
+      const box = document.getElementById("profileBox");
+      const title = document.getElementById("pageCompanyTitle");
+      const user = getLoggedInUser();
+
+      if (!box) return;
+
+      if (!user) {
+        box.innerHTML = `<i class="fas fa-user"></i> Guest`;
+        if (title) title.textContent = "RPJ MANUFACTURER";
+        return;
+      }
+
+      const role = String(user.role || "-");
+      const companyName = getCurrentCompanyName() || (isSuperAdmin() ? "All Companies" : "No Company");
+
+      box.innerHTML = `<i class="fas fa-user-circle"></i> ${role} | ${companyName}`;
+
+      if (title) {
+        title.textContent = isSuperAdmin() ? "SUPER ADMIN PANEL" : (companyName || "RPJ MANUFACTURER");
+      }
+    }
+
+    let stockItems = [];
+    let lotData = [];
+    let karigarData = [];
+
+    const ERP_SIDEBAR_STORAGE_KEY = "erpSidebarCollapsed";
+
+    function saveSidebarState(isCollapsed) {
+      localStorage.setItem(ERP_SIDEBAR_STORAGE_KEY, isCollapsed ? "true" : "false");
+    }
+
+    function applySidebarState() {
+      const sidebar = document.getElementById("sidebar");
+      if (!sidebar) return;
+
+      const isCollapsed = localStorage.getItem(ERP_SIDEBAR_STORAGE_KEY) === "true";
+      sidebar.classList.toggle("collapsed", isCollapsed);
+    }
+
+    function toggleSidebar() {
+      const sidebar = document.getElementById("sidebar");
+      if (!sidebar) return;
+
+      sidebar.classList.toggle("collapsed");
+      saveSidebarState(sidebar.classList.contains("collapsed"));
+    }
+
+    function bindSidebarMenuAutoClose() {
+      const sidebar = document.getElementById("sidebar");
+      if (!sidebar) return;
+
+      document.querySelectorAll(".menu a").forEach((link) => {
+        if (link.dataset.sidebarBound === "true") return;
+        link.dataset.sidebarBound = "true";
+        link.addEventListener("click", () => {
+          sidebar.classList.add("collapsed");
+          saveSidebarState(true);
+        });
+      });
+    }
+
+    applySidebarState();
+    bindSidebarMenuAutoClose();
+
+    function getItemCompanyId(item) {
+      const raw = item?.company_id ?? item?.companyId ?? null;
+      if (raw === null || raw === undefined || raw === "") return null;
+      const num = Number(raw);
+      return Number.isNaN(num) ? null : num;
+    }
+
+    function filterCompanyStock(items) {
+      if (isSuperAdmin()) return Array.isArray(items) ? items : [];
+
+      const currentCompanyId = getCurrentCompanyId();
+      return (Array.isArray(items) ? items : []).filter((item) => {
+        return getItemCompanyId(item) === currentCompanyId;
+      });
+    }
+
+    function buildAuthParams() {
+      const params = new URLSearchParams();
+      const companyId = getCurrentCompanyId();
+      const actingUserId = getCurrentUserId();
+
+      if (actingUserId !== null && !Number.isNaN(actingUserId)) {
+        params.set("actingUserId", String(actingUserId));
+      }
+
+      if (companyId !== null && !isSuperAdmin()) {
+        params.set("companyId", String(companyId));
+      }
+
+      return params;
+    }
+
+    function buildAuthPayload(extra = {}) {
+      const payload = { ...extra };
+      const companyId = getCurrentCompanyId();
+      const actingUserId = getCurrentUserId();
+
+      if (actingUserId !== null && !Number.isNaN(actingUserId)) {
+        payload.actingUserId = actingUserId;
+        payload.userId = actingUserId;
+      }
+
+      if (companyId !== null) {
+        payload.companyId = companyId;
+      }
+
+      return payload;
+    }
+
+    function normalizeProcessLot(item) {
+      return {
+        id: item?.id ?? null,
+        lotNo: String(item?.lotNo ?? item?.lot_no ?? "").trim(),
+        rawWeight: Number(item?.rawWeight ?? item?.raw_weight ?? 0),
+        lossWeight: Number(item?.lossWeight ?? item?.loss_weight ?? 0),
+        finalWeight: Number(item?.finalWeight ?? item?.final_weight ?? 0),
+        company_id: item?.company_id ?? getCurrentCompanyId(),
+        savedAt: item?.savedAt ?? item?.saved_at ?? item?.updated_at ?? item?.created_at ?? ""
+      };
+    }
+
+    function normalizeKarigarWork(item) {
+      const given = Number(item?.given ?? item?.issueWeight ?? item?.issue_weight ?? 0);
+      const returned = Number(item?.returned ?? item?.receiveWeight ?? item?.receive_weight ?? 0);
+      const lossRaw = item?.loss ?? item?.lossWeight ?? item?.loss_weight;
+
+      return {
+        id: item?.id ?? null,
+        name: String(item?.name ?? item?.karigarName ?? item?.karigar_name ?? "").trim(),
+        lot: String(item?.lot ?? item?.lotNo ?? item?.lot_no ?? "").trim(),
+        given,
+        returned,
+        loss: lossRaw === undefined || lossRaw === null || lossRaw === "" ? (given - returned) : Number(lossRaw),
+        labour: Number(item?.labour ?? item?.labourAmount ?? item?.labour_amount ?? 0),
+        company_id: item?.company_id ?? getCurrentCompanyId(),
+        time: item?.time ?? item?.work_time ?? item?.created_at ?? ""
+      };
+    }
+
+    async function loadStockFromServer() {
+      try {
+        const params = buildAuthParams();
+
+        const url = `${API_BASE}/getStock${params.toString() ? `?${params.toString()}` : ""}`;
+
+        const res = await fetch(url, { cache: "no-store" });
+        const data = await res.json();
+        stockItems = filterCompanyStock(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.log("Process stock load error:", error);
+        stockItems = [];
+      }
+    }
+
+    async function loadProcessData() {
+      try {
+        const params = buildAuthParams();
+        const url = `${API_BASE}/process/data${params.toString() ? `?${params.toString()}` : ""}`;
+        const res = await fetch(url, { cache: "no-store" });
+        const data = await res.json();
+
+        if (!res.ok || data?.success === false) {
+          throw new Error(data?.message || "Process data fetch failed");
+        }
+
+        lotData = Array.isArray(data?.lots) ? data.lots.map(normalizeProcessLot) : [];
+        karigarData = Array.isArray(data?.karigarWork) ? data.karigarWork.map(normalizeKarigarWork) : [];
+      } catch (error) {
+        console.log("Process data load error:", error);
+        lotData = [];
+        karigarData = [];
+      }
+    }
+
+    function getUsedWeightByLot(lotNo) {
+      const cleanLot = String(lotNo || "").trim();
+
+      return stockItems
+        .filter((item) => {
+          const itemLot = String(item.lot_number || item.lot || "").trim();
+          const status = String(item.status || "IN_STOCK").toUpperCase();
+          return itemLot === cleanLot && status === "IN_STOCK";
+        })
+        .reduce((sum, item) => sum + Number(item.weight || 0), 0);
+    }
+
+    function updateProcessCalculations() {
+      const lotNo = document.getElementById("processLotNo")?.value?.trim() || "";
+      const raw = Number(document.getElementById("processRawWeight")?.value || 0);
+      const loss = Number(document.getElementById("processLossWeight")?.value || 0);
+      const finalWeight = raw - loss;
+      const used = getUsedWeightByLot(lotNo);
+      const balance = finalWeight - used;
+
+      document.getElementById("processFinalWeight").value = finalWeight.toFixed(3);
+      document.getElementById("processUsedWeight").value = used.toFixed(3);
+      document.getElementById("processBalanceWeight").value = balance.toFixed(3);
+
+      const summary = document.getElementById("processSummary");
+      if (summary) {
+        summary.innerHTML = `
+          <h3>Summary</h3>
+          <p>Raw: ${raw.toFixed(3)} | Loss: ${loss.toFixed(3)} | Final: ${finalWeight.toFixed(3)} | Used: ${used.toFixed(3)} | Balance: ${balance.toFixed(3)}</p>
+        `;
+      }
+    }
+
+    async function saveProcessLot() {
+      const lotNo = document.getElementById("processLotNo")?.value?.trim() || "";
+      const raw = Number(document.getElementById("processRawWeight")?.value || 0);
+      const loss = Number(document.getElementById("processLossWeight")?.value || 0);
+      const finalWeight = raw - loss;
+      const used = getUsedWeightByLot(lotNo);
+      const balance = finalWeight - used;
+
+      if (!lotNo) {
+        showToast("Lot No daalo", "error", "Missing Field");
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/process/lots`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(buildAuthPayload({
+            lotNo,
+            rawWeight: raw,
+            lossWeight: loss,
+            finalWeight
+          }))
+        });
+        const data = await res.json();
+
+        if (!res.ok || data?.success === false) {
+          throw new Error(data?.message || "Process save failed");
+        }
+
+        const lotObj = normalizeProcessLot(data?.lot || {
+          lotNo,
+          rawWeight: raw,
+          lossWeight: loss,
+          finalWeight
+        });
+        const existingIndex = lotData.findIndex(
+          (item) => String(item.lotNo || "").trim() === lotObj.lotNo
+        );
+
+        if (existingIndex >= 0) {
+          lotData[existingIndex] = lotObj;
+        } else {
+          lotData.push(lotObj);
+        }
+
+        renderProcessTable();
+        loadKarigarLotDropdown();
+        updateProcessCalculations();
+        clearProcessForm();
+
+        showToast(data?.message || "Process saved successfully", "success", "Saved");
+        return data;
+      } catch (error) {
+        console.log("Save process lot error:", error);
+        showToast(error.message || "Process save failed", "error", "Save Failed");
+        return null;
+      }
+    }
+
+    function clearProcessForm() {
+      document.getElementById("processLotNo").value = "";
+      document.getElementById("processRawWeight").value = "";
+      document.getElementById("processLossWeight").value = "";
+      document.getElementById("processFinalWeight").value = "";
+      document.getElementById("processUsedWeight").value = "";
+      document.getElementById("processBalanceWeight").value = "";
+
+      const summary = document.getElementById("processSummary");
+      if (summary) {
+        summary.innerHTML = `
+          <h3>Summary</h3>
+          <p>Raw: 0 | Loss: 0 | Final: 0 | Used: 0 | Balance: 0</p>
+        `;
+      }
+    }
+
+    function renderProcessTable() {
+      const tbody = document.getElementById("processTableBody");
+      if (!tbody) return;
+
+      tbody.innerHTML = "";
+
+      if (!lotData.length) {
+        tbody.innerHTML = `<tr><td colspan="6">No process lots found</td></tr>`;
+        return;
+      }
+
+      lotData.forEach((lot) => {
+        const used = getUsedWeightByLot(lot.lotNo);
+        const balance = Number(lot.finalWeight || 0) - used;
+
+        tbody.innerHTML += `
+          <tr>
+            <td>${lot.lotNo || ""}</td>
+            <td>${Number(lot.rawWeight || 0).toFixed(3)}</td>
+            <td>${Number(lot.lossWeight || 0).toFixed(3)}</td>
+            <td>${Number(lot.finalWeight || 0).toFixed(3)}</td>
+            <td>${used.toFixed(3)}</td>
+            <td>${balance.toFixed(3)}</td>
+          </tr>
+        `;
+      });
+    }
+
+    function loadKarigarLotDropdown() {
+      const lotSelect = document.getElementById("karigarLot");
+      if (!lotSelect) return;
+
+      const oldValue = lotSelect.value || "";
+      lotSelect.innerHTML = '<option value="">Select Lot</option>';
+
+      lotData.forEach((lot) => {
+        lotSelect.innerHTML += `<option value="${lot.lotNo}">${lot.lotNo}</option>`;
+      });
+
+      const exists = [...lotSelect.options].some(opt => opt.value === oldValue);
+      if (exists) lotSelect.value = oldValue;
+    }
+
+    async function saveKarigarWork() {
+      const name = document.getElementById("karigarName")?.value?.trim() || "";
+      const lot = document.getElementById("karigarLot")?.value?.trim() || "";
+      const given = Number(document.getElementById("karigarGivenWeight")?.value || 0);
+      const returned = Number(document.getElementById("karigarReturnWeight")?.value || 0);
+
+      if (!name || !lot) {
+        showToast("Karigar name aur lot select karo", "error", "Missing Field");
+        return;
+      }
+
+      if (given <= 0) {
+        showToast("Given weight sahi daalo", "error", "Invalid Weight");
+        return;
+      }
+
+      const loss = given - returned;
+
+      try {
+        const res = await fetch(`${API_BASE}/process/karigar-work`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(buildAuthPayload({
+            karigarName: name,
+            lotNo: lot,
+            issueWeight: given,
+            receiveWeight: returned,
+            lossWeight: loss,
+            labourAmount: 0
+          }))
+        });
+        const data = await res.json();
+
+        if (!res.ok || data?.success === false) {
+          throw new Error(data?.message || "Karigar work save failed");
+        }
+
+        const work = normalizeKarigarWork(data?.work || {
+          name,
+          lot,
+          given,
+          returned,
+          loss
+        });
+
+        karigarData.push(work);
+        renderKarigarList();
+        renderKarigarLossReport();
+        clearKarigarForm();
+
+        showToast(data?.message || "Karigar work saved successfully", "success", "Saved");
+        return data;
+      } catch (error) {
+        console.log("Save karigar work error:", error);
+        showToast(error.message || "Karigar work save failed", "error", "Save Failed");
+        return null;
+      }
+    }
+
+    function clearKarigarForm() {
+      document.getElementById("karigarName").value = "";
+      document.getElementById("karigarLot").value = "";
+      document.getElementById("karigarGivenWeight").value = "";
+      document.getElementById("karigarReturnWeight").value = "";
+    }
+
+    function renderKarigarList() {
+      const box = document.getElementById("karigarList");
+      if (!box) return;
+
+      box.innerHTML = "";
+
+      if (!karigarData.length) {
+        box.innerHTML = `<p style="margin-top:10px;">No karigar work found</p>`;
+        return;
+      }
+
+      karigarData
+        .slice()
+        .reverse()
+        .forEach((item) => {
+          box.innerHTML += `
+            <div class="sub-card" style="margin-top:10px; padding:12px;">
+              <b>${item.name}</b> | Lot: ${item.lot}<br>
+              Given: ${Number(item.given || 0).toFixed(3)}g | Return: ${Number(item.returned || 0).toFixed(3)}g<br>
+              Loss: ${Number(item.loss || 0).toFixed(3)}g<br>
+              Time: ${item.time || ""}
+            </div>
+          `;
+        });
+    }
+
+    function renderKarigarLossReport() {
+      const tbody = document.getElementById("karigarLossReportBody");
+      if (!tbody) return;
+
+      tbody.innerHTML = "";
+
+      if (!karigarData.length) {
+        tbody.innerHTML = `<tr><td colspan="4">No karigar loss data found</td></tr>`;
+        return;
+      }
+
+      const reportMap = {};
+
+      karigarData.forEach((item) => {
+        const name = item.name || "Unknown";
+
+        if (!reportMap[name]) {
+          reportMap[name] = {
+            given: 0,
+            returned: 0,
+            loss: 0
+          };
+        }
+
+        reportMap[name].given += Number(item.given || 0);
+        reportMap[name].returned += Number(item.returned || 0);
+        reportMap[name].loss += Number(item.loss || 0);
+      });
+
+      Object.keys(reportMap).forEach((name) => {
+        tbody.innerHTML += `
+          <tr>
+            <td>${name}</td>
+            <td>${reportMap[name].given.toFixed(3)}</td>
+            <td>${reportMap[name].returned.toFixed(3)}</td>
+            <td>${reportMap[name].loss.toFixed(3)}</td>
+          </tr>
+        `;
+      });
+    }
+
+    document.getElementById("processLotNo")?.addEventListener("input", updateProcessCalculations);
+    document.getElementById("processRawWeight")?.addEventListener("input", updateProcessCalculations);
+    document.getElementById("processLossWeight")?.addEventListener("input", updateProcessCalculations);
+
+    window.addEventListener("load", async function () {
+      renderProfileBox();
+      await loadStockFromServer();
+      await loadProcessData();
+      renderProcessTable();
+      loadKarigarLotDropdown();
+      renderKarigarList();
+      renderKarigarLossReport();
+      updateProcessCalculations();
+    });
+  </script>
+
+  <script src="js/auth.js"></script>
+  <script>
+    requireLogin();
+    requirePageAccess("process");
+    filterSidebarMenuByRole();
+  </script>
+  <script src="js/toast.js"></script>
+</body>
+</html>

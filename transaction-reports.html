@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Transaction Reports</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/toast.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <style>
+    .reports-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .reports-tabs {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .report-tab-btn {
+      border: 1px solid #dbe2ea;
+      background: #fff;
+      color: #334155;
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    .report-tab-btn.active {
+      background: #7c5a1d;
+      border-color: #7c5a1d;
+      color: #fff;
+    }
+
+    .report-panel {
+      display: none;
+      margin-top: 12px;
+    }
+
+    .report-panel.active {
+      display: block;
+    }
+
+    .report-filter-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .report-filter-grid .full-span {
+      grid-column: 1 / -1;
+    }
+
+    .report-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin: 16px 0;
+    }
+
+    .report-summary-card {
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      background: linear-gradient(180deg, #fffdf8 0%, #ffffff 100%);
+      padding: 14px 16px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+    }
+
+    .report-summary-card h4 {
+      margin: 0 0 8px;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      color: #64748b;
+    }
+
+    .report-summary-card p {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .report-section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      gap: 12px;
+      margin-bottom: 6px;
+      flex-wrap: wrap;
+    }
+
+    .report-section-head h3 {
+      margin: 0;
+    }
+
+    .report-section-head p {
+      margin: 4px 0 0;
+      font-size: 13px;
+      color: #64748b;
+    }
+
+    .report-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid #e2e8f0;
+      background: #fff;
+      font-size: 12px;
+      font-weight: 800;
+      color: #475569;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .report-tag i {
+      color: #b7791f;
+    }
+
+    .report-inline-note {
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: #f8fafc;
+      border: 1px dashed #cbd5e1;
+      color: #475569;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .report-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 44px;
+      padding-top: 26px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #334155;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    @media (max-width: 1080px) {
+      .report-filter-grid,
+      .report-summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 720px) {
+      .report-filter-grid,
+      .report-summary-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-inner">
+        <div class="brand">
+          <a href="settings.html" class="sidebar-settings-btn" data-page-key="settings" title="Settings" aria-label="Open settings">
+            <i class="fas fa-gear"></i>
+          </a>
+          <h2>ERP PANEL</h2>
+          <p>Jewellery Management</p>
+        </div>
+
+        <ul class="menu">
+          <li><a href="dashboard.html"><i class="fas fa-chart-pie"></i> Dashboard</a></li>
+          <li><a href="process.html"><i class="fas fa-screwdriver-wrench"></i> Process</a></li>
+          <li><a href="sticker.html"><i class="fas fa-barcode"></i> Sticker</a></li>
+          <li><a href="stock.html"><i class="fas fa-boxes-stacked"></i> Stock</a></li>
+          <li><a href="material-stock.html"><i class="fas fa-box-open"></i> Material Stock</a></li>
+          <li><a href="daily-report.html"><i class="fas fa-chart-line"></i> Daily Report</a></li>
+          <li><a href="invoice.html"><i class="fas fa-file-invoice"></i> Invoice</a></li>
+          <li><a href="billing.html"><i class="fas fa-money-bill-wave"></i> Billing</a></li>
+          <li><a href="return.html"><i class="fas fa-rotate-left"></i> Return</a></li>
+          <li><a href="sales-history.html"><i class="fas fa-clock-rotate-left"></i> Sales History</a></li>
+          <li><a href="expense-manager.html"><i class="fas fa-wallet"></i> Expense Manager</a></li>
+          <li><a href="transaction.html"><i class="fas fa-arrow-right-arrow-left"></i> Transaction</a></li>
+          <li><a href="transaction-reports.html" class="active"><i class="fas fa-file-lines"></i> Transaction Reports</a></li>
+          <li><a href="admin-approval.html"><i class="fas fa-user-check"></i> Admin Approval</a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div class="top-left">
+          <button class="hamburger" type="button" onclick="toggleSidebar()">
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+
+          <div class="title">
+            <h1 id="pageCompanyTitle">RPJ MANUFACTURER</h1>
+            <p>Transaction Reports</p>
+          </div>
+        </div>
+
+        <div class="top-right" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+          <button type="button" onclick="window.print()">Print</button>
+          <div class="profile-box" id="profileBox"></div>
+        </div>
+      </div>
+
+      <section class="page active">
+        <div class="section-box">
+          <div class="reports-toolbar">
+            <div>
+              <h2>Transaction Reports</h2>
+              <p>Review party ledger, customer due, gold ledger, and silver ledger directly from the backend transaction foundation.</p>
+            </div>
+
+            <div class="reports-tabs">
+              <button type="button" class="report-tab-btn active" data-report-tab="party-ledger" onclick="switchReportTab('party-ledger')">Party Ledger</button>
+              <button type="button" class="report-tab-btn" data-report-tab="customer-due" onclick="switchReportTab('customer-due')">Customer Due</button>
+              <button type="button" class="report-tab-btn" data-report-tab="gold-ledger" onclick="switchReportTab('gold-ledger')">Gold Ledger</button>
+              <button type="button" class="report-tab-btn" data-report-tab="silver-ledger" onclick="switchReportTab('silver-ledger')">Silver Ledger</button>
+            </div>
+          </div>
+
+          <div class="sub-card report-panel active" id="panel-party-ledger">
+            <div class="report-section-head">
+              <div>
+                <h3>Party Ledger Statement</h3>
+                <p>Track cash and metal movement against any selected party with voucher-level detail.</p>
+              </div>
+              <span class="report-tag"><i class="fas fa-book-open"></i> Party Ledger</span>
+            </div>
+
+            <div class="report-filter-grid">
+              <div class="input-box">
+                <label>From Date</label>
+                <input type="date" id="partyLedgerFromDate" />
+              </div>
+              <div class="input-box">
+                <label>To Date</label>
+                <input type="date" id="partyLedgerToDate" />
+              </div>
+              <div class="input-box">
+                <label>Party Type</label>
+                <select id="partyLedgerPartyType"></select>
+              </div>
+              <div class="input-box">
+                <label>Party</label>
+                <select id="partyLedgerParty"></select>
+              </div>
+              <div class="input-box">
+                <label>Transaction Type</label>
+                <select id="partyLedgerTransactionType"></select>
+              </div>
+              <div class="input-box">
+                <label>Metal Type</label>
+                <select id="partyLedgerMetalType">
+                  <option value="">All</option>
+                  <option value="GOLD">Gold</option>
+                  <option value="SILVER">Silver</option>
+                </select>
+              </div>
+              <div class="input-box">
+                <label>Invoice No</label>
+                <input type="text" id="partyLedgerInvoiceNo" placeholder="Invoice filter" />
+              </div>
+              <div class="input-box">
+                <label>Lot No</label>
+                <input type="text" id="partyLedgerLotNo" placeholder="Lot filter" />
+              </div>
+              <div class="input-box">
+                <label>Process Lot No</label>
+                <input type="text" id="partyLedgerProcessLotNo" placeholder="Process lot filter" />
+              </div>
+              <div class="input-box">
+                <label>&nbsp;</label>
+                <button type="button" class="primary-btn" onclick="loadPartyLedgerReport()">Run Report</button>
+              </div>
+            </div>
+
+            <div class="report-summary-grid">
+              <div class="report-summary-card">
+                <h4>Opening Cash Balance</h4>
+                <p id="partyLedgerOpeningCash">Rs 0.00</p>
+              </div>
+              <div class="report-summary-card">
+                <h4>Current Cash Balance</h4>
+                <p id="partyLedgerCurrentCash">Rs 0.00</p>
+              </div>
+              <div class="report-summary-card">
+                <h4>Gold Balance</h4>
+                <p id="partyLedgerGoldBalance">0.000 gm</p>
+              </div>
+              <div class="report-summary-card">
+                <h4>Silver Balance</h4>
+                <p id="partyLedgerSilverBalance">0.000 gm</p>
+              </div>
+            </div>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Voucher No</th>
+                    <th>Transaction Type</th>
+                    <th>Party</th>
+                    <th>Reference</th>
+                    <th>Invoice No</th>
+                    <th>Lot / Process Lot</th>
+                    <th>Cash Debit</th>
+                    <th>Cash Credit</th>
+                    <th>Running Cash Balance</th>
+                    <th>Gold In</th>
+                    <th>Gold Out</th>
+                    <th>Silver In</th>
+                    <th>Silver Out</th>
+                    <th>Remarks</th>
+                  </tr>
+                </thead>
+                <tbody id="partyLedgerTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="sub-card report-panel" id="panel-customer-due">
+            <div class="report-section-head">
+              <div>
+                <h3>Customer Due Report</h3>
+                <p>Review billed amount, settled amount, and open cash due against customer invoices.</p>
+              </div>
+              <span class="report-tag"><i class="fas fa-user-clock"></i> Customer Due</span>
+            </div>
+
+            <div class="report-filter-grid">
+              <div class="input-box">
+                <label>As On Date</label>
+                <input type="date" id="customerDueAsOnDate" />
+              </div>
+              <div class="input-box">
+                <label>Customer</label>
+                <select id="customerDueParty"></select>
+              </div>
+              <div class="input-box">
+                <label>Invoice No</label>
+                <input type="text" id="customerDueInvoiceNo" placeholder="Invoice filter" />
+              </div>
+              <div class="input-box report-toggle">
+                <input type="checkbox" id="customerDueOverdueOnly" />
+                <label for="customerDueOverdueOnly">Overdue Only</label>
+              </div>
+              <div class="input-box report-toggle">
+                <input type="checkbox" id="customerDueOpenOnly" checked />
+                <label for="customerDueOpenOnly">Open Only</label>
+              </div>
+              <div class="input-box">
+                <label>&nbsp;</label>
+                <button type="button" class="primary-btn" onclick="loadCustomerDueReport()">Run Report</button>
+              </div>
+            </div>
+
+            <div class="report-summary-grid">
+              <div class="report-summary-card">
+                <h4>Total Customers With Due</h4>
+                <p id="customerDueCount">0</p>
+              </div>
+              <div class="report-summary-card">
+                <h4>Total Open Due</h4>
+                <p id="customerDueOpenTotal">Rs 0.00</p>
+              </div>
+              <div class="report-summary-card">
+                <h4>Total Billed Amount</h4>
+                <p id="customerDueBilledTotal">Rs 0.00</p>
+              </div>
+              <div class="report-summary-card">
+                <h4>Total Settled Amount</h4>
+                <p id="customerDueSettledTotal">Rs 0.00</p>
+              </div>
+            </div>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Customer</th>
+                    <th>Invoice No</th>
+                    <th>Invoice Date</th>
+                    <th>Bill Amount</th>
+                    <th>Settled Amount</th>
+                    <th>Open Due</th>
+                    <th>Payment Status</th>
+                    <th>Last Settlement Date</th>
+                    <th>Reference</th>
+                  </tr>
+                </thead>
+                <tbody id="customerDueTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="sub-card report-panel" id="panel-gold-ledger">
+            <div class="report-section-head">
+              <div>
+                <h3>Gold Ledger Report</h3>
+                <p>View voucher-wise gold in/out movement across parties, lots, and process references.</p>
+              </div>
+              <span class="report-tag"><i class="fas fa-coins"></i> Gold</span>
+            </div>
+
+            <div class="report-filter-grid">
+              <div class="input-box">
+                <label>From Date</label>
+                <input type="date" id="goldLedgerFromDate" />
+              </div>
+              <div class="input-box">
+                <label>To Date</label>
+                <input type="date" id="goldLedgerToDate" />
+              </div>
+              <div class="input-box">
+                <label>Party Type</label>
+                <select id="goldLedgerPartyType"></select>
+              </div>
+              <div class="input-box">
+                <label>Party</label>
+                <select id="goldLedgerParty"></select>
+              </div>
+              <div class="input-box">
+                <label>Transaction Type</label>
+                <select id="goldLedgerTransactionType"></select>
+              </div>
+              <div class="input-box">
+                <label>Purity</label>
+                <input type="text" id="goldLedgerPurity" placeholder="e.g. 92.5" />
+              </div>
+              <div class="input-box">
+                <label>Lot No</label>
+                <input type="text" id="goldLedgerLotNo" placeholder="Lot filter" />
+              </div>
+              <div class="input-box">
+                <label>Process Lot No</label>
+                <input type="text" id="goldLedgerProcessLotNo" placeholder="Process lot filter" />
+              </div>
+              <div class="input-box">
+                <label>&nbsp;</label>
+                <button type="button" class="primary-btn" onclick="loadMetalLedgerReport('GOLD')">Run Report</button>
+              </div>
+            </div>
+
+            <div class="report-summary-grid">
+              <div class="report-summary-card">
+                <h4>Total Gold In</h4>
+                <p id="goldLedgerTotalIn">0.000 gm</p>
+              </div>
+              <div class="report-summary-card">
+                <h4>Total Gold Out</h4>
+                <p id="goldLedgerTotalOut">0.000 gm</p>
+              </div>
+              <div class="report-summary-card">
+                <h4>Net Gold Balance</h4>
+                <p id="goldLedgerNet">0.000 gm</p>
+              </div>
+              <div class="report-summary-card">
+                <h4>Active Parties Count</h4>
+                <p id="goldLedgerActiveParties">0</p>
+              </div>
+            </div>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Voucher No</th>
+                    <th>Transaction Type</th>
+                    <th>Party</th>
+                    <th>Gold In Gross</th>
+                    <th>Gold Out Gross</th>
+                    <th>Gold In Fine</th>
+                    <th>Gold Out Fine</th>
+                    <th>Purity</th>
+                    <th>Reference</th>
+                    <th>Lot / Process Lot</th>
+                    <th>Remarks</th>
+                  </tr>
+                </thead>
+                <tbody id="goldLedgerTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="sub-card report-panel" id="panel-silver-ledger">
+            <div class="report-section-head">
+              <div>
+                <h3>Silver Ledger Report</h3>
+                <p>View voucher-wise silver in/out movement across parties, lots, and process references.</p>
+              </div>
+              <span class="report-tag"><i class="fas fa-coins"></i> Silver</span>
+            </div>
+
+            <div class="report-filter-grid">
+              <div class="input-box">
+                <label>From Date</label>
+                <input type="date" id="silverLedgerFromDate" />
+              </div>
+              <div class="input-box">
+                <label>To Date</label>
+                <input type="date" id="silverLedgerToDate" />
+              </div>
+              <div class="input-box">
+                <label>Party Type</label>
+                <select id="silverLedgerPartyType"></select>
+              </div>
+              <div class="input-box">
+                <label>Party</label>
+                <select id="silverLedgerParty"></select>
+              </div>
+              <div class="input-box">
+                <label>Transaction Type</label>
+                <select id="silverLedgerTransactionType"></select>
+              </div>
+              <div class="input-box">
+                <label>Purity</label>
+                <input type="text" id="silverLedgerPurity" placeholder="e.g. 80" />
+              </div>
+              <div class="input-box">
+                <label>Lot No</label>
+                <input type="text" id="silverLedgerLotNo" placeholder="Lot filter" />
+              </div>
+              <div class="input-box">
+                <label>Process Lot No</label>
+                <input type="text" id="silverLedgerProcessLotNo" placeholder="Process lot filter" />
+              </div>
+              <div class="input-box">
+                <label>&nbsp;</label>
+                <button type="button" class="primary-btn" onclick="loadMetalLedgerReport('SILVER')">Run Report</button>
+              </div>
+            </div>
+
+            <div class="report-summary-grid">
+              <div class="report-summary-card">
+                <h4>Total Silver In</h4>
+                <p id="silverLedgerTotalIn">0.000 gm</p>
+              </div>
+              <div class="report-summary-card">
+                <h4>Total Silver Out</h4>
+                <p id="silverLedgerTotalOut">0.000 gm</p>
+              </div>
+              <div class="report-summary-card">
+                <h4>Net Silver Balance</h4>
+                <p id="silverLedgerNet">0.000 gm</p>
+              </div>
+              <div class="report-summary-card">
+                <h4>Active Parties Count</h4>
+                <p id="silverLedgerActiveParties">0</p>
+              </div>
+            </div>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Voucher No</th>
+                    <th>Transaction Type</th>
+                    <th>Party</th>
+                    <th>Silver In Gross</th>
+                    <th>Silver Out Gross</th>
+                    <th>Silver In Fine</th>
+                    <th>Silver Out Fine</th>
+                    <th>Purity</th>
+                    <th>Reference</th>
+                    <th>Lot / Process Lot</th>
+                    <th>Remarks</th>
+                  </tr>
+                </thead>
+                <tbody id="silverLedgerTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const API_BASE = "http://localhost:8080";
+
+    const PARTY_TYPE_OPTIONS = [
+      { value: "", label: "All Party Types" },
+      { value: "CUSTOMER", label: "Customer" },
+      { value: "SUPPLIER", label: "Supplier" },
+      { value: "KARIGAR", label: "Karigar" },
+      { value: "CUSTOMER_SUPPLIER", label: "Customer + Supplier" },
+      { value: "BULLION_PARTY", label: "Bullion Party" },
+      { value: "INTERNAL", label: "Internal" }
+    ];
+
+    const TRANSACTION_TYPE_OPTIONS = [
+      { value: "", label: "All Transaction Types" },
+      { value: "SALE_INVOICE", label: "Sale Invoice" },
+      { value: "PAYMENT_RECEIVED", label: "Payment Received" },
+      { value: "PAYMENT_GIVEN", label: "Payment Given" },
+      { value: "METAL_RECEIVED", label: "Metal Received" },
+      { value: "METAL_GIVEN", label: "Metal Given" },
+      { value: "ADVANCE_RECEIVED", label: "Advance Received" },
+      { value: "ADVANCE_GIVEN", label: "Advance Given" },
+      { value: "CASH_ADJUSTMENT", label: "Cash Adjustment" },
+      { value: "METAL_ADJUSTMENT", label: "Metal Adjustment" },
+      { value: "KARIGAR_ISSUE", label: "Karigar Issue" },
+      { value: "KARIGAR_RECEIVE", label: "Karigar Receive" },
+      { value: "KARIGAR_LABOUR", label: "Karigar Labour" },
+      { value: "METAL_SETTLEMENT_RECEIVED", label: "Metal Settlement Received" }
+    ];
+
+    let reportParties = [];
+
+    function getLoggedInUser() {
+      try {
+        return JSON.parse(localStorage.getItem("erpLoggedInUser")) || null;
+      } catch (_) {
+        return null;
+      }
+    }
+
+    function getCurrentCompanyId() {
+      const user = getLoggedInUser();
+      const raw = user?.company_id ?? user?.companyId ?? null;
+      if (raw === null || raw === undefined || raw === "") return null;
+      const num = Number(raw);
+      return Number.isNaN(num) ? null : num;
+    }
+
+    function getCurrentCompanyName() {
+      const user = getLoggedInUser();
+      return String(user?.company_name || user?.companyName || "").trim();
+    }
+
+    function getCurrentUserId() {
+      const user = getLoggedInUser();
+      const raw = user?.id ?? user?.user_id ?? user?.userId ?? null;
+      if (raw === null || raw === undefined || raw === "") return null;
+      const num = Number(raw);
+      return Number.isNaN(num) ? null : num;
+    }
+
+    function isSuperAdmin() {
+      const user = getLoggedInUser();
+      const role = String(user?.role || "").toLowerCase();
+      const email = String(user?.email || "").toLowerCase();
+      return role === "superadmin" || email === "grudrapratap0@gmail.com";
+    }
+
+    function buildProtectedParams(includeCompany = false) {
+      const params = new URLSearchParams();
+      const userId = getCurrentUserId();
+      const companyId = getCurrentCompanyId();
+
+      if (userId !== null) {
+        params.set("actingUserId", String(userId));
+      }
+
+      if (includeCompany && companyId !== null) {
+        params.set("companyId", String(companyId));
+      }
+
+      return params;
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function formatMoney(value) {
+      return `Rs ${Number(value || 0).toFixed(2)}`;
+    }
+
+    function formatWeight(value) {
+      return `${Number(value || 0).toFixed(3)} gm`;
+    }
+
+    function formatTxnType(value) {
+      const match = TRANSACTION_TYPE_OPTIONS.find((item) => item.value === String(value || "").trim().toUpperCase());
+      return match?.label || String(value || "");
+    }
+
+    const ERP_SIDEBAR_STORAGE_KEY = "erpSidebarCollapsed";
+
+    function saveSidebarState(isCollapsed) {
+      localStorage.setItem(ERP_SIDEBAR_STORAGE_KEY, isCollapsed ? "true" : "false");
+    }
+
+    function applySidebarState() {
+      const sidebar = document.getElementById("sidebar");
+      if (!sidebar) return;
+      const isCollapsed = localStorage.getItem(ERP_SIDEBAR_STORAGE_KEY) === "true";
+      sidebar.classList.toggle("collapsed", isCollapsed);
+    }
+
+    function toggleSidebar() {
+      const sidebar = document.getElementById("sidebar");
+      if (!sidebar) return;
+      sidebar.classList.toggle("collapsed");
+      saveSidebarState(sidebar.classList.contains("collapsed"));
+    }
+
+    function bindSidebarMenuAutoClose() {
+      const sidebar = document.getElementById("sidebar");
+      if (!sidebar) return;
+      document.querySelectorAll(".menu a").forEach((link) => {
+        if (link.dataset.sidebarBound === "true") return;
+        link.dataset.sidebarBound = "true";
+        link.addEventListener("click", () => {
+          sidebar.classList.add("collapsed");
+          saveSidebarState(true);
+        });
+      });
+    }
+
+    applySidebarState();
+    bindSidebarMenuAutoClose();
+
+    function renderProfileBox() {
+      const profile = document.getElementById("profileBox");
+      if (!profile) return;
+      const user = getLoggedInUser();
+      if (!user) {
+        profile.innerHTML = `<i class="fas fa-user"></i><span>Guest</span>`;
+        return;
+      }
+      profile.innerHTML = `<i class="fas fa-user-circle"></i><span>${escapeHtml(user.name || user.email || "User")}</span>`;
+      const companyName = getCurrentCompanyName();
+      if (companyName) {
+        document.getElementById("pageCompanyTitle").textContent = companyName;
+      }
+    }
+
+    function switchReportTab(tabKey) {
+      document.querySelectorAll(".report-tab-btn").forEach((button) => {
+        button.classList.toggle("active", button.dataset.reportTab === tabKey);
+      });
+      document.querySelectorAll(".report-panel").forEach((panel) => {
+        panel.classList.toggle("active", panel.id === `panel-${tabKey}`);
+      });
+    }
+
+    function setTodayAndMonthDefaults() {
+      const today = new Date();
+      const todayValue = today.toISOString().slice(0, 10);
+      const monthStart = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().slice(0, 10);
+
+      [
+        "partyLedgerFromDate",
+        "goldLedgerFromDate",
+        "silverLedgerFromDate"
+      ].forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) el.value = monthStart;
+      });
+
+      [
+        "partyLedgerToDate",
+        "customerDueAsOnDate",
+        "goldLedgerToDate",
+        "silverLedgerToDate"
+      ].forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) el.value = todayValue;
+      });
+    }
+
+    function populateSelectWithOptions(selectId, options) {
+      const select = document.getElementById(selectId);
+      if (!select) return;
+      select.innerHTML = options.map((item) => `<option value="${escapeHtml(item.value)}">${escapeHtml(item.label)}</option>`).join("");
+    }
+
+    function populatePartyOptions(selectId, allowedTypes = []) {
+      const select = document.getElementById(selectId);
+      if (!select) return;
+
+      const normalizedAllowed = allowedTypes.map((item) => String(item || "").trim().toUpperCase());
+      const filteredParties = normalizedAllowed.length
+        ? reportParties.filter((party) => normalizedAllowed.includes(String(party.party_type || "").trim().toUpperCase()))
+        : reportParties;
+
+      select.innerHTML = `<option value="">All Parties</option>${filteredParties
+        .map((party) => `<option value="${Number(party.id)}">${escapeHtml(party.party_name || "")}</option>`)
+        .join("")}`;
+    }
+
+    async function loadParties() {
+      try {
+        const params = buildProtectedParams(isSuperAdmin());
+        const res = await fetch(`${API_BASE}/transaction/parties?${params.toString()}`, { cache: "no-store" });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.message || "Party load failed");
+        reportParties = Array.isArray(data.parties) ? data.parties : [];
+      } catch (error) {
+        console.log("Transaction reports party load error:", error);
+        reportParties = [];
+        showToast("Party master load failed", "error");
+      }
+
+      const partyTypeTargets = ["partyLedgerPartyType", "goldLedgerPartyType", "silverLedgerPartyType"];
+      partyTypeTargets.forEach((id) => populateSelectWithOptions(id, PARTY_TYPE_OPTIONS));
+
+      const txnTypeTargets = ["partyLedgerTransactionType", "goldLedgerTransactionType", "silverLedgerTransactionType"];
+      txnTypeTargets.forEach((id) => populateSelectWithOptions(id, TRANSACTION_TYPE_OPTIONS));
+
+      populatePartyOptions("partyLedgerParty");
+      populatePartyOptions("customerDueParty", ["CUSTOMER", "CUSTOMER_SUPPLIER"]);
+      populatePartyOptions("goldLedgerParty");
+      populatePartyOptions("silverLedgerParty");
+    }
+
+    function renderRows(tbodyId, rowsHtml, colSpan) {
+      const tbody = document.getElementById(tbodyId);
+      if (!tbody) return;
+      tbody.innerHTML = rowsHtml.length ? rowsHtml.join("") : `<tr><td colspan="${colSpan}">No report data available</td></tr>`;
+    }
+
+    async function fetchReport(url, params) {
+      const res = await fetch(`${API_BASE}${url}?${params.toString()}`, { cache: "no-store" });
+      const data = await res.json();
+      if (!data.success) {
+        throw new Error(data.message || "Report fetch failed");
+      }
+      return data;
+    }
+
+    async function loadPartyLedgerReport() {
+      try {
+        const params = buildProtectedParams(true);
+        const mappings = {
+          fromDate: "partyLedgerFromDate",
+          toDate: "partyLedgerToDate",
+          partyType: "partyLedgerPartyType",
+          partyId: "partyLedgerParty",
+          transactionType: "partyLedgerTransactionType",
+          metalType: "partyLedgerMetalType",
+          invoiceNo: "partyLedgerInvoiceNo",
+          lotNo: "partyLedgerLotNo",
+          processLotNo: "partyLedgerProcessLotNo"
+        };
+
+        Object.entries(mappings).forEach(([key, id]) => {
+          const value = document.getElementById(id)?.value || "";
+          if (String(value).trim() !== "") params.set(key, value);
+        });
+
+        const data = await fetchReport("/transaction/reports/party-ledger", params);
+        const summary = data.summary || {};
+        const rows = Array.isArray(data.rows) ? data.rows : [];
+
+        document.getElementById("partyLedgerOpeningCash").textContent = formatMoney(summary.openingCashBalance || 0);
+        document.getElementById("partyLedgerCurrentCash").textContent = formatMoney(summary.currentCashBalance || 0);
+        document.getElementById("partyLedgerGoldBalance").textContent = formatWeight(summary.goldBalance || 0);
+        document.getElementById("partyLedgerSilverBalance").textContent = formatWeight(summary.silverBalance || 0);
+
+        renderRows("partyLedgerTableBody", rows.map((row) => `
+          <tr>
+            <td>${escapeHtml(row.voucher_date || "")}</td>
+            <td>${escapeHtml(row.voucher_no || "")}</td>
+            <td>${escapeHtml(formatTxnType(row.transaction_type || ""))}</td>
+            <td>${escapeHtml(row.party_name || "")}</td>
+            <td>${escapeHtml(row.reference_no || row.voucher_no || "")}</td>
+            <td>${escapeHtml(row.invoice_no || "")}</td>
+            <td>${escapeHtml([row.lot_no || "", row.process_lot_no || ""].filter(Boolean).join(" / "))}</td>
+            <td>${formatMoney(row.cash_debit || 0)}</td>
+            <td>${formatMoney(row.cash_credit || 0)}</td>
+            <td>${formatMoney(row.running_cash_balance || 0)}</td>
+            <td>${formatWeight(row.gold_in || 0)}</td>
+            <td>${formatWeight(row.gold_out || 0)}</td>
+            <td>${formatWeight(row.silver_in || 0)}</td>
+            <td>${formatWeight(row.silver_out || 0)}</td>
+            <td>${escapeHtml(row.remarks || row.note || "")}</td>
+          </tr>
+        `), 15);
+      } catch (error) {
+        console.log("Party ledger report error:", error);
+        renderRows("partyLedgerTableBody", [], 15);
+        showToast("Party ledger report load failed", "error");
+      }
+    }
+
+    async function loadCustomerDueReport() {
+      try {
+        const params = buildProtectedParams(true);
+        params.set("asOnDate", document.getElementById("customerDueAsOnDate").value);
+
+        const customerId = document.getElementById("customerDueParty").value;
+        const invoiceNo = document.getElementById("customerDueInvoiceNo").value.trim();
+        if (customerId) params.set("customerId", customerId);
+        if (invoiceNo) params.set("invoiceNo", invoiceNo);
+        if (document.getElementById("customerDueOverdueOnly").checked) params.set("overdueOnly", "true");
+        if (document.getElementById("customerDueOpenOnly").checked) params.set("openOnly", "true");
+
+        const data = await fetchReport("/transaction/reports/customer-due", params);
+        const summary = data.summary || {};
+        const rows = Array.isArray(data.rows) ? data.rows : [];
+
+        document.getElementById("customerDueCount").textContent = String(summary.totalCustomersWithDue || 0);
+        document.getElementById("customerDueOpenTotal").textContent = formatMoney(summary.totalOpenDue || 0);
+        document.getElementById("customerDueBilledTotal").textContent = formatMoney(summary.totalBilledAmount || 0);
+        document.getElementById("customerDueSettledTotal").textContent = formatMoney(summary.totalSettledAmount || 0);
+
+        renderRows("customerDueTableBody", rows.map((row) => `
+          <tr>
+            <td>${escapeHtml(row.customer_name || "")}</td>
+            <td>${escapeHtml(row.invoice_no || "")}</td>
+            <td>${escapeHtml(row.invoice_date || "")}</td>
+            <td>${formatMoney(row.bill_amount || 0)}</td>
+            <td>${formatMoney(row.settled_amount || 0)}</td>
+            <td>${formatMoney(row.open_due || 0)}</td>
+            <td>${escapeHtml(row.payment_status || "")}</td>
+            <td>${escapeHtml(row.last_settlement_date || "")}</td>
+            <td>${escapeHtml(row.reference_no || "")}</td>
+          </tr>
+        `), 9);
+      } catch (error) {
+        console.log("Customer due report error:", error);
+        renderRows("customerDueTableBody", [], 9);
+        showToast("Customer due report load failed", "error");
+      }
+    }
+
+    async function loadMetalLedgerReport(metalType) {
+      try {
+        const prefix = metalType === "GOLD" ? "goldLedger" : "silverLedger";
+        const params = buildProtectedParams(true);
+        params.set("metalType", metalType);
+
+        const mappings = {
+          fromDate: `${prefix}FromDate`,
+          toDate: `${prefix}ToDate`,
+          partyType: `${prefix}PartyType`,
+          partyId: `${prefix}Party`,
+          transactionType: `${prefix}TransactionType`,
+          purity: `${prefix}Purity`,
+          lotNo: `${prefix}LotNo`,
+          processLotNo: `${prefix}ProcessLotNo`
+        };
+
+        Object.entries(mappings).forEach(([key, id]) => {
+          const value = document.getElementById(id)?.value || "";
+          if (String(value).trim() !== "") params.set(key, value);
+        });
+
+        const data = await fetchReport("/transaction/reports/metal-ledger", params);
+        const summary = data.summary || {};
+        const rows = Array.isArray(data.rows) ? data.rows : [];
+
+        document.getElementById(`${prefix}TotalIn`).textContent = formatWeight(summary.totalIn || 0);
+        document.getElementById(`${prefix}TotalOut`).textContent = formatWeight(summary.totalOut || 0);
+        document.getElementById(`${prefix}Net`).textContent = formatWeight(summary.netBalance || 0);
+        document.getElementById(`${prefix}ActiveParties`).textContent = String(summary.activePartiesCount || 0);
+
+        renderRows(`${prefix}TableBody`, rows.map((row) => `
+          <tr>
+            <td>${escapeHtml(row.entry_date || "")}</td>
+            <td>${escapeHtml(row.voucher_no || "")}</td>
+            <td>${escapeHtml(formatTxnType(row.transaction_type || ""))}</td>
+            <td>${escapeHtml(row.party_name || "")}</td>
+            <td>${formatWeight(row.gross_in || 0)}</td>
+            <td>${formatWeight(row.gross_out || 0)}</td>
+            <td>${formatWeight(row.fine_in || 0)}</td>
+            <td>${formatWeight(row.fine_out || 0)}</td>
+            <td>${Number(row.purity || 0).toFixed(3)}</td>
+            <td>${escapeHtml(row.reference_no || row.invoice_no || row.voucher_no || "")}</td>
+            <td>${escapeHtml([row.lot_no || "", row.process_lot_no || ""].filter(Boolean).join(" / "))}</td>
+            <td>${escapeHtml(row.remarks || "")}</td>
+          </tr>
+        `), 12);
+      } catch (error) {
+        console.log(`${metalType} ledger report error:`, error);
+        const prefix = metalType === "GOLD" ? "goldLedger" : "silverLedger";
+        renderRows(`${prefix}TableBody`, [], 12);
+        showToast(`${metalType === "GOLD" ? "Gold" : "Silver"} ledger report load failed`, "error");
+      }
+    }
+
+    window.addEventListener("load", async function () {
+      renderProfileBox();
+      setTodayAndMonthDefaults();
+      await loadParties();
+
+      document.getElementById("partyLedgerPartyType")?.addEventListener("change", function () {
+        const selectedType = this.value ? [this.value] : [];
+        populatePartyOptions("partyLedgerParty", selectedType);
+      });
+
+      document.getElementById("goldLedgerPartyType")?.addEventListener("change", function () {
+        const selectedType = this.value ? [this.value] : [];
+        populatePartyOptions("goldLedgerParty", selectedType);
+      });
+
+      document.getElementById("silverLedgerPartyType")?.addEventListener("change", function () {
+        const selectedType = this.value ? [this.value] : [];
+        populatePartyOptions("silverLedgerParty", selectedType);
+      });
+
+      await loadPartyLedgerReport();
+      await loadCustomerDueReport();
+      await loadMetalLedgerReport("GOLD");
+      await loadMetalLedgerReport("SILVER");
+    });
+  </script>
+
+  <script src="js/auth.js"></script>
+  <script>
+    requireLogin();
+    requirePageAccess("transaction-reports");
+    filterSidebarMenuByRole();
+  </script>
+  <script src="js/toast.js"></script>
+</body>
+</html>

@@ -1,0 +1,2008 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Transaction</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/toast.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <style>
+    .txn-grid {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .txn-stack {
+      display: grid;
+      gap: 14px;
+    }
+
+    .txn-panel {
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      background: linear-gradient(180deg, #ffffff 0%, #fffdf8 100%);
+      padding: 14px 16px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+    }
+
+    .txn-panel.hidden {
+      display: none;
+    }
+
+    .txn-panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .txn-panel-header h4 {
+      margin: 0;
+      font-size: 15px;
+      color: #0f172a;
+    }
+
+    .txn-panel-header p {
+      margin: 4px 0 0;
+      font-size: 12px;
+      color: #64748b;
+    }
+
+    .txn-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 11px;
+      border-radius: 999px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      color: #475569;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+    }
+
+    .txn-chip i {
+      color: #b7791f;
+    }
+
+    .txn-inline-note {
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: #f8fafc;
+      border: 1px dashed #cbd5e1;
+      color: #475569;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .txn-compact-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px 12px;
+    }
+
+    .txn-full {
+      grid-column: 1 / -1;
+    }
+
+    .txn-quick-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .txn-quick-btn {
+      border: 1px solid #dbe2ea;
+      background: #fff;
+      color: #334155;
+      border-radius: 999px;
+      padding: 7px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .txn-quick-btn:hover {
+      border-color: #b7791f;
+      color: #7c5a1d;
+    }
+
+    .txn-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .type-switch {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .type-btn {
+      border: 1px solid #d1d5db;
+      background: #fff;
+      color: #111827;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    .type-btn.active {
+      background: #2563eb;
+      color: #fff;
+      border-color: #2563eb;
+    }
+
+    .mini-row {
+      display: flex;
+      gap: 8px;
+      align-items: end;
+    }
+
+    .mini-row .input-box {
+      flex: 1;
+    }
+
+    .ledger-badge {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    .badge-red {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .badge-green {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .badge-gray {
+      background: #f3f4f6;
+      color: #374151;
+    }
+
+    .history-actions {
+      display: flex;
+      gap: 6px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .txn-section-title {
+      grid-column: 1 / -1;
+      margin: 6px 0 0;
+      padding-top: 10px;
+      border-top: 1px dashed #dbe2ea;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+      color: #7c5a1d;
+    }
+
+    .txn-summary-card {
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      background: linear-gradient(180deg, #fffdf8 0%, #ffffff 100%);
+      padding: 12px 14px;
+    }
+
+    .txn-summary-card h4 {
+      margin: 0 0 8px;
+      font-size: 13px;
+      color: #475569;
+    }
+
+    .txn-summary-card p {
+      margin: 4px 0;
+      font-size: 13px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .profile-box {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      padding: 8px 12px;
+      border-radius: 999px;
+      color: #334155;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .profile-box i {
+      color: #b7791f;
+    }
+
+    .txn-live-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .txn-live-card {
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      background: #fff;
+      padding: 12px 14px;
+    }
+
+    .txn-live-card h5 {
+      margin: 0 0 6px;
+      font-size: 12px;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .txn-live-card p {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .txn-open-list {
+      margin-top: 12px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .txn-open-item {
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      background: #fff;
+      padding: 10px 12px;
+    }
+
+    .txn-open-item strong {
+      display: block;
+      color: #0f172a;
+      font-size: 13px;
+      margin-bottom: 4px;
+    }
+
+    .txn-open-item span {
+      display: block;
+      color: #64748b;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .txn-open-item .amount {
+      margin-top: 5px;
+      color: #166534;
+      font-weight: 800;
+      font-size: 13px;
+    }
+
+    @media (max-width: 980px) {
+      .txn-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .txn-compact-grid,
+      .txn-live-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .txn-summary-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-inner">
+        <div class="brand">
+          <a href="settings.html" class="sidebar-settings-btn" data-page-key="settings" title="Settings" aria-label="Open settings">
+            <i class="fas fa-gear"></i>
+          </a>
+          <h2>ERP PANEL</h2>
+          <p>Jewellery Management</p>
+        </div>
+
+        <ul class="menu">
+          <li><a href="dashboard.html"><i class="fas fa-chart-pie"></i> Dashboard</a></li>
+          <li><a href="process.html"><i class="fas fa-screwdriver-wrench"></i> Process</a></li>
+          <li><a href="sticker.html"><i class="fas fa-barcode"></i> Sticker</a></li>
+          <li><a href="stock.html"><i class="fas fa-boxes-stacked"></i> Stock</a></li>
+          <li><a href="material-stock.html"><i class="fas fa-box-open"></i> Material Stock</a></li>
+          <li><a href="daily-report.html"><i class="fas fa-chart-line"></i> Daily Report</a></li>
+          <li><a href="invoice.html"><i class="fas fa-file-invoice"></i> Invoice</a></li>
+          <li><a href="billing.html"><i class="fas fa-money-bill-wave"></i> Billing</a></li>
+          <li><a href="return.html"><i class="fas fa-rotate-left"></i> Return</a></li>
+          <li><a href="sales-history.html"><i class="fas fa-clock-rotate-left"></i> Sales History</a></li>
+          <li><a href="expense-manager.html"><i class="fas fa-wallet"></i> Expense Manager</a></li>
+          <li><a href="transaction.html" class="active"><i class="fas fa-arrow-right-arrow-left"></i> Transaction</a></li>
+          <li><a href="transaction-reports.html"><i class="fas fa-file-lines"></i> Transaction Reports</a></li>
+          <li><a href="admin-approval.html"><i class="fas fa-user-check"></i> Admin Approval</a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div class="top-left">
+          <button class="hamburger" type="button" onclick="toggleSidebar()">
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+
+          <div class="title">
+            <h1 id="pageCompanyTitle">RPJ MANUFACTURER</h1>
+            <p>Transaction Hub</p>
+          </div>
+        </div>
+
+        <div class="top-right" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+          <button type="button" onclick="window.print()">Print</button>
+          <div class="profile-box" id="profileBox"></div>
+        </div>
+      </div>
+
+      <section class="page active">
+        <div class="section-box">
+          <h2>Transaction Hub</h2>
+          <p>Manage cash, metal, party settlement, and karigar transactions with live ledger and history.</p>
+
+          <div class="txn-grid">
+            <div class="txn-stack">
+              <div class="txn-panel">
+                <div class="txn-panel-header">
+                  <div>
+                    <h4>Party & Transaction Header</h4>
+                    <p>Select the party, voucher type, date, mode, and the primary business effect.</p>
+                  </div>
+                  <span class="txn-chip"><i class="fas fa-file-signature"></i>Voucher Entry</span>
+                </div>
+
+                <input type="hidden" id="txnEditId" />
+
+                <div class="txn-compact-grid">
+                  <div class="input-box">
+                    <label>Party Type</label>
+                    <select id="txnPartyType">
+                      <option value="CUSTOMER">Customer</option>
+                      <option value="SUPPLIER">Supplier</option>
+                      <option value="KARIGAR">Karigar</option>
+                      <option value="CUSTOMER_SUPPLIER">Customer + Supplier</option>
+                      <option value="BULLION_PARTY">Bullion Party</option>
+                      <option value="INTERNAL">Internal</option>
+                    </select>
+                  </div>
+
+                  <div class="input-box">
+                    <label>Transaction Type</label>
+                    <select id="txnType">
+                      <option value="PAYMENT_RECEIVED">Payment Received</option>
+                      <option value="PAYMENT_GIVEN">Payment Given</option>
+                      <option value="METAL_RECEIVED">Metal Received</option>
+                      <option value="METAL_GIVEN">Metal Given</option>
+                      <option value="ADVANCE_RECEIVED">Advance Received</option>
+                      <option value="ADVANCE_GIVEN">Advance Given</option>
+                      <option value="CASH_ADJUSTMENT">Cash Adjustment</option>
+                      <option value="METAL_ADJUSTMENT">Metal Adjustment</option>
+                      <option value="KARIGAR_ISSUE">Karigar Issue</option>
+                      <option value="KARIGAR_RECEIVE">Karigar Receive</option>
+                      <option value="KARIGAR_LABOUR">Karigar Labour</option>
+                    </select>
+                  </div>
+
+                  <div class="input-box">
+                    <label>Party</label>
+                    <select id="txnParty"></select>
+                  </div>
+
+                  <div class="input-box">
+                    <label>Date</label>
+                    <input type="date" id="txnDate" />
+                  </div>
+
+                  <div class="input-box">
+                    <label>Time</label>
+                    <input type="time" id="txnTime" />
+                  </div>
+
+                  <div class="input-box">
+                    <label>Transaction Mode</label>
+                    <select id="txnMode">
+                      <option value="">Select Mode</option>
+                      <option value="Credit">Credit</option>
+                      <option value="Cash">Cash</option>
+                      <option value="UPI">UPI</option>
+                      <option value="Bank">Bank</option>
+                      <option value="Adjustment">Adjustment</option>
+                    </select>
+                  </div>
+
+                  <div class="input-box txn-effect-field">
+                    <label>Effect Direction</label>
+                    <select id="txnDirection">
+                      <option value="">Auto</option>
+                      <option value="DEBIT">Cash Debit</option>
+                      <option value="CREDIT">Cash Credit</option>
+                      <option value="IN">Metal In</option>
+                      <option value="OUT">Metal Out</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="txn-inline-note" id="txnHeaderHint">
+                  Choose a transaction type to see the matching cash, metal, karigar, and settlement sections.
+                </div>
+              </div>
+
+              <div class="txn-panel" id="txnReferenceSection">
+                <div class="txn-panel-header">
+                  <div>
+                    <h4>Reference Section</h4>
+                    <p>Capture invoice, lot, process lot, and manual voucher reference details for later tracing.</p>
+                  </div>
+                  <span class="txn-chip"><i class="fas fa-link"></i>Reference</span>
+                </div>
+
+                <div class="txn-compact-grid">
+                  <div class="input-box">
+                    <label>Reference No</label>
+                    <input type="text" id="txnReferenceNo" placeholder="Invoice / Voucher / Note ref" />
+                  </div>
+
+                  <div class="input-box">
+                    <label>Invoice No</label>
+                    <input type="text" id="txnInvoiceNo" placeholder="Invoice no if linked" />
+                  </div>
+
+                  <div class="input-box">
+                    <label>Lot No</label>
+                    <input type="text" id="txnLotNo" placeholder="Lot reference" />
+                  </div>
+
+                  <div class="input-box">
+                    <label>Process Lot No</label>
+                    <input type="text" id="txnProcessLotNo" placeholder="Process lot reference" />
+                  </div>
+                </div>
+
+                <div class="txn-quick-list" id="txnRecentReferenceList"></div>
+              </div>
+
+              <div class="txn-panel" id="txnCashSection">
+                <div class="txn-panel-header">
+                  <div>
+                    <h4>Cash Section</h4>
+                    <p id="txnCashSectionHint">Record payment, advance, labour, or adjustment amount against the selected party.</p>
+                  </div>
+                  <span class="txn-chip"><i class="fas fa-wallet"></i>Cash</span>
+                </div>
+
+                <div class="txn-compact-grid">
+                  <div class="input-box txn-cash-field">
+                    <label id="txnAmountLabel">Amount</label>
+                    <input type="number" id="txnAmount" placeholder="Auto / Manual amount" />
+                  </div>
+                </div>
+              </div>
+
+              <div class="txn-panel" id="txnMetalSection">
+                <div class="txn-panel-header">
+                  <div>
+                    <h4>Metal Section</h4>
+                    <p id="txnMetalSectionHint">Capture metal movement with item, metal type, gross weight, purity, rate, and charge values.</p>
+                  </div>
+                  <span class="txn-chip"><i class="fas fa-coins"></i>Metal</span>
+                </div>
+
+                <div class="txn-compact-grid">
+                  <div class="input-box">
+                    <label>Item Name</label>
+                    <select id="txnItemName">
+                      <option value="">All</option>
+                    </select>
+                  </div>
+
+                  <div class="input-box">
+                    <label>Metal Type</label>
+                    <select id="txnMetalType">
+                      <option value="">Select Metal</option>
+                      <option value="GOLD">Gold</option>
+                      <option value="SILVER">Silver</option>
+                    </select>
+                  </div>
+
+                  <div class="mini-row txn-full">
+                    <div class="input-box">
+                      <label>New Item Name</label>
+                      <input type="text" id="newTxnItemName" placeholder="New item name" />
+                    </div>
+                    <button type="button" class="secondary-btn" onclick="addTxnItemName()">Add Item Name</button>
+                  </div>
+
+                  <div class="input-box txn-metal-field">
+                    <label>Quantity</label>
+                    <input type="number" id="txnQty" placeholder="1" />
+                  </div>
+
+                  <div class="input-box txn-metal-field">
+                    <label id="txnWeightLabel">Gross Weight (gm)</label>
+                    <input type="number" id="txnGrossWeight" step="0.001" placeholder="0" />
+                  </div>
+
+                  <div class="input-box txn-metal-field">
+                    <label>Purity / Fine (%)</label>
+                    <input type="number" id="txnFineWastage" placeholder="0" />
+                  </div>
+
+                  <div class="input-box txn-metal-field">
+                    <label>Metal Price (Rs/gm)</label>
+                    <input type="number" id="txnMetalPrice" placeholder="0" />
+                  </div>
+
+                  <div class="input-box txn-metal-field">
+                    <label>M.C (Rs/gm)</label>
+                    <input type="number" id="txnMc" placeholder="0" />
+                  </div>
+
+                  <div class="input-box txn-metal-field">
+                    <label>HM / Fluid (Rs/gm)</label>
+                    <input type="number" id="txnHmFluid" placeholder="0" />
+                  </div>
+                </div>
+              </div>
+
+              <div class="txn-panel hidden" id="txnKarigarSection">
+                <div class="txn-panel-header">
+                  <div>
+                    <h4>Karigar / Job Work Section</h4>
+                    <p id="txnKarigarHint">Track issue, receive, or labour entry against karigar with job-work references.</p>
+                  </div>
+                  <span class="txn-chip"><i class="fas fa-hammer"></i>Karigar</span>
+                </div>
+
+                <div class="txn-inline-note">
+                  Karigar transactions automatically switch the party type to <strong>Karigar</strong>. Use lot, process lot, weight, and labour amount together so job-work movement remains traceable.
+                </div>
+              </div>
+
+              <div class="txn-panel" id="txnSettlementSection">
+                <div class="txn-panel-header">
+                  <div>
+                    <h4>Settlement Section</h4>
+                    <p>Select an open invoice or recent reference to allocate this voucher against an existing due when needed.</p>
+                  </div>
+                  <span class="txn-chip"><i class="fas fa-scale-balanced"></i>Settlement</span>
+                </div>
+
+                <div class="txn-compact-grid">
+                  <div class="input-box txn-full">
+                    <label>Allocate Against Open Invoice</label>
+                    <select id="txnSettlementInvoice">
+                      <option value="">Keep as open / standalone entry</option>
+                    </select>
+                  </div>
+
+                  <div class="input-box">
+                    <label>Open Cash Due</label>
+                    <input type="text" id="txnSettlementOpenAmount" value="Rs 0.00" readonly />
+                  </div>
+
+                  <div class="input-box">
+                    <label>Prepared Allocation</label>
+                    <input type="text" id="txnSettlementAllocatedAmount" value="No allocation selected" readonly />
+                  </div>
+                </div>
+
+                <div class="txn-inline-note" id="txnSettlementHint">
+                  Open due allocation is prepared from the backend transaction foundation. If you leave this blank, the voucher stays as an open standalone entry.
+                </div>
+              </div>
+
+              <div class="txn-panel">
+                <div class="txn-panel-header">
+                  <div>
+                    <h4>Remarks</h4>
+                    <p>Keep a short business note so future ledger review and reconciliation stay clear.</p>
+                  </div>
+                  <span class="txn-chip"><i class="fas fa-note-sticky"></i>Remarks</span>
+                </div>
+
+                <div class="txn-compact-grid">
+                  <div class="input-box txn-full">
+                    <label>Remarks</label>
+                    <input type="text" id="txnNote" placeholder="Extra note..." />
+                  </div>
+                </div>
+
+                <div class="btn-row" style="margin-top: 12px;">
+                  <button type="button" class="primary-btn" onclick="saveTransaction()">Submit Transaction</button>
+                  <button type="button" class="secondary-btn" onclick="clearTransactionForm()">Clear</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="txn-stack">
+              <div class="txn-panel">
+                <div class="txn-panel-header">
+                  <div>
+                    <h4>Live Summary Panel</h4>
+                    <p>See selected party balances, open invoice context, and settlement readiness before saving.</p>
+                  </div>
+                  <span class="txn-chip"><i class="fas fa-chart-line"></i>Live</span>
+                </div>
+
+                <div class="txn-inline-note" id="txnSelectedPartyInfo">Select a party to view live cash, gold, silver, and open settlement context.</div>
+
+                <div class="txn-live-grid">
+                  <div class="txn-live-card">
+                    <h5>Cash Balance</h5>
+                    <p id="txnSelectedCashBalance">Rs 0.00</p>
+                  </div>
+                  <div class="txn-live-card">
+                    <h5>Gold Balance</h5>
+                    <p id="txnSelectedGoldBalance">0.000 gm</p>
+                  </div>
+                  <div class="txn-live-card">
+                    <h5>Silver Balance</h5>
+                    <p id="txnSelectedSilverBalance">0.000 gm</p>
+                  </div>
+                  <div class="txn-live-card">
+                    <h5>Open Context</h5>
+                    <p id="txnSelectedOpenContext">No open context</p>
+                  </div>
+                </div>
+
+                <div class="txn-open-list" id="txnOpenInvoiceList">
+                  <div class="txn-open-item">
+                    <strong>No open invoice context</strong>
+                    <span>Select a party to load invoice-linked settlement context.</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="txn-panel">
+                <h3 style="margin-top:0;">Ledger</h3>
+                <div class="txn-summary-grid" id="txnSummaryGrid">
+                  <div class="txn-summary-card">
+                    <h4>Cash Summary</h4>
+                    <p id="txnCashReceivableText">Receivable: Rs 0.00</p>
+                    <p id="txnCashPayableText">Payable: Rs 0.00</p>
+                  </div>
+                  <div class="txn-summary-card">
+                    <h4>Gold Summary</h4>
+                    <p id="txnGoldReceivableText">Receivable: 0.000 gm</p>
+                    <p id="txnGoldPayableText">Payable: 0.000 gm</p>
+                  </div>
+                  <div class="txn-summary-card">
+                    <h4>Silver Summary</h4>
+                    <p id="txnSilverReceivableText">Receivable: 0.000 gm</p>
+                    <p id="txnSilverPayableText">Payable: 0.000 gm</p>
+                  </div>
+                </div>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Party Name</th>
+                      <th>Gold Receivable</th>
+                      <th>Gold Payable</th>
+                      <th>Silver Receivable</th>
+                      <th>Silver Payable</th>
+                      <th>Cash Receivable</th>
+                      <th>Cash Payable</th>
+                    </tr>
+                  </thead>
+                  <tbody id="txnLedgerBody">
+                    <tr>
+                      <td colspan="7">No ledger data available</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="sub-card" style="margin-top:16px;">
+            <h3>Transaction History</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Time</th>
+                  <th>Party</th>
+                  <th>Party Type</th>
+                  <th>Type</th>
+                  <th>Reference</th>
+                  <th>Item</th>
+                  <th>Metal</th>
+                  <th>Qty</th>
+                  <th>Weight</th>
+                  <th>Mode</th>
+                  <th>Amount</th>
+                  <th>Note</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="txnHistoryBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const API_BASE = "http://localhost:8080";
+
+    function getLoggedInUser() {
+      try {
+        return JSON.parse(localStorage.getItem("erpLoggedInUser")) || null;
+      } catch (_) {
+        return null;
+      }
+    }
+
+    function getCurrentCompanyId() {
+      const user = getLoggedInUser();
+      const raw = user?.company_id ?? user?.companyId ?? null;
+      if (raw === null || raw === undefined || raw === "") return null;
+      const num = Number(raw);
+      return Number.isNaN(num) ? null : num;
+    }
+
+    function getCurrentCompanyName() {
+      const user = getLoggedInUser();
+      return String(user?.company_name || user?.companyName || "").trim();
+    }
+
+    function getCurrentUserId() {
+      const user = getLoggedInUser();
+      const raw = user?.id ?? user?.user_id ?? user?.userId ?? null;
+      if (raw === null || raw === undefined || raw === "") return null;
+      const num = Number(raw);
+      return Number.isNaN(num) ? null : num;
+    }
+
+    function isSuperAdmin() {
+      const user = getLoggedInUser();
+      const role = String(user?.role || "").toLowerCase();
+      const email = String(user?.email || "").toLowerCase();
+      return role === "superadmin" || email === "grudrapratap0@gmail.com";
+    }
+
+    function companyScopedKey(baseKey) {
+      const companyId = getCurrentCompanyId();
+      const scope = isSuperAdmin() ? "superadmin" : (companyId ?? "no_company");
+      return `${baseKey}_${scope}`;
+    }
+
+    const SUPPORTED_TRANSACTION_TYPES = [
+      "PAYMENT_RECEIVED",
+      "PAYMENT_GIVEN",
+      "METAL_RECEIVED",
+      "METAL_GIVEN",
+      "ADVANCE_RECEIVED",
+      "ADVANCE_GIVEN",
+      "CASH_ADJUSTMENT",
+      "METAL_ADJUSTMENT",
+      "KARIGAR_ISSUE",
+      "KARIGAR_RECEIVE",
+      "KARIGAR_LABOUR"
+    ];
+
+    const TRANSACTION_TYPE_LABELS = {
+      PAYMENT_RECEIVED: "Payment Received",
+      PAYMENT_GIVEN: "Payment Given",
+      METAL_RECEIVED: "Metal Received",
+      METAL_GIVEN: "Metal Given",
+      ADVANCE_RECEIVED: "Advance Received",
+      ADVANCE_GIVEN: "Advance Given",
+      CASH_ADJUSTMENT: "Cash Adjustment",
+      METAL_ADJUSTMENT: "Metal Adjustment",
+      KARIGAR_ISSUE: "Karigar Issue",
+      KARIGAR_RECEIVE: "Karigar Receive",
+      KARIGAR_LABOUR: "Karigar Labour",
+      SALE_INVOICE: "Sale Invoice",
+      METAL_SETTLEMENT_RECEIVED: "Metal Settlement Received",
+      PURCHASE_INVOICE: "Purchase Invoice"
+    };
+
+    const PARTY_TYPE_LABELS = {
+      CUSTOMER: "Customer",
+      SUPPLIER: "Supplier",
+      KARIGAR: "Karigar",
+      CUSTOMER_SUPPLIER: "Customer + Supplier",
+      BULLION_PARTY: "Bullion Party",
+      INTERNAL: "Internal"
+    };
+
+    let transactionData = [];
+    let transactionParties = [];
+    let transactionItems = [];
+    let cashLedgerData = [];
+    let metalLedgerData = [];
+    let currentLedgerSummary = null;
+    let openSettlementInvoices = [];
+    let recentReferenceData = [];
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    const ERP_SIDEBAR_STORAGE_KEY = "erpSidebarCollapsed";
+
+    function saveSidebarState(isCollapsed) {
+      localStorage.setItem(ERP_SIDEBAR_STORAGE_KEY, isCollapsed ? "true" : "false");
+    }
+
+    function applySidebarState() {
+      const sidebar = document.getElementById("sidebar");
+      if (!sidebar) return;
+
+      const isCollapsed = localStorage.getItem(ERP_SIDEBAR_STORAGE_KEY) === "true";
+      sidebar.classList.toggle("collapsed", isCollapsed);
+    }
+
+    function toggleSidebar() {
+      const sidebar = document.getElementById("sidebar");
+      if (!sidebar) return;
+
+      sidebar.classList.toggle("collapsed");
+      saveSidebarState(sidebar.classList.contains("collapsed"));
+    }
+
+    function bindSidebarMenuAutoClose() {
+      const sidebar = document.getElementById("sidebar");
+      if (!sidebar) return;
+
+      document.querySelectorAll(".menu a").forEach((link) => {
+        if (link.dataset.sidebarBound === "true") return;
+        link.dataset.sidebarBound = "true";
+        link.addEventListener("click", () => {
+          sidebar.classList.add("collapsed");
+          saveSidebarState(true);
+        });
+      });
+    }
+
+    applySidebarState();
+    bindSidebarMenuAutoClose();
+
+    function renderProfileBox() {
+      const box = document.getElementById("profileBox");
+      const title = document.getElementById("pageCompanyTitle");
+      const user = getLoggedInUser();
+
+      if (!box) return;
+
+      if (!user) {
+        box.innerHTML = `<i class="fas fa-user"></i> Guest`;
+        if (title) title.textContent = "RPJ MANUFACTURER";
+        return;
+      }
+
+      const role = String(user.role || "-");
+      const companyName = getCurrentCompanyName() || (isSuperAdmin() ? "All Companies" : "No Company");
+
+      box.innerHTML = `<i class="fas fa-user-circle"></i> ${escapeHtml(role)} | ${escapeHtml(companyName)}`;
+
+      if (title) {
+        title.textContent = isSuperAdmin() ? "SUPER ADMIN PANEL" : (companyName || "RPJ MANUFACTURER");
+      }
+    }
+
+    function formatTxnType(value) {
+      return TRANSACTION_TYPE_LABELS[String(value || "").trim().toUpperCase()] || String(value || "");
+    }
+
+    function formatPartyType(value) {
+      return PARTY_TYPE_LABELS[String(value || "").trim().toUpperCase()] || String(value || "");
+    }
+
+    function buildProtectedParams(includeCompany = false) {
+      const params = new URLSearchParams();
+      const actingUserId = getCurrentUserId();
+      const companyId = getCurrentCompanyId();
+
+      if (actingUserId !== null && !Number.isNaN(actingUserId)) {
+        params.set("actingUserId", String(actingUserId));
+      }
+
+      if ((includeCompany || isSuperAdmin()) && companyId !== null && !Number.isNaN(companyId)) {
+        params.set("companyId", String(companyId));
+      }
+
+      return params;
+    }
+
+    function getSelectedParty() {
+      const partyId = Number(document.getElementById("txnParty")?.value || 0);
+      return transactionParties.find((item) => Number(item.id) === partyId) || null;
+    }
+
+    function matchesPartyTypeFilter(partyType, filterType) {
+      const cleanPartyType = String(partyType || "").trim().toUpperCase();
+      const cleanFilter = String(filterType || "").trim().toUpperCase();
+
+      if (!cleanFilter) return true;
+      if (cleanFilter === cleanPartyType) return true;
+      if ((cleanFilter === "CUSTOMER" || cleanFilter === "SUPPLIER") && cleanPartyType === "CUSTOMER_SUPPLIER") {
+        return true;
+      }
+      if (cleanFilter === "SUPPLIER" && cleanPartyType === "BULLION_PARTY") {
+        return true;
+      }
+      return false;
+    }
+
+    function getCashEntryType(type, direction) {
+      if (type === "PAYMENT_RECEIVED" || type === "ADVANCE_RECEIVED") return "CREDIT";
+      if (type === "PAYMENT_GIVEN" || type === "ADVANCE_GIVEN") return "DEBIT";
+      if (type === "KARIGAR_LABOUR") return "CREDIT";
+      if (type === "CASH_ADJUSTMENT" && (direction === "DEBIT" || direction === "CREDIT")) {
+        return direction;
+      }
+      return "";
+    }
+
+    function getMetalEntryType(type, direction) {
+      if (type === "METAL_RECEIVED") return "IN";
+      if (type === "METAL_GIVEN") return "OUT";
+      if (type === "KARIGAR_ISSUE") return "IN";
+      if (type === "KARIGAR_RECEIVE") return "OUT";
+      if (type === "METAL_ADJUSTMENT" && (direction === "IN" || direction === "OUT")) {
+        return direction;
+      }
+      return "";
+    }
+
+    function isCashTransaction(type) {
+      return [
+        "PAYMENT_RECEIVED",
+        "PAYMENT_GIVEN",
+        "ADVANCE_RECEIVED",
+        "ADVANCE_GIVEN",
+        "CASH_ADJUSTMENT",
+        "KARIGAR_LABOUR"
+      ].includes(String(type || "").trim().toUpperCase());
+    }
+
+    function isMetalTransaction(type) {
+      return [
+        "METAL_RECEIVED",
+        "METAL_GIVEN",
+        "METAL_ADJUSTMENT",
+        "KARIGAR_ISSUE",
+        "KARIGAR_RECEIVE"
+      ].includes(String(type || "").trim().toUpperCase());
+    }
+
+    function isKarigarTransaction(type) {
+      return [
+        "KARIGAR_ISSUE",
+        "KARIGAR_RECEIVE",
+        "KARIGAR_LABOUR"
+      ].includes(String(type || "").trim().toUpperCase());
+    }
+
+    function supportsSettlementSection(type) {
+      return [
+        "PAYMENT_RECEIVED",
+        "PAYMENT_GIVEN",
+        "METAL_RECEIVED",
+        "METAL_GIVEN",
+        "ADVANCE_RECEIVED",
+        "ADVANCE_GIVEN"
+      ].includes(String(type || "").trim().toUpperCase());
+    }
+
+    function setSectionHidden(id, hidden) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.classList.toggle("hidden", !!hidden);
+    }
+
+    function getSelectedSettlementInvoice() {
+      const select = document.getElementById("txnSettlementInvoice");
+      if (!select || !select.value) return null;
+      return openSettlementInvoices.find((item) => String(item.transaction_id) === String(select.value)) || null;
+    }
+
+    function getSelectedPartyLedgerSummary() {
+      const party = getSelectedParty();
+      const fallback = {
+        cashBalance: 0,
+        goldBalance: 0,
+        silverBalance: 0
+      };
+
+      if (!party) return fallback;
+
+      const partyId = String(party.id);
+      const cashBalance = cashLedgerData
+        .filter((entry) => String(entry.party_id || "") === partyId)
+        .reduce((sum, entry) => sum + Number(entry.debit_amount || 0) - Number(entry.credit_amount || 0), 0);
+
+      const goldBalance = metalLedgerData
+        .filter((entry) => String(entry.party_id || "") === partyId && String(entry.metal_type || "").toUpperCase() === "GOLD")
+        .reduce((sum, entry) => sum + Number(entry.gross_in || 0) - Number(entry.gross_out || 0), 0);
+
+      const silverBalance = metalLedgerData
+        .filter((entry) => String(entry.party_id || "") === partyId && String(entry.metal_type || "").toUpperCase() === "SILVER")
+        .reduce((sum, entry) => sum + Number(entry.gross_in || 0) - Number(entry.gross_out || 0), 0);
+
+      return {
+        cashBalance,
+        goldBalance,
+        silverBalance
+      };
+    }
+
+    function renderQuickReferenceButtons() {
+      const container = document.getElementById("txnRecentReferenceList");
+      if (!container) return;
+
+      if (!recentReferenceData.length) {
+        container.innerHTML = "";
+        return;
+      }
+
+      container.innerHTML = recentReferenceData
+        .map((item) => {
+          const label = item.invoice_no || item.lot_no || item.process_lot_no || item.reference_no || item.voucher_no;
+          const title = `${formatTxnType(item.transaction_type || "")}: ${label}`;
+          return `<button type="button" class="txn-quick-btn" onclick="applyReferenceSuggestion(${Number(item.transaction_id || 0)})">${escapeHtml(title)}</button>`;
+        })
+        .join("");
+    }
+
+    function applyReferenceSuggestion(transactionId) {
+      const item = recentReferenceData.find((entry) => Number(entry.transaction_id) === Number(transactionId));
+      if (!item) return;
+
+      if (!document.getElementById("txnReferenceNo").value.trim()) {
+        document.getElementById("txnReferenceNo").value = item.reference_no || item.voucher_no || "";
+      }
+      if (!document.getElementById("txnInvoiceNo").value.trim()) {
+        document.getElementById("txnInvoiceNo").value = item.invoice_no || "";
+      }
+      if (!document.getElementById("txnLotNo").value.trim()) {
+        document.getElementById("txnLotNo").value = item.lot_no || "";
+      }
+      if (!document.getElementById("txnProcessLotNo").value.trim()) {
+        document.getElementById("txnProcessLotNo").value = item.process_lot_no || "";
+      }
+
+      showToast("Reference details fill ho gaye", "success");
+    }
+
+    function renderSettlementSection() {
+      const select = document.getElementById("txnSettlementInvoice");
+      const openAmountInput = document.getElementById("txnSettlementOpenAmount");
+      const allocatedAmountInput = document.getElementById("txnSettlementAllocatedAmount");
+      const hint = document.getElementById("txnSettlementHint");
+
+      if (!select || !openAmountInput || !allocatedAmountInput || !hint) return;
+
+      const oldValue = select.value || "";
+      select.innerHTML = '<option value="">Keep as open / standalone entry</option>';
+
+      openSettlementInvoices.forEach((item) => {
+        const label = `${item.invoice_no || item.voucher_no || "Invoice"} | Open Rs ${Number(item.open_amount || 0).toFixed(2)} | ${item.voucher_date || ""}`;
+        select.innerHTML += `<option value="${Number(item.transaction_id)}">${escapeHtml(label)}</option>`;
+      });
+
+      if ([...select.options].some((option) => option.value === oldValue)) {
+        select.value = oldValue;
+      }
+
+      const selectedInvoice = getSelectedSettlementInvoice();
+      const currentType = String(document.getElementById("txnType")?.value || "").trim().toUpperCase();
+      const amount = Number(document.getElementById("txnAmount")?.value || 0);
+      const weight = Number(document.getElementById("txnGrossWeight")?.value || 0);
+
+      if (!selectedInvoice) {
+        openAmountInput.value = "Rs 0.00";
+        allocatedAmountInput.value = supportsSettlementSection(currentType)
+          ? "No allocation selected"
+          : "Settlement not applicable";
+        hint.textContent = openSettlementInvoices.length
+          ? "Open invoice allocation is available. Select one invoice if this voucher is settling an existing due."
+          : "No open sale invoice found for this party yet. This voucher will remain a standalone/open entry.";
+        return;
+      }
+
+      openAmountInput.value = `Rs ${Number(selectedInvoice.open_amount || 0).toFixed(2)}`;
+
+      if (isCashTransaction(currentType)) {
+        const allocation = amount > 0 ? Math.min(amount, Number(selectedInvoice.open_amount || 0)) : 0;
+        allocatedAmountInput.value = `Cash allocate: Rs ${allocation.toFixed(2)}`;
+      } else if (isMetalTransaction(currentType)) {
+        allocatedAmountInput.value = weight > 0
+          ? `Metal link: ${weight.toFixed(3)} gm`
+          : "Metal link prepared";
+      } else {
+        allocatedAmountInput.value = "Reference link only";
+      }
+
+      hint.textContent = `Selected invoice ${selectedInvoice.invoice_no || selectedInvoice.voucher_no || ""} will be linked through transaction settlements when you save this voucher.`;
+    }
+
+    function renderLiveSummaryPanel() {
+      const party = getSelectedParty();
+      const info = document.getElementById("txnSelectedPartyInfo");
+      const cash = document.getElementById("txnSelectedCashBalance");
+      const gold = document.getElementById("txnSelectedGoldBalance");
+      const silver = document.getElementById("txnSelectedSilverBalance");
+      const context = document.getElementById("txnSelectedOpenContext");
+      const openList = document.getElementById("txnOpenInvoiceList");
+
+      if (!info || !cash || !gold || !silver || !context || !openList) return;
+
+      if (!party) {
+        info.textContent = "Select a party to view live cash, gold, silver, and open settlement context.";
+        cash.textContent = "Rs 0.00";
+        gold.textContent = "0.000 gm";
+        silver.textContent = "0.000 gm";
+        context.textContent = "No open context";
+        openList.innerHTML = `
+          <div class="txn-open-item">
+            <strong>No open invoice context</strong>
+            <span>Select a party to load invoice-linked settlement context.</span>
+          </div>
+        `;
+        return;
+      }
+
+      const summary = getSelectedPartyLedgerSummary();
+      const cashLabel = summary.cashBalance >= 0
+        ? `Receivable Rs ${summary.cashBalance.toFixed(2)}`
+        : `Payable Rs ${Math.abs(summary.cashBalance).toFixed(2)}`;
+      const goldLabel = summary.goldBalance >= 0
+        ? `Receivable ${summary.goldBalance.toFixed(3)} gm`
+        : `Payable ${Math.abs(summary.goldBalance).toFixed(3)} gm`;
+      const silverLabel = summary.silverBalance >= 0
+        ? `Receivable ${summary.silverBalance.toFixed(3)} gm`
+        : `Payable ${Math.abs(summary.silverBalance).toFixed(3)} gm`;
+
+      info.textContent = `${party.party_name || ""} (${formatPartyType(party.party_type || "")})`;
+      cash.textContent = cashLabel;
+      gold.textContent = goldLabel;
+      silver.textContent = silverLabel;
+      context.textContent = openSettlementInvoices.length
+        ? `${openSettlementInvoices.length} open invoice(s) ready for allocation`
+        : "No open invoice due found";
+
+      if (!openSettlementInvoices.length) {
+        openList.innerHTML = `
+          <div class="txn-open-item">
+            <strong>No open invoice due</strong>
+            <span>This party currently has no open billing invoice from the linked transaction backend.</span>
+          </div>
+        `;
+        return;
+      }
+
+      openList.innerHTML = openSettlementInvoices
+        .slice(0, 4)
+        .map((item) => `
+          <div class="txn-open-item">
+            <strong>${escapeHtml(item.invoice_no || item.voucher_no || "Invoice")}</strong>
+            <span>${escapeHtml(item.voucher_date || "")}${item.lot_no ? ` | Lot: ${escapeHtml(item.lot_no)}` : ""}${item.process_lot_no ? ` | Process: ${escapeHtml(item.process_lot_no)}` : ""}</span>
+            <span class="amount">Open Rs ${Number(item.open_amount || 0).toFixed(2)}</span>
+          </div>
+        `)
+        .join("");
+    }
+
+    async function loadSettlementContext() {
+      const party = getSelectedParty();
+
+      if (!party) {
+        openSettlementInvoices = [];
+        recentReferenceData = [];
+        renderQuickReferenceButtons();
+        renderSettlementSection();
+        renderLiveSummaryPanel();
+        return;
+      }
+
+      try {
+        const params = buildProtectedParams(true);
+        params.set("party_id", Number(party.id));
+        const res = await fetch(`${API_BASE}/transaction/open-context?${params.toString()}`, { cache: "no-store" });
+        const data = await res.json();
+
+        if (!data.success) {
+          throw new Error(data.message || "Settlement context load failed");
+        }
+
+        openSettlementInvoices = Array.isArray(data.openInvoices) ? data.openInvoices : [];
+        recentReferenceData = Array.isArray(data.recentReferences) ? data.recentReferences : [];
+      } catch (error) {
+        console.log("Settlement context load error:", error);
+        openSettlementInvoices = [];
+        recentReferenceData = [];
+      }
+
+      renderQuickReferenceButtons();
+      renderSettlementSection();
+      renderLiveSummaryPanel();
+    }
+
+    function updateTransactionFormState() {
+      const type = String(document.getElementById("txnType")?.value || "").trim().toUpperCase();
+      const cashActive = isCashTransaction(type);
+      const metalActive = isMetalTransaction(type);
+      const karigarActive = isKarigarTransaction(type);
+      const settlementActive = supportsSettlementSection(type);
+      const effectField = document.querySelector(".txn-effect-field");
+      const cashHint = document.getElementById("txnCashSectionHint");
+      const metalHint = document.getElementById("txnMetalSectionHint");
+      const headerHint = document.getElementById("txnHeaderHint");
+      const karigarHint = document.getElementById("txnKarigarHint");
+      const amountLabel = document.getElementById("txnAmountLabel");
+      const weightLabel = document.getElementById("txnWeightLabel");
+
+      setSectionHidden("txnCashSection", !cashActive);
+      setSectionHidden("txnMetalSection", !metalActive);
+      setSectionHidden("txnKarigarSection", !karigarActive);
+      setSectionHidden("txnSettlementSection", !settlementActive);
+
+      if (effectField) {
+        effectField.style.display = (type === "CASH_ADJUSTMENT" || type === "METAL_ADJUSTMENT") ? "" : "none";
+      }
+
+      if (cashHint) {
+        cashHint.textContent = type === "KARIGAR_LABOUR"
+          ? "Record labour payable/receivable for the selected karigar."
+          : type === "ADVANCE_RECEIVED" || type === "ADVANCE_GIVEN"
+            ? "Capture advance movement and keep it visible in the party cash ledger."
+            : type === "CASH_ADJUSTMENT"
+              ? "Use effect direction only for manual cash balance correction."
+              : "Record payment receipt/given amount against the selected party.";
+      }
+
+      if (metalHint) {
+        metalHint.textContent = karigarActive
+          ? "Track issued or received gold/silver weight against karigar job work."
+          : type === "METAL_ADJUSTMENT"
+            ? "Use effect direction for manual metal balance correction."
+            : "Capture metal receipt/given with gross and fine weight impact.";
+      }
+
+      if (headerHint) {
+        headerHint.textContent = `${formatTxnType(type)} voucher is active. Fill only the visible sections so posting stays clean and traceable.`;
+      }
+
+      if (karigarHint) {
+        karigarHint.textContent = type === "KARIGAR_LABOUR"
+          ? "Labour entry will affect cash ledger and remain traceable against karigar references."
+          : "Weight movement will affect metal ledger and karigar transaction link tables.";
+      }
+
+      if (amountLabel) {
+        amountLabel.textContent = type === "PAYMENT_RECEIVED"
+          ? "Received Amount"
+          : type === "PAYMENT_GIVEN"
+            ? "Given Amount"
+            : type === "ADVANCE_RECEIVED"
+              ? "Advance Received"
+              : type === "ADVANCE_GIVEN"
+                ? "Advance Given"
+                : type === "KARIGAR_LABOUR"
+                  ? "Labour Amount"
+                  : "Amount";
+      }
+
+      if (weightLabel) {
+        weightLabel.textContent = type === "KARIGAR_ISSUE"
+          ? "Issue Weight (gm)"
+          : type === "KARIGAR_RECEIVE"
+            ? "Receive Weight (gm)"
+            : "Gross Weight (gm)";
+      }
+
+      if (karigarActive) {
+        document.getElementById("txnPartyType").value = "KARIGAR";
+        loadTxnParties();
+      }
+
+      renderSettlementSection();
+      renderLiveSummaryPanel();
+    }
+
+    function calculateFineWeight() {
+      const grossWeight = Number(document.getElementById("txnGrossWeight")?.value || 0);
+      const purityPercent = Number(document.getElementById("txnFineWastage")?.value || 0);
+      return grossWeight > 0 && purityPercent > 0 ? (grossWeight * purityPercent) / 100 : 0;
+    }
+
+    function loadTxnItems() {
+      const select = document.getElementById("txnItemName");
+      if (!select) return;
+
+      const stockItems = JSON.parse(localStorage.getItem(companyScopedKey("stockItems")) || "[]");
+      const stockNames = stockItems.map(item => item.productName || item.product_name || item.itemName || "");
+
+      const historyNames = transactionData.flatMap((item) =>
+        String(item.item_names || "")
+          .split(",")
+          .map((name) => name.trim())
+          .filter(Boolean)
+      );
+
+      const sourceNames = [...transactionItems, ...stockNames, ...historyNames];
+
+      const items = [...new Set(sourceNames.map(x => String(x || "").trim()).filter(Boolean))];
+      transactionItems = items;
+
+      const oldValue = select.value || "";
+      select.innerHTML = '<option value="">All</option>';
+
+      items.forEach(item => {
+        select.innerHTML += `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`;
+      });
+
+      if ([...select.options].some(opt => opt.value === oldValue)) {
+        select.value = oldValue;
+      }
+    }
+
+    async function loadTxnParties() {
+      const select = document.getElementById("txnParty");
+      if (!select) return;
+      const oldValue = select.value || "";
+
+      try {
+        const params = buildProtectedParams(isSuperAdmin());
+        const res = await fetch(`${API_BASE}/transaction/parties?${params.toString()}`, { cache: "no-store" });
+        const data = await res.json();
+
+        if (!data.success) {
+          throw new Error(data.message || "Party load failed");
+        }
+
+        transactionParties = Array.isArray(data.parties) ? data.parties : [];
+      } catch (error) {
+        console.log("Transaction party load error:", error);
+        transactionParties = [];
+        showToast("Party master load failed", "error");
+      }
+
+      select.innerHTML = '<option value="">Select Party</option>';
+
+      const selectedPartyType = String(document.getElementById("txnPartyType")?.value || "").trim();
+      transactionParties
+        .filter((party) => matchesPartyTypeFilter(party.party_type, selectedPartyType))
+        .forEach((party) => {
+        const label = `${party.party_name || ""} (${formatPartyType(party.party_type)})`;
+        select.innerHTML += `<option value="${Number(party.id)}">${escapeHtml(label)}</option>`;
+      });
+
+      if ([...select.options].some((opt) => opt.value === oldValue)) {
+        select.value = oldValue;
+      }
+
+      renderLiveSummaryPanel();
+    }
+
+    async function syncStockItemsFromServer() {
+      try {
+        const params = buildProtectedParams(true);
+
+        const url = `${API_BASE}/getStock${params.toString() ? `?${params.toString()}` : ""}`;
+        const res = await fetch(url, { cache: "no-store" });
+        const data = await res.json();
+        const stockItems = Array.isArray(data) ? data : [];
+
+        localStorage.setItem(companyScopedKey("stockItems"), JSON.stringify(stockItems));
+      } catch (error) {
+        console.log("Transaction stock sync error:", error);
+      }
+    }
+
+    function addTxnItemName() {
+      const input = document.getElementById("newTxnItemName");
+      const name = String(input?.value || "").trim();
+
+      if (!name) {
+        showToast("New item name daalo", "error");
+        return;
+      }
+
+      if (!transactionItems.includes(name)) {
+        transactionItems.push(name);
+      }
+
+      loadTxnItems();
+      document.getElementById("txnItemName").value = name;
+      input.value = "";
+      showToast("Item name added", "success");
+    }
+
+    function clearTransactionForm() {
+      document.getElementById("txnEditId").value = "";
+      document.getElementById("txnPartyType").value = "CUSTOMER";
+      document.getElementById("txnParty").value = "";
+      document.getElementById("txnInvoiceNo").value = "";
+      document.getElementById("txnLotNo").value = "";
+      document.getElementById("txnProcessLotNo").value = "";
+      document.getElementById("txnReferenceNo").value = "";
+      document.getElementById("txnItemName").value = "";
+      document.getElementById("txnMetalType").value = "";
+      document.getElementById("newTxnItemName").value = "";
+      document.getElementById("txnQty").value = "";
+      document.getElementById("txnGrossWeight").value = "";
+      document.getElementById("txnFineWastage").value = "";
+      document.getElementById("txnMetalPrice").value = "";
+      document.getElementById("txnMc").value = "";
+      document.getElementById("txnHmFluid").value = "";
+      document.getElementById("txnMode").value = "";
+      document.getElementById("txnDirection").value = "";
+      document.getElementById("txnAmount").value = "";
+      document.getElementById("txnAmount").dataset.manual = "";
+      document.getElementById("txnNote").value = "";
+      document.getElementById("txnType").value = "PAYMENT_RECEIVED";
+      document.getElementById("txnSettlementInvoice").value = "";
+      openSettlementInvoices = [];
+      recentReferenceData = [];
+
+      const today = new Date();
+      document.getElementById("txnDate").value = today.toISOString().split("T")[0];
+      document.getElementById("txnTime").value =
+        String(today.getHours()).padStart(2, "0") + ":" + String(today.getMinutes()).padStart(2, "0");
+
+      loadTxnParties();
+      renderQuickReferenceButtons();
+      updateTransactionFormState();
+      renderSettlementSection();
+      renderLiveSummaryPanel();
+    }
+
+    function calculateTxnAmount() {
+      const weight = Number(document.getElementById("txnGrossWeight")?.value || 0);
+      const metalPrice = Number(document.getElementById("txnMetalPrice")?.value || 0);
+      const mc = Number(document.getElementById("txnMc")?.value || 0);
+      const hm = Number(document.getElementById("txnHmFluid")?.value || 0);
+
+      const amount = (weight * metalPrice) + (weight * mc) + (weight * hm);
+
+      const amountInput = document.getElementById("txnAmount");
+      if (amountInput && !amountInput.dataset.manual) {
+        amountInput.value = amount > 0 ? amount.toFixed(2) : "";
+      }
+    }
+
+    async function saveTransaction() {
+      const party = getSelectedParty();
+      const type = document.getElementById("txnType").value;
+      const partyType = document.getElementById("txnPartyType").value;
+      const selectedSettlement = getSelectedSettlementInvoice();
+      const invoiceNo = document.getElementById("txnInvoiceNo").value.trim() || (selectedSettlement?.invoice_no || "");
+      const lotNo = document.getElementById("txnLotNo").value.trim();
+      const processLotNo = document.getElementById("txnProcessLotNo").value.trim();
+      const referenceNo = document.getElementById("txnReferenceNo").value.trim() || (selectedSettlement?.voucher_no || "");
+      const itemName = document.getElementById("txnItemName").value.trim();
+      const metalType = document.getElementById("txnMetalType").value.trim();
+      const qty = Number(document.getElementById("txnQty").value || 0);
+      const grossWeight = Number(document.getElementById("txnGrossWeight").value || 0);
+      const purityPercent = Number(document.getElementById("txnFineWastage").value || 0);
+      const metalPrice = Number(document.getElementById("txnMetalPrice").value || 0);
+      const mc = Number(document.getElementById("txnMc").value || 0);
+      const hmFluid = Number(document.getElementById("txnHmFluid").value || 0);
+      const mode = document.getElementById("txnMode").value;
+      const direction = document.getElementById("txnDirection").value;
+      const date = document.getElementById("txnDate").value;
+      const time = document.getElementById("txnTime").value;
+      const note = document.getElementById("txnNote").value.trim();
+
+      let amount = Number(document.getElementById("txnAmount").value || 0);
+      if (amount <= 0) {
+        amount = (grossWeight * metalPrice) + (grossWeight * mc) + (grossWeight * hmFluid);
+      }
+
+      if (!party || !type || !date) {
+        showToast("Party, type aur date daalo", "error");
+        return;
+      }
+
+      const cashEntryType = getCashEntryType(type, direction);
+      const metalEntryType = getMetalEntryType(type, direction);
+      const fineWeight = calculateFineWeight();
+      const settlements = [];
+
+      if ((type === "CASH_ADJUSTMENT") && !cashEntryType) {
+        showToast("Cash adjustment ke liye effect direction select karo", "error");
+        return;
+      }
+
+      if ((type === "METAL_ADJUSTMENT") && !metalEntryType) {
+        showToast("Metal adjustment ke liye effect direction select karo", "error");
+        return;
+      }
+
+      if ((type.includes("METAL") || type === "KARIGAR_ISSUE" || type === "KARIGAR_RECEIVE") && (!metalType || grossWeight <= 0)) {
+        showToast("Metal transaction ke liye metal aur weight required hai", "error");
+        return;
+      }
+
+      if ((type.includes("PAYMENT") || type.includes("ADVANCE") || type === "CASH_ADJUSTMENT" || type === "KARIGAR_LABOUR") && amount <= 0) {
+        showToast("Cash transaction ke liye amount required hai", "error");
+        return;
+      }
+
+      if (selectedSettlement) {
+        if (cashEntryType) {
+          settlements.push({
+            settlement_type: "CASH",
+            against_transaction_id: Number(selectedSettlement.transaction_id),
+            against_invoice_no: selectedSettlement.invoice_no || "",
+            against_voucher_no: selectedSettlement.voucher_no || "",
+            cash_amount: amount,
+            settlement_date: date,
+            remarks: note || `${formatTxnType(type)} allocation`
+          });
+        } else if (metalEntryType) {
+          settlements.push({
+            settlement_type: "METAL",
+            against_transaction_id: Number(selectedSettlement.transaction_id),
+            against_invoice_no: selectedSettlement.invoice_no || "",
+            against_voucher_no: selectedSettlement.voucher_no || "",
+            cash_amount: amount > 0 ? amount : 0,
+            metal_type: metalType,
+            gross_weight: grossWeight,
+            fine_weight: fineWeight,
+            purity: purityPercent,
+            rate_basis: metalPrice,
+            settlement_date: date,
+            remarks: note || `${formatTxnType(type)} metal allocation`
+          });
+        }
+      }
+
+      const params = buildProtectedParams(true);
+      const payload = {
+        actingUserId: getCurrentUserId(),
+        userId: getCurrentUserId(),
+        companyId: getCurrentCompanyId(),
+        company_id: getCurrentCompanyId(),
+        party_id: Number(party.id),
+        party_type: partyType || party.party_type,
+        transaction_type: type,
+        voucher_date: date,
+        voucher_time: time,
+        payment_mode: mode,
+        reference_no: referenceNo,
+        invoice_no: invoiceNo,
+        lot_no: lotNo,
+        process_lot_no: processLotNo,
+        karigar_id: partyType === "KARIGAR" ? Number(party.id) : null,
+        item_name: itemName,
+        qty,
+        metal_type: metalType,
+        purity: purityPercent,
+        gross_weight: grossWeight,
+        fine_weight: fineWeight,
+        amount: amount,
+        cash_amount: cashEntryType ? amount : 0,
+        cash_entry_type: cashEntryType,
+        metal_entry_type: metalEntryType,
+        rate_per_gram: metalPrice,
+        line_amount: amount,
+        making_charge: mc,
+        hallmark_charge: hmFluid,
+        remarks: note,
+        note,
+        settlements,
+        lines: [
+          {
+            line_no: 1,
+            item_name: itemName,
+            lot_no: lotNo,
+            metal_type: metalType,
+            purity: purityPercent,
+            gross_weight: grossWeight,
+            fine_weight: fineWeight,
+            qty,
+            rate_per_gram: metalPrice,
+            making_charge: mc,
+            hallmark_charge: hmFluid,
+            line_amount: amount,
+            remarks: note
+          }
+        ]
+      };
+
+      try {
+        const res = await fetch(`${API_BASE}/transaction/transactions`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+
+        if (!data.success) {
+          showToast(data.message || "Transaction save failed", "error");
+          return;
+        }
+
+        if (itemName && !transactionItems.includes(itemName)) {
+          transactionItems.push(itemName);
+        }
+
+        await Promise.all([
+          loadTransactionHistory(),
+          loadLedgerSummary(),
+          loadSettlementContext()
+        ]);
+        loadTxnItems();
+        clearTransactionForm();
+        showToast("Transaction saved successfully", "success");
+      } catch (error) {
+        console.log("Transaction save error:", error);
+        showToast("Transaction save failed", "error");
+      }
+    }
+
+    function canReuseTransaction(item) {
+      return SUPPORTED_TRANSACTION_TYPES.includes(String(item?.transaction_type || "").trim().toUpperCase());
+    }
+
+    function editTransaction(id) {
+      const item = transactionData.find(t => Number(t.id) === Number(id));
+      if (!item) return;
+
+      document.getElementById("txnEditId").value = item.id || "";
+      document.getElementById("txnPartyType").value = item.party_type || "CUSTOMER";
+      loadTxnParties().then(() => {
+        document.getElementById("txnParty").value = String(item.party_id || "");
+        loadSettlementContext();
+      });
+      document.getElementById("txnType").value = item.transaction_type || "PAYMENT_RECEIVED";
+      document.getElementById("txnInvoiceNo").value = item.invoice_no || "";
+      document.getElementById("txnLotNo").value = item.lot_no || "";
+      document.getElementById("txnProcessLotNo").value = item.process_lot_no || "";
+      document.getElementById("txnReferenceNo").value = item.reference_no || item.voucher_no || "";
+      document.getElementById("txnItemName").value = String(item.item_names || "").split(",")[0]?.trim() || "";
+      document.getElementById("txnMetalType").value = item.metal_type || "";
+      document.getElementById("txnQty").value = item.total_qty || "";
+      document.getElementById("txnGrossWeight").value = item.total_gross_weight || "";
+      document.getElementById("txnFineWastage").value = item.total_gross_weight > 0
+        ? (((Number(item.total_fine_weight || 0) / Number(item.total_gross_weight || 1)) * 100).toFixed(3))
+        : "";
+      document.getElementById("txnMetalPrice").value = "";
+      document.getElementById("txnMc").value = "";
+      document.getElementById("txnHmFluid").value = "";
+      document.getElementById("txnMode").value = item.payment_mode || "";
+      document.getElementById("txnDate").value = item.voucher_date || "";
+      document.getElementById("txnTime").value = item.voucher_time || "";
+      document.getElementById("txnAmount").value = Number(item.total_line_amount || 0).toFixed(2);
+      document.getElementById("txnAmount").dataset.manual = "true";
+      document.getElementById("txnNote").value = item.note || item.remarks || "";
+      document.getElementById("txnSettlementInvoice").value = "";
+      updateTransactionFormState();
+
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      showToast("History data form me load ho gaya. Save karoge to naya transaction banega.", "info");
+    }
+
+    function deleteTransaction(id) {
+      showToast("Delete API abhi enabled nahi hai", "info");
+    }
+
+    async function loadTransactionHistory() {
+      try {
+        const params = buildProtectedParams(true);
+        const res = await fetch(`${API_BASE}/transaction/transactions?${params.toString()}`, { cache: "no-store" });
+        const data = await res.json();
+        if (!data.success) {
+          throw new Error(data.message || "Transaction history load failed");
+        }
+
+        transactionData = Array.isArray(data.transactions) ? data.transactions : [];
+      } catch (error) {
+        console.log("Transaction history load error:", error);
+        transactionData = [];
+        showToast("Transaction history load failed", "error");
+      }
+
+      renderTransactionHistory();
+      renderQuickReferenceButtons();
+      renderLiveSummaryPanel();
+    }
+
+    function renderTransactionHistory() {
+      const tbody = document.getElementById("txnHistoryBody");
+      if (!tbody) return;
+
+      tbody.innerHTML = "";
+
+      if (!transactionData.length) {
+        tbody.innerHTML = `<tr><td colspan="14">No transaction history available</td></tr>`;
+        return;
+      }
+
+      transactionData
+        .slice()
+        .sort((a, b) => Number(b.id) - Number(a.id))
+        .forEach(item => {
+          const canReuse = canReuseTransaction(item);
+          tbody.innerHTML += `
+            <tr>
+              <td>${escapeHtml(item.voucher_date || "")}</td>
+              <td>${escapeHtml(item.voucher_time || "")}</td>
+              <td>${escapeHtml(item.party_name || "")}</td>
+              <td>${escapeHtml(formatPartyType(item.party_type || ""))}</td>
+              <td>${escapeHtml(formatTxnType(item.transaction_type || ""))}</td>
+              <td>${escapeHtml(item.invoice_no || item.lot_no || item.process_lot_no || item.reference_no || item.voucher_no || "")}</td>
+              <td>${escapeHtml(item.item_names || "")}</td>
+              <td>${escapeHtml(item.metal_type || "")}</td>
+              <td>${Number(item.total_qty || 0).toFixed(3)}</td>
+              <td>${Number(item.total_gross_weight || 0).toFixed(3)}</td>
+              <td>${escapeHtml(item.payment_mode || "")}</td>
+              <td>${Number(item.total_line_amount || 0).toFixed(2)}</td>
+              <td>${escapeHtml(item.note || item.remarks || "")}</td>
+              <td>
+                <div class="history-actions">
+                  ${canReuse
+                    ? `<button type="button" class="primary-btn" onclick="editTransaction(${item.id})">Reuse</button>`
+                    : `<button type="button" class="secondary-btn" onclick="deleteTransaction(${item.id})">Info</button>`}
+                </div>
+              </td>
+            </tr>
+          `;
+        });
+    }
+
+    async function loadLedgerSummary() {
+      try {
+        const params = buildProtectedParams(true);
+        const [cashRes, metalRes] = await Promise.all([
+          fetch(`${API_BASE}/transaction/cash-ledger?${params.toString()}`, { cache: "no-store" }),
+          fetch(`${API_BASE}/transaction/metal-ledger?${params.toString()}`, { cache: "no-store" })
+        ]);
+
+        const cashData = await cashRes.json();
+        const metalData = await metalRes.json();
+
+        if (!cashData.success) throw new Error(cashData.message || "Cash ledger load failed");
+        if (!metalData.success) throw new Error(metalData.message || "Metal ledger load failed");
+
+        cashLedgerData = Array.isArray(cashData.ledger) ? cashData.ledger : [];
+        metalLedgerData = Array.isArray(metalData.ledger) ? metalData.ledger : [];
+      } catch (error) {
+        console.log("Transaction ledger load error:", error);
+        cashLedgerData = [];
+        metalLedgerData = [];
+        showToast("Ledger summary load failed", "error");
+      }
+
+      renderLedger();
+      renderLiveSummaryPanel();
+    }
+
+    function renderLedgerSummaryCards(summary) {
+      const safe = summary || {
+        cashReceivable: 0,
+        cashPayable: 0,
+        goldReceivable: 0,
+        goldPayable: 0,
+        silverReceivable: 0,
+        silverPayable: 0
+      };
+
+      document.getElementById("txnCashReceivableText").textContent = `Receivable: Rs ${safe.cashReceivable.toFixed(2)}`;
+      document.getElementById("txnCashPayableText").textContent = `Payable: Rs ${safe.cashPayable.toFixed(2)}`;
+      document.getElementById("txnGoldReceivableText").textContent = `Receivable: ${safe.goldReceivable.toFixed(3)} gm`;
+      document.getElementById("txnGoldPayableText").textContent = `Payable: ${safe.goldPayable.toFixed(3)} gm`;
+      document.getElementById("txnSilverReceivableText").textContent = `Receivable: ${safe.silverReceivable.toFixed(3)} gm`;
+      document.getElementById("txnSilverPayableText").textContent = `Payable: ${safe.silverPayable.toFixed(3)} gm`;
+    }
+
+    function renderLedger() {
+      const tbody = document.getElementById("txnLedgerBody");
+      if (!tbody) return;
+
+      tbody.innerHTML = "";
+
+      if (!cashLedgerData.length && !metalLedgerData.length) {
+        renderLedgerSummaryCards(null);
+        tbody.innerHTML = `<tr><td colspan="7">No ledger data available</td></tr>`;
+        return;
+      }
+
+      const ledgerMap = {};
+      const totals = {
+        cashReceivable: 0,
+        cashPayable: 0,
+        goldReceivable: 0,
+        goldPayable: 0,
+        silverReceivable: 0,
+        silverPayable: 0
+      };
+
+      cashLedgerData.forEach((item) => {
+        const partyId = String(item.party_id || "");
+        const name = String(item.party_name || "").trim();
+        if (!partyId || !name) return;
+
+        if (!ledgerMap[partyId]) {
+          ledgerMap[partyId] = {
+            name,
+            goldReceivable: 0,
+            goldPayable: 0,
+            silverReceivable: 0,
+            silverPayable: 0,
+            cashReceivable: 0,
+            cashPayable: 0
+          };
+        }
+
+        const netCash = Number(item.debit_amount || 0) - Number(item.credit_amount || 0);
+        if (netCash >= 0) {
+          ledgerMap[partyId].cashReceivable += netCash;
+          totals.cashReceivable += netCash;
+        } else {
+          const payable = Math.abs(netCash);
+          ledgerMap[partyId].cashPayable += payable;
+          totals.cashPayable += payable;
+        }
+      });
+
+      metalLedgerData.forEach((item) => {
+        const partyId = String(item.party_id || "");
+        const name = String(item.party_name || "").trim();
+        const metalType = String(item.metal_type || "").trim().toUpperCase();
+        if (!partyId || !name) return;
+        if (metalType !== "GOLD" && metalType !== "SILVER") return;
+
+        if (!ledgerMap[partyId]) {
+          ledgerMap[partyId] = {
+            name,
+            goldReceivable: 0,
+            goldPayable: 0,
+            silverReceivable: 0,
+            silverPayable: 0,
+            cashReceivable: 0,
+            cashPayable: 0
+          };
+        }
+
+        const netMetal = Number(item.gross_in || 0) - Number(item.gross_out || 0);
+        const receivableField = metalType === "GOLD" ? "goldReceivable" : "silverReceivable";
+        const payableField = metalType === "GOLD" ? "goldPayable" : "silverPayable";
+        const totalReceivableField = metalType === "GOLD" ? "goldReceivable" : "silverReceivable";
+        const totalPayableField = metalType === "GOLD" ? "goldPayable" : "silverPayable";
+
+        if (netMetal >= 0) {
+          ledgerMap[partyId][receivableField] += netMetal;
+          totals[totalReceivableField] += netMetal;
+        } else {
+          const payable = Math.abs(netMetal);
+          ledgerMap[partyId][payableField] += payable;
+          totals[totalPayableField] += payable;
+        }
+      });
+
+      currentLedgerSummary = totals;
+      renderLedgerSummaryCards(totals);
+
+      const partyIds = Object.keys(ledgerMap);
+
+      if (!partyIds.length) {
+        tbody.innerHTML = `<tr><td colspan="7">No ledger data available</td></tr>`;
+        return;
+      }
+
+      partyIds.forEach((partyId) => {
+        const row = ledgerMap[partyId];
+
+        tbody.innerHTML += `
+          <tr>
+            <td>${escapeHtml(row.name)}</td>
+            <td>${row.goldReceivable > 0 ? `<span class="ledger-badge badge-gray">${row.goldReceivable.toFixed(3)} gm</span>` : "None"}</td>
+            <td>${row.goldPayable > 0 ? `<span class="ledger-badge badge-red">${row.goldPayable.toFixed(3)} gm</span>` : "None"}</td>
+            <td>${row.silverReceivable > 0 ? `<span class="ledger-badge badge-gray">${row.silverReceivable.toFixed(3)} gm</span>` : "None"}</td>
+            <td>${row.silverPayable > 0 ? `<span class="ledger-badge badge-red">${row.silverPayable.toFixed(3)} gm</span>` : "None"}</td>
+            <td>${row.cashReceivable > 0 ? `<span class="ledger-badge badge-green">${row.cashReceivable.toFixed(2)} Rs</span>` : "None"}</td>
+            <td>${row.cashPayable > 0 ? `<span class="ledger-badge badge-red">${row.cashPayable.toFixed(2)} Rs</span>` : "None"}</td>
+          </tr>
+        `;
+      });
+    }
+
+    document.getElementById("txnQty")?.addEventListener("input", calculateTxnAmount);
+    document.getElementById("txnGrossWeight")?.addEventListener("input", calculateTxnAmount);
+    document.getElementById("txnMetalPrice")?.addEventListener("input", calculateTxnAmount);
+    document.getElementById("txnMc")?.addEventListener("input", calculateTxnAmount);
+    document.getElementById("txnHmFluid")?.addEventListener("input", calculateTxnAmount);
+    document.getElementById("txnPartyType")?.addEventListener("change", async function () {
+      await loadTxnParties();
+      await loadSettlementContext();
+      updateTransactionFormState();
+    });
+    document.getElementById("txnParty")?.addEventListener("change", loadSettlementContext);
+    document.getElementById("txnType")?.addEventListener("change", function () {
+      updateTransactionFormState();
+      renderSettlementSection();
+    });
+    document.getElementById("txnSettlementInvoice")?.addEventListener("change", function () {
+      const selectedInvoice = getSelectedSettlementInvoice();
+      if (selectedInvoice) {
+        if (!document.getElementById("txnInvoiceNo").value.trim()) {
+          document.getElementById("txnInvoiceNo").value = selectedInvoice.invoice_no || "";
+        }
+        if (!document.getElementById("txnReferenceNo").value.trim()) {
+          document.getElementById("txnReferenceNo").value = selectedInvoice.voucher_no || "";
+        }
+        if (!document.getElementById("txnLotNo").value.trim()) {
+          document.getElementById("txnLotNo").value = selectedInvoice.lot_no || "";
+        }
+        if (!document.getElementById("txnProcessLotNo").value.trim()) {
+          document.getElementById("txnProcessLotNo").value = selectedInvoice.process_lot_no || "";
+        }
+      }
+      renderSettlementSection();
+      renderLiveSummaryPanel();
+    });
+
+    document.getElementById("txnAmount")?.addEventListener("input", function () {
+      this.dataset.manual = this.value ? "true" : "";
+      renderSettlementSection();
+      renderLiveSummaryPanel();
+    });
+    document.getElementById("txnGrossWeight")?.addEventListener("input", renderSettlementSection);
+
+    window.addEventListener("load", async function () {
+      renderProfileBox();
+      clearTransactionForm();
+      await syncStockItemsFromServer();
+      await loadTxnParties();
+      await loadTransactionHistory();
+      loadTxnItems();
+      await loadLedgerSummary();
+      await loadSettlementContext();
+      renderSettlementSection();
+      renderLiveSummaryPanel();
+    });
+  </script>
+
+  <script src="js/auth.js"></script>
+  <script>
+    requireLogin();
+    requirePageAccess("transaction");
+    filterSidebarMenuByRole();
+  </script>
+  <script src="js/toast.js"></script>
+</body>
+</html>

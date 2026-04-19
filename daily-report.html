@@ -1,0 +1,2060 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daily Report</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/toast.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <style>
+    .report-page-intro {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      flex-wrap: wrap;
+      padding: 18px 20px;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(183, 121, 31, 0.1), rgba(148, 163, 184, 0.08)),
+        #fff;
+      border: 1px solid #ead9bc;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05);
+      margin-top: 10px;
+    }
+
+    .report-page-intro h2 {
+      margin: 0 0 8px;
+      font-size: 28px;
+      font-weight: 800;
+      color: #111827;
+      letter-spacing: -0.02em;
+    }
+
+    .report-page-intro p {
+      margin: 0;
+      max-width: 760px;
+      color: #475569;
+      line-height: 1.55;
+    }
+
+    .intro-badge-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .intro-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 14px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid #ead9bc;
+      color: #7c5a1d;
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .company-info-chip {
+      margin-bottom: 12px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      color: #334155;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .report-toolbar {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+      margin-bottom: 18px;
+    }
+
+    .report-date-box {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: flex-end;
+    }
+
+    .report-date-box label {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      color: #475569;
+      margin-bottom: 6px;
+    }
+
+    .report-date-box input {
+      min-width: 220px;
+    }
+
+    .toolbar-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .report-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .report-summary-grid .summary-card {
+      position: relative;
+      overflow: hidden;
+      padding: 18px 16px 16px;
+      border-radius: 18px;
+      border: 1px solid #ede7da;
+      background:
+        radial-gradient(circle at top right, rgba(183, 121, 31, 0.12), transparent 45%),
+        linear-gradient(180deg, #ffffff, #fbfcfe);
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.05);
+    }
+
+    .report-summary-grid .summary-card::after {
+      content: "";
+      position: absolute;
+      inset: auto -18px -18px auto;
+      width: 72px;
+      height: 72px;
+      border-radius: 999px;
+      background: rgba(183, 121, 31, 0.06);
+    }
+
+    .metric-topline {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .metric-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #fff7ed, #fef3c7);
+      border: 1px solid #f4d8aa;
+      color: #9a3412;
+      font-size: 19px;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    }
+
+    .metric-title {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .report-summary-grid .summary-card h4 {
+      margin: 0;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #64748b;
+      font-weight: 800;
+    }
+
+    .report-summary-grid .summary-card p {
+      margin: 0;
+      position: relative;
+      z-index: 1;
+    }
+
+    .metric-value {
+      font-size: 30px;
+      line-height: 1.1;
+      font-weight: 900;
+      color: #0f172a;
+      letter-spacing: -0.03em;
+    }
+
+    .report-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-top: 18px;
+      min-width: 0;
+    }
+
+    .report-header-card {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+
+    .report-header-card h3 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #111827;
+    }
+
+    .report-header-card p {
+      margin: 4px 0 0;
+      color: #64748b;
+      font-size: 13px;
+    }
+
+    .section-heading {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-heading-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #fff7ed, #f8fafc);
+      border: 1px solid #ecd8b7;
+      color: #92400e;
+      font-size: 17px;
+      flex: 0 0 auto;
+    }
+
+    .report-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      color: #9a3412;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .summary-card .summary-value-money {
+      font-size: 24px;
+      line-height: 1.2;
+    }
+
+    .summary-note {
+      margin-top: 6px;
+      font-size: 12px;
+      color: #64748b;
+      position: relative;
+      z-index: 1;
+      min-height: 30px;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      max-width: 100%;
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      background: #fff;
+      margin-top: 12px;
+    }
+
+    table {
+      width: 100%;
+      min-width: 980px;
+      border-collapse: collapse;
+      background: #fff;
+    }
+
+    table th,
+    table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid #f1f5f9;
+      text-align: left;
+      vertical-align: top;
+      font-size: 13px;
+      white-space: normal;
+      word-break: break-word;
+    }
+
+    table th {
+      background: #f8fafc;
+      color: #475569;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .status-pill.added,
+    .status-pill.in {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .status-pill.sold,
+    .status-pill.out,
+    .status-pill.damaged {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .status-pill.normal,
+    .status-pill.active,
+    .status-pill.ok {
+      background: #e0f2fe;
+      color: #075985;
+    }
+
+    .empty-state {
+      padding: 18px;
+      text-align: center;
+      color: #64748b;
+      font-size: 14px;
+    }
+
+    .profile-box {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      padding: 8px 12px;
+      border-radius: 999px;
+      color: #334155;
+      font-size: 13px;
+      font-weight: 700;
+      width: auto;
+      height: auto;
+    }
+
+    .profile-box i {
+      color: #b7791f;
+    }
+
+    .pdf-export-host {
+      position: fixed;
+      left: -100000px;
+      top: 0;
+      width: 1120px;
+      padding: 0;
+      background: #fff;
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    .pdf-report-shell {
+      width: 1080px;
+      margin: 0 auto;
+      padding: 26px 24px 30px;
+      background: #fff;
+      color: #0f172a;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .pdf-report-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 18px;
+      padding-bottom: 14px;
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    .pdf-report-header h1 {
+      margin: 0 0 6px;
+      font-size: 28px;
+      color: #111827;
+    }
+
+    .pdf-report-header p {
+      margin: 0;
+      color: #475569;
+      font-size: 13px;
+    }
+
+    .pdf-company-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      color: #9a3412;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .pdf-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .pdf-summary-card {
+      padding: 12px 12px 10px;
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      background: #fafaf9;
+    }
+
+    .pdf-summary-card .label {
+      font-size: 11px;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 800;
+    }
+
+    .pdf-summary-card .value {
+      margin-top: 6px;
+      font-size: 22px;
+      font-weight: 900;
+      color: #111827;
+    }
+
+    .pdf-section {
+      margin-top: 16px;
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+
+    .pdf-section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .pdf-section-header h2 {
+      margin: 0;
+      font-size: 18px;
+      color: #111827;
+    }
+
+    .pdf-section-header p {
+      margin: 4px 0 0;
+      color: #64748b;
+      font-size: 12px;
+    }
+
+    .pdf-section-tag {
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      font-size: 11px;
+      font-weight: 800;
+      color: #334155;
+      white-space: nowrap;
+    }
+
+    .pdf-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .pdf-table th,
+    .pdf-table td {
+      border-bottom: 1px solid #e2e8f0;
+      padding: 8px 9px;
+      font-size: 11px;
+      text-align: left;
+      vertical-align: top;
+      word-break: break-word;
+    }
+
+    .pdf-table th {
+      background: #f8fafc;
+      color: #475569;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-size: 10px;
+    }
+
+    .pdf-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .pdf-empty {
+      padding: 12px;
+      border: 1px dashed #cbd5e1;
+      border-radius: 12px;
+      color: #64748b;
+      font-size: 12px;
+      text-align: center;
+      background: #f8fafc;
+    }
+
+    @media (max-width: 1280px) {
+      .report-summary-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 1024px) {
+      .report-summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media print {
+      .sidebar,
+      .topbar,
+      .report-toolbar {
+        display: none !important;
+      }
+
+      .main {
+        margin: 0;
+        padding: 0;
+      }
+
+      .section-box,
+      .sub-card {
+        box-shadow: none !important;
+        border: 1px solid #e5e7eb !important;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .report-summary-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .report-page-intro {
+        padding: 16px;
+      }
+
+      table {
+        min-width: 860px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-inner">
+        <div class="brand">
+          <a href="settings.html" class="sidebar-settings-btn" data-page-key="settings" title="Settings" aria-label="Open settings">
+            <i class="fas fa-gear"></i>
+          </a>
+          <h2>ERP PANEL</h2>
+          <p>Jewellery Management</p>
+        </div>
+
+        <ul class="menu">
+          <li><a href="dashboard.html"><i class="fas fa-chart-pie"></i> Dashboard</a></li>
+          <li><a href="process.html"><i class="fas fa-screwdriver-wrench"></i> Process</a></li>
+          <li><a href="sticker.html"><i class="fas fa-barcode"></i> Sticker</a></li>
+          <li><a href="stock.html"><i class="fas fa-boxes-stacked"></i> Stock</a></li>
+          <li><a href="material-stock.html"><i class="fas fa-box-open"></i> Material Stock</a></li>
+          <li><a href="daily-report.html" class="active"><i class="fas fa-chart-line"></i> Daily Report</a></li>
+          <li><a href="invoice.html"><i class="fas fa-file-invoice"></i> Invoice</a></li>
+          <li><a href="billing.html"><i class="fas fa-money-bill-wave"></i> Billing</a></li>
+          <li><a href="return.html"><i class="fas fa-rotate-left"></i> Return</a></li>
+          <li><a href="sales-history.html"><i class="fas fa-clock-rotate-left"></i> Sales History</a></li>
+          <li><a href="expense-manager.html"><i class="fas fa-wallet"></i> Expense Manager</a></li>
+          <li><a href="transaction.html"><i class="fas fa-arrow-right-arrow-left"></i> Transaction</a></li>
+          <li><a href="transaction-reports.html"><i class="fas fa-file-lines"></i> Transaction Reports</a></li>
+          <li><a href="admin-approval.html"><i class="fas fa-user-check"></i> Admin Approval</a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div class="top-left">
+          <button class="hamburger" type="button" onclick="toggleSidebar()">
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+
+          <div class="title">
+            <h1 id="pageCompanyTitle">RPJ MANUFACTURER</h1>
+            <p>Daily ERP Activity Summary</p>
+          </div>
+        </div>
+
+        <div class="top-right">
+          <div class="profile-box" id="profileBox"><i class="fas fa-user-circle"></i> Loading...</div>
+        </div>
+      </div>
+
+      <section class="page active">
+        <div class="section-box">
+          <div id="companyInfoChip" class="company-info-chip">Company: Loading...</div>
+
+          <div class="report-page-intro">
+            <div>
+              <h2>Daily Report</h2>
+              <p>Selected day ka process, sticker, stock, billing, returns, expenses, transaction aur material movement ek hi page par polished business-report format me.</p>
+            </div>
+            <div class="intro-badge-row">
+              <span class="intro-pill"><i class="fas fa-file-pdf"></i> Full PDF Export</span>
+              <span class="intro-pill"><i class="fab fa-whatsapp"></i> WhatsApp-ready Summary</span>
+              <span class="intro-pill"><i class="fas fa-layer-group"></i> All modules in one view</span>
+            </div>
+          </div>
+
+          <div class="report-toolbar">
+            <div class="report-date-box">
+              <div>
+                <label for="reportDate">Report Date</label>
+                <input type="date" id="reportDate" />
+              </div>
+            </div>
+
+            <div class="toolbar-actions">
+              <button type="button" onclick="generateDailyReport()"><i class="fas fa-bolt"></i> Generate Report</button>
+              <button type="button" onclick="downloadReportPdf()"><i class="fas fa-file-pdf"></i> Download PDF</button>
+              <button type="button" onclick="copyWhatsappSummary()"><i class="fab fa-whatsapp"></i> Copy WhatsApp Summary</button>
+            </div>
+          </div>
+
+          <div id="reportPrintArea" class="report-stack">
+            <div class="sub-card">
+              <div class="report-header-card">
+                <div>
+                  <div class="section-heading">
+                    <span class="section-heading-icon"><i class="fas fa-chart-line"></i></span>
+                    <h3>Daily ERP Summary</h3>
+                  </div>
+                  <p id="reportDateLabel">Selected Date: -</p>
+                </div>
+                <span class="report-tag"><i class="fas fa-calendar-day"></i> Phase 1 manual summary + PDF</span>
+              </div>
+
+              <div class="report-summary-grid">
+                <div class="summary-card">
+                  <div class="metric-topline">
+                    <span class="metric-icon">🛠</span>
+                    <div class="metric-title"><h4>Total Process Count</h4></div>
+                  </div>
+                  <p id="sumProcessCount" class="metric-value">0</p>
+                  <div class="summary-note">Process lots saved</div>
+                </div>
+                <div class="summary-card">
+                  <div class="metric-topline">
+                    <span class="metric-icon">🏷</span>
+                    <div class="metric-title"><h4>Total Stickers Created</h4></div>
+                  </div>
+                  <p id="sumStickerCount" class="metric-value">0</p>
+                  <div class="summary-note">Sticker or stock create entries</div>
+                </div>
+                <div class="summary-card">
+                  <div class="metric-topline">
+                    <span class="metric-icon">📦</span>
+                    <div class="metric-title"><h4>Stock Added</h4></div>
+                  </div>
+                  <p id="sumStockAdded" class="metric-value">0</p>
+                  <div class="summary-note">Added in stock on selected day</div>
+                </div>
+                <div class="summary-card">
+                  <div class="metric-topline">
+                    <span class="metric-icon">🛒</span>
+                    <div class="metric-title"><h4>Stock Sold</h4></div>
+                  </div>
+                  <p id="sumStockSold" class="metric-value">0</p>
+                  <div class="summary-note">Sold stock count</div>
+                </div>
+                <div class="summary-card">
+                  <div class="metric-topline">
+                    <span class="metric-icon">🔄</span>
+                    <div class="metric-title"><h4>Total Returns</h4></div>
+                  </div>
+                  <p id="sumTotalReturns" class="metric-value">0</p>
+                  <div class="summary-note">All return entries</div>
+                </div>
+                <div class="summary-card">
+                  <div class="metric-topline">
+                    <span class="metric-icon">♻️</span>
+                    <div class="metric-title"><h4>Normal Returns</h4></div>
+                  </div>
+                  <p id="sumNormalReturns" class="metric-value">0</p>
+                  <div class="summary-note">Return to stock</div>
+                </div>
+                <div class="summary-card">
+                  <div class="metric-topline">
+                    <span class="metric-icon">⚠️</span>
+                    <div class="metric-title"><h4>Damaged Returns</h4></div>
+                  </div>
+                  <p id="sumDamagedReturns" class="metric-value">0</p>
+                  <div class="summary-note">Damaged entries</div>
+                </div>
+                <div class="summary-card">
+                  <div class="metric-topline">
+                    <span class="metric-icon">🧾</span>
+                    <div class="metric-title"><h4>Total Billing Amount</h4></div>
+                  </div>
+                  <p id="sumBillingAmount" class="metric-value summary-value-money">Rs 0.00</p>
+                  <div class="summary-note">Daily invoice total</div>
+                </div>
+                <div class="summary-card">
+                  <div class="metric-topline">
+                    <span class="metric-icon">📋</span>
+                    <div class="metric-title"><h4>Total Bills</h4></div>
+                  </div>
+                  <p id="sumTotalBills" class="metric-value">0</p>
+                  <div class="summary-note">Saved bills or invoices</div>
+                </div>
+                <div class="summary-card">
+                  <div class="metric-topline">
+                    <span class="metric-icon">💸</span>
+                    <div class="metric-title"><h4>Total Expenses</h4></div>
+                  </div>
+                  <p id="sumTotalExpenses" class="metric-value summary-value-money">Rs 0.00</p>
+                  <div class="summary-note">Local expense manager data</div>
+                </div>
+                <div class="summary-card">
+                  <div class="metric-topline">
+                    <span class="metric-icon">💰</span>
+                    <div class="metric-title"><h4>Total Transactions</h4></div>
+                  </div>
+                  <p id="sumTotalTransactions" class="metric-value">0</p>
+                  <div class="summary-note">Local transaction entries</div>
+                </div>
+                <div class="summary-card">
+                  <div class="metric-topline">
+                    <span class="metric-icon">📥</span>
+                    <div class="metric-title"><h4>Material In</h4></div>
+                  </div>
+                  <p id="sumMaterialIn" class="metric-value">0.000</p>
+                  <div class="summary-note">Material inward qty</div>
+                </div>
+                <div class="summary-card">
+                  <div class="metric-topline">
+                    <span class="metric-icon">📤</span>
+                    <div class="metric-title"><h4>Material Out</h4></div>
+                  </div>
+                  <p id="sumMaterialOut" class="metric-value">0.000</p>
+                  <div class="summary-note">Material usage qty</div>
+                </div>
+                <div class="summary-card">
+                  <div class="metric-topline">
+                    <span class="metric-icon">⚠</span>
+                    <div class="metric-title"><h4>Low Stock Count</h4></div>
+                  </div>
+                  <p id="sumLowStockCount" class="metric-value">0</p>
+                  <div class="summary-note">Current low stock materials</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="sub-card">
+              <div class="report-header-card">
+                <div>
+                  <div class="section-heading">
+                    <span class="section-heading-icon">🛠</span>
+                    <h3>Process Summary</h3>
+                  </div>
+                  <p id="processSummaryMeta">Process activity for selected date</p>
+                </div>
+                <span class="report-tag"><i class="fas fa-screwdriver-wrench"></i> Process</span>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Lot No</th>
+                      <th>Raw Weight</th>
+                      <th>Loss Weight</th>
+                      <th>Final Weight</th>
+                      <th>Used Weight</th>
+                      <th>Balance</th>
+                      <th>Saved At</th>
+                    </tr>
+                  </thead>
+                  <tbody id="processTableBody"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="sub-card">
+              <div class="report-header-card">
+                <div>
+                  <div class="section-heading">
+                    <span class="section-heading-icon">🏷</span>
+                    <h3>Sticker Summary</h3>
+                  </div>
+                  <p id="stickerSummaryMeta">Sticker or stock create activity</p>
+                </div>
+                <span class="report-tag"><i class="fas fa-barcode"></i> Sticker</span>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Created At</th>
+                      <th>Lot No</th>
+                      <th>Serial</th>
+                      <th>Barcode</th>
+                      <th>Product</th>
+                      <th>Size</th>
+                      <th>Weight</th>
+                      <th>Company</th>
+                    </tr>
+                  </thead>
+                  <tbody id="stickerTableBody"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="sub-card">
+              <div class="report-header-card">
+                <div>
+                  <div class="section-heading">
+                    <span class="section-heading-icon">📦</span>
+                    <h3>Stock Summary</h3>
+                  </div>
+                  <p id="stockSummaryMeta">Added and sold stock movements</p>
+                </div>
+                <span class="report-tag"><i class="fas fa-boxes-stacked"></i> Stock</span>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Activity</th>
+                      <th>Time</th>
+                      <th>Lot No</th>
+                      <th>Serial</th>
+                      <th>Barcode</th>
+                      <th>Product</th>
+                      <th>Size</th>
+                      <th>Weight</th>
+                      <th>Invoice</th>
+                      <th>Company</th>
+                    </tr>
+                  </thead>
+                  <tbody id="stockTableBody"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="sub-card">
+              <div class="report-header-card">
+                <div>
+                  <div class="section-heading">
+                    <span class="section-heading-icon">📥</span>
+                    <h3>Material Movement Summary</h3>
+                  </div>
+                  <p id="materialSummaryMeta">Material stock inward and usage</p>
+                </div>
+                <span class="report-tag"><i class="fas fa-box-open"></i> Material</span>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Material</th>
+                      <th>Category</th>
+                      <th>Variant</th>
+                      <th>Size</th>
+                      <th>Type</th>
+                      <th>Qty</th>
+                      <th>Unit</th>
+                      <th>Supplier</th>
+                      <th>Reference</th>
+                      <th>Remarks</th>
+                    </tr>
+                  </thead>
+                  <tbody id="materialTableBody"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="sub-card">
+              <div class="report-header-card">
+                <div>
+                  <div class="section-heading">
+                    <span class="section-heading-icon">🧾</span>
+                    <h3>Invoice / Billing Summary</h3>
+                  </div>
+                  <p id="billingSummaryMeta">Saved invoice and billing totals</p>
+                </div>
+                <span class="report-tag"><i class="fas fa-file-invoice"></i> Billing</span>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Invoice No</th>
+                      <th>Customer</th>
+                      <th>Invoice Date</th>
+                      <th>Payment Mode</th>
+                      <th>Status</th>
+                      <th>Total Items</th>
+                      <th>Total Weight</th>
+                      <th>Total Amount</th>
+                      <th>Company</th>
+                    </tr>
+                  </thead>
+                  <tbody id="billingTableBody"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="sub-card">
+              <div class="report-header-card">
+                <div>
+                  <div class="section-heading">
+                    <span class="section-heading-icon">🔄</span>
+                    <h3>Return Summary</h3>
+                  </div>
+                  <p id="returnSummaryMeta">Return and damaged entries</p>
+                </div>
+                <span class="report-tag"><i class="fas fa-rotate-left"></i> Return</span>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Barcode</th>
+                      <th>Invoice</th>
+                      <th>Customer</th>
+                      <th>Product</th>
+                      <th>Type</th>
+                      <th>Reason</th>
+                      <th>Weight</th>
+                      <th>Company</th>
+                    </tr>
+                  </thead>
+                  <tbody id="returnTableBody"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="sub-card">
+              <div class="report-header-card">
+                <div>
+                  <div class="section-heading">
+                    <span class="section-heading-icon">📈</span>
+                    <h3>Sales History Summary</h3>
+                  </div>
+                  <p id="salesSummaryMeta">Sales history snapshot</p>
+                </div>
+                <span class="report-tag"><i class="fas fa-clock-rotate-left"></i> Sales History</span>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Invoice No</th>
+                      <th>Customer</th>
+                      <th>Mobile</th>
+                      <th>Items</th>
+                      <th>Weight</th>
+                      <th>Amount</th>
+                      <th>Status</th>
+                      <th>Created At</th>
+                    </tr>
+                  </thead>
+                  <tbody id="salesTableBody"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="sub-card">
+              <div class="report-header-card">
+                <div>
+                  <div class="section-heading">
+                    <span class="section-heading-icon">💸</span>
+                    <h3>Expense Summary</h3>
+                  </div>
+                  <p id="expenseSummaryMeta">Expense manager entries</p>
+                </div>
+                <span class="report-tag"><i class="fas fa-wallet"></i> Expense</span>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Time</th>
+                      <th>Person</th>
+                      <th>Category</th>
+                      <th>Reason</th>
+                      <th>Amount</th>
+                      <th>Note</th>
+                    </tr>
+                  </thead>
+                  <tbody id="expenseTableBody"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="sub-card">
+              <div class="report-header-card">
+                <div>
+                  <div class="section-heading">
+                    <span class="section-heading-icon">💰</span>
+                    <h3>Transaction Summary</h3>
+                  </div>
+                  <p id="transactionSummaryMeta">Transaction page entries</p>
+                </div>
+                <span class="report-tag"><i class="fas fa-arrow-right-arrow-left"></i> Transaction</span>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Time</th>
+                      <th>Customer</th>
+                      <th>Type</th>
+                      <th>Item</th>
+                      <th>Qty</th>
+                      <th>Weight</th>
+                      <th>Mode</th>
+                      <th>Amount</th>
+                      <th>Note</th>
+                    </tr>
+                  </thead>
+                  <tbody id="transactionTableBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="pdfExportHost" class="pdf-export-host" aria-hidden="true"></div>
+
+  <script src="js/auth.js"></script>
+  <script src="js/toast.js"></script>
+  <script>
+    const API_BASE = "http://localhost:8080";
+    const ERP_SIDEBAR_STORAGE_KEY = "erpSidebarCollapsed";
+    let currentReport = null;
+
+    function pageGuard() {
+      if (typeof requirePageAccess === "function" && !requirePageAccess("daily-report")) {
+        return false;
+      }
+
+      if (!isSuperAdmin()) {
+        const companyId = getCurrentCompanyId();
+        if (companyId === null || Number.isNaN(companyId)) {
+          showToast("Company access missing", "error");
+          window.location.href = "login.html";
+          return false;
+        }
+      }
+
+      return true;
+    }
+
+    function companyScopedKey(baseKey) {
+      const companyId = getCurrentCompanyId();
+      const scope = isSuperAdmin() ? "superadmin" : (companyId ?? "no_company");
+      return `${baseKey}_${scope}`;
+    }
+
+    function saveSidebarState(isCollapsed) {
+      localStorage.setItem(ERP_SIDEBAR_STORAGE_KEY, isCollapsed ? "true" : "false");
+    }
+
+    function applySidebarState() {
+      const sidebar = document.getElementById("sidebar");
+      if (!sidebar) return;
+
+      const isCollapsed = localStorage.getItem(ERP_SIDEBAR_STORAGE_KEY) === "true";
+      sidebar.classList.toggle("collapsed", isCollapsed);
+    }
+
+    function toggleSidebar() {
+      const sidebar = document.getElementById("sidebar");
+      if (!sidebar) return;
+
+      sidebar.classList.toggle("collapsed");
+      saveSidebarState(sidebar.classList.contains("collapsed"));
+    }
+
+    function bindSidebarMenuAutoClose() {
+      const sidebar = document.getElementById("sidebar");
+      if (!sidebar) return;
+
+      document.querySelectorAll(".menu a").forEach((link) => {
+        if (link.dataset.sidebarBound === "true") return;
+        link.dataset.sidebarBound = "true";
+        link.addEventListener("click", () => {
+          sidebar.classList.add("collapsed");
+          saveSidebarState(true);
+        });
+      });
+    }
+
+    function renderProfileBox() {
+      const box = document.getElementById("profileBox");
+      const user = getLoggedInUser();
+      if (!box) return;
+
+      if (!user) {
+        box.innerHTML = '<i class="fas fa-user-circle"></i> Guest';
+        return;
+      }
+
+      const role = String(user.role || "-");
+      const companyName = isSuperAdmin() ? "All Companies" : (getCurrentCompanyNameSafe() || "No Company");
+      box.innerHTML = `<i class="fas fa-user-circle"></i> ${escapeHtml(role)} | ${escapeHtml(companyName)}`;
+    }
+
+    function renderCompanyInfo() {
+      const chip = document.getElementById("companyInfoChip");
+      if (!chip) return;
+
+      if (isSuperAdmin()) {
+        chip.textContent = "Company: Super Admin View (All Companies)";
+        return;
+      }
+
+      chip.textContent = `Company: ${getCurrentCompanyNameSafe() || "Unknown"}`;
+    }
+
+    function renderPageTitle() {
+      const title = document.getElementById("pageCompanyTitle");
+      if (!title) return;
+
+      title.textContent = isSuperAdmin() ? "SUPER ADMIN PANEL" : (getCurrentCompanyNameSafe() || "RPJ MANUFACTURER");
+    }
+
+    function getCurrentCompanyNameSafe() {
+      if (typeof getCurrentCompanyName === "function") {
+        return getCurrentCompanyName();
+      }
+
+      const user = getLoggedInUser();
+      return user?.company_name || user?.companyName || "";
+    }
+
+    function escapeHtml(value) {
+      return String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function formatMoney(value) {
+      return `Rs ${Number(value || 0).toFixed(2)}`;
+    }
+
+    function formatReportDatePretty(dateValue) {
+      if (!dateValue) return "-";
+      const parsed = new Date(`${dateValue}T00:00:00`);
+      if (Number.isNaN(parsed.getTime())) return String(dateValue || "-");
+      return parsed.toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric"
+      });
+    }
+
+    function formatQty(value) {
+      return Number(value || 0).toFixed(3);
+    }
+
+    function formatDateTime(value) {
+      if (!value) return "-";
+      const parsed = new Date(value);
+      if (!Number.isNaN(parsed.getTime())) {
+        return parsed.toLocaleString();
+      }
+      return String(value || "-");
+    }
+
+    function toDateInputValue(dateValue = new Date()) {
+      const year = dateValue.getFullYear();
+      const month = String(dateValue.getMonth() + 1).padStart(2, "0");
+      const day = String(dateValue.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    }
+
+    function normalizeDay(value) {
+      if (!value) return "";
+      if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value.trim())) {
+        return value.trim();
+      }
+
+      const parsed = new Date(value);
+      if (!Number.isNaN(parsed.getTime())) {
+        return toDateInputValue(parsed);
+      }
+
+      const text = String(value || "").trim();
+      const isoMatch = text.match(/^(\d{4}-\d{2}-\d{2})/);
+      if (isoMatch) return isoMatch[1];
+
+      const slashMatch = text.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+      if (slashMatch) {
+        const first = Number(slashMatch[1]);
+        const second = Number(slashMatch[2]);
+        const year = Number(slashMatch[3]);
+        const treatFirstAsDay = first > 12 && second <= 12;
+        const month = Math.max(1, Math.min(12, treatFirstAsDay ? second : first));
+        const day = Math.max(1, Math.min(31, treatFirstAsDay ? first : second));
+        return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+      }
+
+      return "";
+    }
+
+    function normalizeReturnType(value) {
+      const clean = String(value || "").trim().toUpperCase();
+      if (clean === "RETURN_TO_STOCK") return "RETURN_TO_STOCK";
+      if (clean === "DAMAGED_RETURN") return "DAMAGED_RETURN";
+      return clean;
+    }
+
+    function normalizeMovementType(value) {
+      const clean = String(value || "").trim().toUpperCase();
+      if (clean === "STOCK_IN") return "IN";
+      if (clean === "USED" || clean === "STOCK_OUT") return "OUT";
+      return clean;
+    }
+
+    function sumArray(items, field) {
+      return (Array.isArray(items) ? items : []).reduce((sum, item) => sum + Number(item?.[field] || 0), 0);
+    }
+
+    function countMaterialEntries(items, movementType) {
+      return (Array.isArray(items) ? items : []).filter((item) => normalizeMovementType(item.movement_type) === movementType).length;
+    }
+
+    function getTopNamedItems(items, key, limit = 2) {
+      const counter = {};
+      (Array.isArray(items) ? items : []).forEach((item) => {
+        const name = String(item?.[key] || "").trim();
+        if (!name) return;
+        counter[name] = (counter[name] || 0) + 1;
+      });
+
+      return Object.entries(counter)
+        .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+        .slice(0, limit)
+        .map(([name, total]) => `${name} (${total})`);
+    }
+
+    function buildModuleHighlights(report) {
+      const processRows = report.sections.process.rows || [];
+      const stickerRows = report.sections.sticker.rows || [];
+      const stockAddedRows = report.sections.stock.addedRows || [];
+      const stockSoldRows = report.sections.stock.soldRows || [];
+      const returnRows = report.sections.returns.rows || [];
+      const billingRows = report.sections.invoiceBilling.rows || [];
+      const materialRows = report.sections.material.rows || [];
+      const expenseRows = report.sections.expenses.rows || [];
+      const transactionRows = report.sections.transactions.rows || [];
+
+      return {
+        processTopLots: getTopNamedItems(processRows, "lotNo"),
+        stickerTopProducts: getTopNamedItems(stickerRows, "product_name"),
+        soldTopProducts: getTopNamedItems(stockSoldRows, "product_name"),
+        billTopCustomers: getTopNamedItems(billingRows, "customer_name"),
+        materialTopNames: getTopNamedItems(materialRows, "material_name"),
+        expenseTopCategories: getTopNamedItems(expenseRows, "category"),
+        transactionTopCustomers: getTopNamedItems(transactionRows, "customer"),
+        transactionTotalAmount: sumArray(transactionRows, "amount"),
+        materialInEntries: countMaterialEntries(materialRows, "IN"),
+        materialOutEntries: countMaterialEntries(materialRows, "OUT"),
+        returnCustomers: getTopNamedItems(returnRows, "customer_name"),
+        stockAddedTopProducts: getTopNamedItems(stockAddedRows, "product_name")
+      };
+    }
+
+    function getSelectedDate() {
+      const input = document.getElementById("reportDate");
+      return input?.value || toDateInputValue();
+    }
+
+    function buildAccessParams(forceCompany = false) {
+      const params = new URLSearchParams();
+      const actingUserId = getCurrentUserId();
+      const companyId = getCurrentCompanyId();
+
+      if (actingUserId !== null && !Number.isNaN(actingUserId)) {
+        params.set("actingUserId", String(actingUserId));
+      }
+
+      if ((forceCompany || !isSuperAdmin()) && companyId !== null && !Number.isNaN(companyId)) {
+        params.set("companyId", String(companyId));
+      }
+
+      return params;
+    }
+
+    function getScopedArray(baseKey) {
+      return [];
+    }
+
+    function buildEmptyReport(reportDate) {
+      return {
+        date: reportDate,
+        summary: {
+          totalProcessCount: 0,
+          totalStickersCreated: 0,
+          stockAdded: 0,
+          stockSold: 0,
+          totalReturns: 0,
+          normalReturns: 0,
+          damagedReturns: 0,
+          totalBillingAmount: 0,
+          totalBills: 0,
+          totalExpenses: 0,
+          totalTransactions: 0,
+          materialIn: 0,
+          materialOut: 0,
+          lowStockCount: 0
+        },
+        sections: {
+          process: { rows: [], totalCount: 0 },
+          sticker: { rows: [], totalCreated: 0 },
+          stock: { addedRows: [], soldRows: [], addedCount: 0, soldCount: 0 },
+          material: { rows: [], totalIn: 0, totalOut: 0, lowStockCount: 0 },
+          invoiceBilling: { rows: [], totalBills: 0, totalBillingAmount: 0 },
+          returns: { rows: [], totalReturns: 0, normalReturns: 0, damagedReturns: 0 },
+          salesHistory: { rows: [], totalSalesCount: 0, totalSalesAmount: 0 },
+          expenses: { rows: [], totalExpenses: 0 },
+          transactions: { rows: [], totalTransactions: 0 }
+        }
+      };
+    }
+
+    async function fetchDailyReportApi(reportDate) {
+      const params = buildAccessParams(!isSuperAdmin());
+      params.set("date", reportDate);
+
+      const response = await fetch(`${API_BASE}/getDailyReport?${params.toString()}`, {
+        cache: "no-store"
+      });
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || "Daily report fetch failed");
+      }
+
+      return result;
+    }
+
+    function getLocalProcessRows(reportDate) {
+      return [];
+    }
+
+    function getLocalExpenseRows(reportDate) {
+      return [];
+    }
+
+    function getLocalTransactionRows(reportDate) {
+      return [];
+    }
+
+    function mergeDailyReport(apiData, reportDate) {
+      const base = apiData && apiData.success ? apiData : buildEmptyReport(reportDate);
+      return {
+        ...buildEmptyReport(reportDate),
+        ...base,
+        summary: {
+          ...buildEmptyReport(reportDate).summary,
+          ...(base.summary || {})
+        },
+        sections: {
+          ...buildEmptyReport(reportDate).sections,
+          ...(base.sections || {})
+        }
+      };
+    }
+
+    function createPdfTable(headers, rows) {
+      if (!rows.length) {
+        return '<div class="pdf-empty">No data found for selected date</div>';
+      }
+
+      return `
+        <table class="pdf-table">
+          <thead>
+            <tr>${headers.map((header) => `<th>${escapeHtml(header)}</th>`).join("")}</tr>
+          </thead>
+          <tbody>
+            ${rows
+              .map(
+                (row) => `
+                  <tr>
+                    ${row.map((cell) => `<td>${escapeHtml(cell)}</td>`).join("")}
+                  </tr>
+                `
+              )
+              .join("")}
+          </tbody>
+        </table>
+      `;
+    }
+
+    function renderPdfReport(report) {
+      const pdfHost = document.getElementById("pdfExportHost");
+      if (!pdfHost || !report) return null;
+
+      const highlights = buildModuleHighlights(report);
+      const companyLabel = isSuperAdmin() ? "All Companies" : (getCurrentCompanyNameSafe() || "Unknown");
+
+      const summaryCards = [
+        ["🛠 Process", String(report.summary.totalProcessCount || 0)],
+        ["🏷 Stickers", String(report.summary.totalStickersCreated || 0)],
+        ["📦 Stock Added", String(report.summary.stockAdded || 0)],
+        ["🛒 Stock Sold", String(report.summary.stockSold || 0)],
+        ["🔄 Returns", String(report.summary.totalReturns || 0)],
+        ["🧾 Billing", formatMoney(report.summary.totalBillingAmount || 0)],
+        ["💸 Expenses", formatMoney(report.summary.totalExpenses || 0)],
+        ["⚠ Low Stock", String(report.summary.lowStockCount || 0)]
+      ];
+
+      const sections = [
+        {
+          title: "Process Summary",
+          meta: `${report.sections.process.totalCount || 0} lots recorded`,
+          tag: "🛠 Process",
+          table: createPdfTable(
+            ["Lot No", "Raw", "Loss", "Final", "Used", "Balance", "Saved At"],
+            (report.sections.process.rows || []).map((item) => [
+              item.lotNo || "-",
+              formatQty(item.rawWeight),
+              formatQty(item.lossWeight),
+              formatQty(item.finalWeight),
+              formatQty(item.usedWeight),
+              formatQty(item.balanceWeight),
+              item.savedAt || "-"
+            ])
+          )
+        },
+        {
+          title: "Sticker Summary",
+          meta: `${report.sections.sticker.totalCreated || 0} stickers generated`,
+          tag: "🏷 Sticker",
+          table: createPdfTable(
+            ["Created At", "Lot", "Serial", "Barcode", "Product", "Size", "Weight"],
+            (report.sections.sticker.rows || []).map((item) => [
+              formatDateTime(item.created_at),
+              item.lot_number || "-",
+              item.serial || "-",
+              item.barcode || "-",
+              item.product_name || "-",
+              item.size || "-",
+              formatQty(item.weight)
+            ])
+          )
+        },
+        {
+          title: "Stock Movement Summary",
+          meta: `${report.sections.stock.addedCount || 0} added, ${report.sections.stock.soldCount || 0} sold`,
+          tag: "📦 Stock",
+          table: createPdfTable(
+            ["Activity", "Time", "Lot", "Serial", "Product", "Size", "Invoice"],
+            [
+              ...(report.sections.stock.addedRows || []).map((item) => [
+                "Added",
+                formatDateTime(item.created_at),
+                item.lot_number || "-",
+                item.serial || "-",
+                item.product_name || "-",
+                item.size || "-",
+                "-"
+              ]),
+              ...(report.sections.stock.soldRows || []).map((item) => [
+                "Sold",
+                formatDateTime(item.sold_at),
+                item.lot_number || "-",
+                item.serial || "-",
+                item.product_name || "-",
+                item.size || "-",
+                item.invoice_number || "-"
+              ])
+            ]
+          )
+        },
+        {
+          title: "Billing Summary",
+          meta: `${report.sections.invoiceBilling.totalBills || 0} bills | ${formatMoney(report.sections.invoiceBilling.totalBillingAmount || 0)}`,
+          tag: "🧾 Billing",
+          table: createPdfTable(
+            ["Invoice", "Customer", "Date", "Mode", "Status", "Items", "Amount"],
+            (report.sections.invoiceBilling.rows || []).map((item) => [
+              item.invoice_number || "-",
+              item.customer_name || "-",
+              item.invoice_date || normalizeDay(item.created_at) || "-",
+              item.payment_mode || "-",
+              item.payment_status || "-",
+              String(item.total_items || 0),
+              formatMoney(item.total_amount || 0)
+            ])
+          )
+        },
+        {
+          title: "Return Summary",
+          meta: `${report.sections.returns.normalReturns || 0} returned to stock | ${report.sections.returns.damagedReturns || 0} damaged`,
+          tag: "🔄 Returns",
+          table: createPdfTable(
+            ["Date", "Barcode", "Invoice", "Customer", "Product", "Type", "Reason"],
+            (report.sections.returns.rows || []).map((item) => [
+              formatDateTime(item.return_date),
+              item.barcode || "-",
+              item.invoice_number || "-",
+              item.customer_name || "-",
+              item.product_name || "-",
+              normalizeReturnType(item.return_type) === "DAMAGED_RETURN" ? "Damaged" : "Return To Stock",
+              item.return_reason || "-"
+            ])
+          )
+        },
+        {
+          title: "Material In / Material Out Summary",
+          meta: `${highlights.materialInEntries} inward entries | ${highlights.materialOutEntries} outward entries | Low stock ${report.summary.lowStockCount || 0}`,
+          tag: "📥 Material",
+          table: createPdfTable(
+            ["Date", "Material", "Category", "Variant", "Type", "Qty", "Unit", "Supplier"],
+            (report.sections.material.rows || []).map((item) => [
+              formatDateTime(item.movement_date),
+              item.material_name || "-",
+              item.category || "-",
+              item.variant || "-",
+              normalizeMovementType(item.movement_type) || "-",
+              formatQty(item.qty),
+              item.unit || "-",
+              item.supplier_name || "-"
+            ])
+          )
+        },
+        {
+          title: "Expense Summary",
+          meta: `${report.sections.expenses.rows.length || 0} expenses | ${formatMoney(report.sections.expenses.totalExpenses || 0)}`,
+          tag: "💸 Expense",
+          table: createPdfTable(
+            ["Date", "Time", "Person", "Category", "Reason", "Amount"],
+            (report.sections.expenses.rows || []).map((item) => [
+              item.date || "-",
+              item.time || "-",
+              item.person || "-",
+              item.category || "-",
+              item.reason || "-",
+              formatMoney(item.amount || 0)
+            ])
+          )
+        },
+        {
+          title: "Transaction Summary",
+          meta: `${report.sections.transactions.totalTransactions || 0} entries | ${formatMoney(highlights.transactionTotalAmount || 0)}`,
+          tag: "💰 Transaction",
+          table: createPdfTable(
+            ["Date", "Time", "Customer", "Type", "Item", "Qty", "Amount"],
+            (report.sections.transactions.rows || []).map((item) => [
+              item.date || "-",
+              item.time || "-",
+              item.customer || "-",
+              item.type || "-",
+              item.itemName || "-",
+              String(item.qty || 0),
+              formatMoney(item.amount || 0)
+            ])
+          )
+        }
+      ];
+
+      pdfHost.innerHTML = `
+        <div class="pdf-report-shell">
+          <div class="pdf-report-header">
+            <div>
+              <h1>Daily ERP Report</h1>
+              <p>Date: ${escapeHtml(formatReportDatePretty(report.date))}</p>
+              <p>Company: ${escapeHtml(companyLabel)}</p>
+            </div>
+            <div class="pdf-company-chip">ERP Daily Business Report</div>
+          </div>
+
+          <div class="pdf-summary-grid">
+            ${summaryCards
+              .map(
+                ([label, value]) => `
+                  <div class="pdf-summary-card">
+                    <div class="label">${escapeHtml(label)}</div>
+                    <div class="value">${escapeHtml(value)}</div>
+                  </div>
+                `
+              )
+              .join("")}
+          </div>
+
+          ${sections
+            .map(
+              (section) => `
+                <div class="pdf-section">
+                  <div class="pdf-section-header">
+                    <div>
+                      <h2>${escapeHtml(section.title)}</h2>
+                      <p>${escapeHtml(section.meta)}</p>
+                    </div>
+                    <span class="pdf-section-tag">${escapeHtml(section.tag)}</span>
+                  </div>
+                  ${section.table}
+                </div>
+              `
+            )
+            .join("")}
+        </div>
+      `;
+
+      return pdfHost.firstElementChild;
+    }
+
+    function setSectionMeta(id, text) {
+      const node = document.getElementById(id);
+      if (node) node.textContent = text;
+    }
+
+    function renderRows(tbodyId, rowsHtml, colspan) {
+      const tbody = document.getElementById(tbodyId);
+      if (!tbody) return;
+
+      if (!rowsHtml.length) {
+        tbody.innerHTML = `<tr><td colspan="${colspan}" class="empty-state">No data found for selected date</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = rowsHtml.join("");
+    }
+
+    function activityBadge(type) {
+      const clean = String(type || "").trim().toLowerCase();
+      const label = String(type || "-").replace(/_/g, " ");
+      return `<span class="status-pill ${escapeHtml(clean)}">${escapeHtml(label)}</span>`;
+    }
+
+    function renderSummaryCards(report) {
+      document.getElementById("reportDateLabel").textContent = `Selected Date: ${report.date}`;
+      document.getElementById("sumProcessCount").textContent = String(report.summary.totalProcessCount || 0);
+      document.getElementById("sumStickerCount").textContent = String(report.summary.totalStickersCreated || 0);
+      document.getElementById("sumStockAdded").textContent = String(report.summary.stockAdded || 0);
+      document.getElementById("sumStockSold").textContent = String(report.summary.stockSold || 0);
+      document.getElementById("sumTotalReturns").textContent = String(report.summary.totalReturns || 0);
+      document.getElementById("sumNormalReturns").textContent = String(report.summary.normalReturns || 0);
+      document.getElementById("sumDamagedReturns").textContent = String(report.summary.damagedReturns || 0);
+      document.getElementById("sumBillingAmount").textContent = formatMoney(report.summary.totalBillingAmount || 0);
+      document.getElementById("sumTotalBills").textContent = String(report.summary.totalBills || 0);
+      document.getElementById("sumTotalExpenses").textContent = formatMoney(report.summary.totalExpenses || 0);
+      document.getElementById("sumTotalTransactions").textContent = String(report.summary.totalTransactions || 0);
+      document.getElementById("sumMaterialIn").textContent = formatQty(report.summary.materialIn || 0);
+      document.getElementById("sumMaterialOut").textContent = formatQty(report.summary.materialOut || 0);
+      document.getElementById("sumLowStockCount").textContent = String(report.summary.lowStockCount || 0);
+    }
+
+    function renderProcessTable(report) {
+      const rows = report.sections.process.rows.map((item) => `
+        <tr>
+          <td>${escapeHtml(item.lotNo || "-")}</td>
+          <td>${formatQty(item.rawWeight)}</td>
+          <td>${formatQty(item.lossWeight)}</td>
+          <td>${formatQty(item.finalWeight)}</td>
+          <td>${formatQty(item.usedWeight)}</td>
+          <td>${formatQty(item.balanceWeight)}</td>
+          <td>${escapeHtml(item.savedAt || "-")}</td>
+        </tr>
+      `);
+      setSectionMeta("processSummaryMeta", `${report.sections.process.totalCount || 0} process lots found`);
+      renderRows("processTableBody", rows, 7);
+    }
+
+    function renderStickerTable(report) {
+      const rows = (report.sections.sticker.rows || []).map((item) => `
+        <tr>
+          <td>${escapeHtml(formatDateTime(item.created_at))}</td>
+          <td>${escapeHtml(item.lot_number || "-")}</td>
+          <td>${escapeHtml(item.serial || "-")}</td>
+          <td>${escapeHtml(item.barcode || "-")}</td>
+          <td>${escapeHtml(item.product_name || "-")}</td>
+          <td>${escapeHtml(item.size || "-")}</td>
+          <td>${formatQty(item.weight || 0)}</td>
+          <td>${escapeHtml(item.company_name || (isSuperAdmin() ? "All Companies" : (getCurrentCompanyNameSafe() || "-")))}</td>
+        </tr>
+      `);
+      setSectionMeta("stickerSummaryMeta", `${report.sections.sticker.totalCreated || 0} sticker related entries found`);
+      renderRows("stickerTableBody", rows, 8);
+    }
+
+    function renderStockTable(report) {
+      const merged = [
+        ...(report.sections.stock.addedRows || []).map((item) => ({
+          activity: "Added",
+          activityAt: item.created_at,
+          invoice_number: "",
+          ...item
+        })),
+        ...(report.sections.stock.soldRows || []).map((item) => ({
+          activity: "Sold",
+          activityAt: item.sold_at,
+          ...item
+        }))
+      ].sort((a, b) => new Date(b.activityAt || 0) - new Date(a.activityAt || 0));
+
+      const rows = merged.map((item) => `
+        <tr>
+          <td>${activityBadge(item.activity)}</td>
+          <td>${escapeHtml(formatDateTime(item.activityAt))}</td>
+          <td>${escapeHtml(item.lot_number || "-")}</td>
+          <td>${escapeHtml(item.serial || "-")}</td>
+          <td>${escapeHtml(item.barcode || "-")}</td>
+          <td>${escapeHtml(item.product_name || "-")}</td>
+          <td>${escapeHtml(item.size || "-")}</td>
+          <td>${formatQty(item.weight || 0)}</td>
+          <td>${escapeHtml(item.invoice_number || "-")}</td>
+          <td>${escapeHtml(item.company_name || (isSuperAdmin() ? "All Companies" : (getCurrentCompanyNameSafe() || "-")))}</td>
+        </tr>
+      `);
+
+      setSectionMeta(
+        "stockSummaryMeta",
+        `${report.sections.stock.addedCount || 0} added, ${report.sections.stock.soldCount || 0} sold`
+      );
+      renderRows("stockTableBody", rows, 10);
+    }
+
+    function renderMaterialTable(report) {
+      const rows = (report.sections.material.rows || []).map((item) => `
+        <tr>
+          <td>${escapeHtml(formatDateTime(item.movement_date))}</td>
+          <td>${escapeHtml(item.material_name || "-")}</td>
+          <td>${escapeHtml(item.category || "-")}</td>
+          <td>${escapeHtml(item.variant || "-")}</td>
+          <td>${escapeHtml(item.size || "-")}</td>
+          <td>${activityBadge(normalizeMovementType(item.movement_type || "-"))}</td>
+          <td>${formatQty(item.qty || 0)}</td>
+          <td>${escapeHtml(item.unit || "-")}</td>
+          <td>${escapeHtml(item.supplier_name || "-")}</td>
+          <td>${escapeHtml(item.reference_no || "-")}</td>
+          <td>${escapeHtml(item.remarks || "-")}</td>
+        </tr>
+      `);
+      setSectionMeta(
+        "materialSummaryMeta",
+        `Material In ${formatQty(report.sections.material.totalIn || 0)} | Material Out ${formatQty(report.sections.material.totalOut || 0)}`
+      );
+      renderRows("materialTableBody", rows, 11);
+    }
+
+    function renderBillingTable(report) {
+      const rows = (report.sections.invoiceBilling.rows || []).map((item) => `
+        <tr>
+          <td>${escapeHtml(item.invoice_number || "-")}</td>
+          <td>${escapeHtml(item.customer_name || "-")}</td>
+          <td>${escapeHtml(item.invoice_date || normalizeDay(item.created_at) || "-")}</td>
+          <td>${escapeHtml(item.payment_mode || "-")}</td>
+          <td>${activityBadge(String(item.payment_status || "-").toLowerCase() || "-")}</td>
+          <td>${Number(item.total_items || 0)}</td>
+          <td>${formatQty(item.total_weight || 0)}</td>
+          <td>${formatMoney(item.total_amount || 0)}</td>
+          <td>${escapeHtml(item.company_name || (isSuperAdmin() ? "All Companies" : (getCurrentCompanyNameSafe() || "-")))}</td>
+        </tr>
+      `);
+      setSectionMeta(
+        "billingSummaryMeta",
+        `${report.sections.invoiceBilling.totalBills || 0} bills | ${formatMoney(report.sections.invoiceBilling.totalBillingAmount || 0)}`
+      );
+      renderRows("billingTableBody", rows, 9);
+    }
+
+    function renderReturnTable(report) {
+      const rows = (report.sections.returns.rows || []).map((item) => {
+        const returnType = normalizeReturnType(item.return_type);
+        const pillType = returnType === "DAMAGED_RETURN" ? "damaged" : "normal";
+        const label = returnType === "DAMAGED_RETURN" ? "Damaged Return" : "Return To Stock";
+
+        return `
+          <tr>
+            <td>${escapeHtml(formatDateTime(item.return_date))}</td>
+            <td>${escapeHtml(item.barcode || "-")}</td>
+            <td>${escapeHtml(item.invoice_number || "-")}</td>
+            <td>${escapeHtml(item.customer_name || "-")}</td>
+            <td>${escapeHtml(item.product_name || "-")}</td>
+            <td><span class="status-pill ${pillType}">${escapeHtml(label)}</span></td>
+            <td>${escapeHtml(item.return_reason || "-")}</td>
+            <td>${formatQty(item.weight || 0)}</td>
+            <td>${escapeHtml(item.company_name || (isSuperAdmin() ? "All Companies" : (getCurrentCompanyNameSafe() || "-")))}</td>
+          </tr>
+        `;
+      });
+
+      setSectionMeta(
+        "returnSummaryMeta",
+        `${report.sections.returns.totalReturns || 0} returns | Normal ${report.sections.returns.normalReturns || 0} | Damaged ${report.sections.returns.damagedReturns || 0}`
+      );
+      renderRows("returnTableBody", rows, 9);
+    }
+
+    function renderSalesTable(report) {
+      const rows = (report.sections.salesHistory.rows || []).map((item) => `
+        <tr>
+          <td>${escapeHtml(item.invoice_number || "-")}</td>
+          <td>${escapeHtml(item.customer_name || "-")}</td>
+          <td>${escapeHtml(item.mobile || "-")}</td>
+          <td>${Number(item.total_items || 0)}</td>
+          <td>${formatQty(item.total_weight || 0)}</td>
+          <td>${formatMoney(item.total_amount || 0)}</td>
+          <td>${activityBadge(String(item.status || "ACTIVE").toLowerCase())}</td>
+          <td>${escapeHtml(formatDateTime(item.created_at))}</td>
+        </tr>
+      `);
+      setSectionMeta(
+        "salesSummaryMeta",
+        `${report.sections.salesHistory.totalSalesCount || 0} sales rows | ${formatMoney(report.sections.salesHistory.totalSalesAmount || 0)}`
+      );
+      renderRows("salesTableBody", rows, 8);
+    }
+
+    function renderExpenseTable(report) {
+      const rows = (report.sections.expenses.rows || []).map((item) => `
+        <tr>
+          <td>${escapeHtml(item.date || "-")}</td>
+          <td>${escapeHtml(item.time || "-")}</td>
+          <td>${escapeHtml(item.person || "-")}</td>
+          <td>${escapeHtml(item.category || "-")}</td>
+          <td>${escapeHtml(item.reason || "-")}</td>
+          <td>${formatMoney(item.amount || 0)}</td>
+          <td>${escapeHtml(item.note || "-")}</td>
+        </tr>
+      `);
+      setSectionMeta("expenseSummaryMeta", `${report.sections.expenses.rows.length || 0} expense rows | ${formatMoney(report.sections.expenses.totalExpenses || 0)}`);
+      renderRows("expenseTableBody", rows, 7);
+    }
+
+    function renderTransactionTable(report) {
+      const rows = (report.sections.transactions.rows || []).map((item) => `
+        <tr>
+          <td>${escapeHtml(item.date || "-")}</td>
+          <td>${escapeHtml(item.time || "-")}</td>
+          <td>${escapeHtml(item.customer || "-")}</td>
+          <td>${escapeHtml(item.type || "-")}</td>
+          <td>${escapeHtml(item.itemName || "-")}</td>
+          <td>${Number(item.qty || 0)}</td>
+          <td>${formatQty(item.grossWeight || 0)}</td>
+          <td>${escapeHtml(item.mode || "-")}</td>
+          <td>${formatMoney(item.amount || 0)}</td>
+          <td>${escapeHtml(item.note || "-")}</td>
+        </tr>
+      `);
+      setSectionMeta("transactionSummaryMeta", `${report.sections.transactions.totalTransactions || 0} transaction rows`);
+      renderRows("transactionTableBody", rows, 10);
+    }
+
+    function renderReport(report) {
+      renderSummaryCards(report);
+      renderProcessTable(report);
+      renderStickerTable(report);
+      renderStockTable(report);
+      renderMaterialTable(report);
+      renderBillingTable(report);
+      renderReturnTable(report);
+      renderSalesTable(report);
+      renderExpenseTable(report);
+      renderTransactionTable(report);
+    }
+
+    async function generateDailyReport(showSuccess = true) {
+      const reportDate = getSelectedDate();
+      if (!reportDate) {
+        showToast("Report date select karo", "error");
+        return;
+      }
+
+      try {
+        currentReport = await fetchDailyReportApi(reportDate);
+        renderReport(currentReport);
+        if (showSuccess) {
+          showToast("Daily report generated", "success");
+        }
+      } catch (error) {
+        console.log("Daily report error:", error);
+        currentReport = buildEmptyReport(reportDate);
+        renderReport(currentReport);
+        showToast("Daily report load failed", "error");
+      }
+    }
+
+    function buildWhatsappSummary(report) {
+      const highlights = buildModuleHighlights(report);
+      const transactionAmount = highlights.transactionTotalAmount || 0;
+      const firstLots = highlights.processTopLots.length ? ` Top lots: ${highlights.processTopLots.join(", ")}.` : "";
+      const stickerProducts = highlights.stickerTopProducts.length ? ` Main items: ${highlights.stickerTopProducts.join(", ")}.` : "";
+      const soldProducts = highlights.soldTopProducts.length ? ` Fast moving: ${highlights.soldTopProducts.join(", ")}.` : "";
+      const billingCustomers = highlights.billTopCustomers.length ? ` Top customers: ${highlights.billTopCustomers.join(", ")}.` : "";
+      const materialNames = highlights.materialTopNames.length ? ` Key materials: ${highlights.materialTopNames.join(", ")}.` : "";
+      const expenseCats = highlights.expenseTopCategories.length ? ` Main heads: ${highlights.expenseTopCategories.join(", ")}.` : "";
+      const txnCustomers = highlights.transactionTopCustomers.length ? ` Main parties: ${highlights.transactionTopCustomers.join(", ")}.` : "";
+
+      return [
+        `📊 DAILY REPORT - ${formatReportDatePretty(report.date)}`,
+        `🏢 ${isSuperAdmin() ? "All Companies" : (getCurrentCompanyNameSafe() || "Unknown")}`,
+        "",
+        `🛠 Process:`,
+        `- ${report.summary.totalProcessCount || 0} lots completed.${firstLots}`,
+        "",
+        `🏷 Sticker:`,
+        `- ${report.summary.totalStickersCreated || 0} stickers generated.${stickerProducts}`,
+        "",
+        `📦 Stock:`,
+        `- ${report.summary.stockAdded || 0} items added`,
+        `- ${report.summary.stockSold || 0} items sold.${soldProducts}`,
+        "",
+        `🔄 Returns:`,
+        `- ${report.summary.normalReturns || 0} returned to stock`,
+        `- ${report.summary.damagedReturns || 0} damaged`,
+        "",
+        `🧾 Billing:`,
+        `- ${report.summary.totalBills || 0} bills created`,
+        `- ${formatMoney(report.summary.totalBillingAmount || 0)} total.${billingCustomers}`,
+        "",
+        `📥 Material:`,
+        `- ${highlights.materialInEntries} inward entries`,
+        `- ${formatQty(report.summary.materialIn || 0)} total inward qty.${materialNames}`,
+        "",
+        `📤 Material Usage:`,
+        `- ${highlights.materialOutEntries} outward entries`,
+        `- ${formatQty(report.summary.materialOut || 0)} total outward qty`,
+        "",
+        `💸 Expense:`,
+        `- ${report.sections.expenses.rows.length || 0} expenses booked`,
+        `- ${formatMoney(report.summary.totalExpenses || 0)} spent.${expenseCats}`,
+        "",
+        `💰 Transaction:`,
+        `- ${report.summary.totalTransactions || 0} entries recorded`,
+        `- ${formatMoney(transactionAmount)} total value.${txnCustomers}`,
+        "",
+        `⚠ Low Stock:`,
+        `- ${report.summary.lowStockCount || 0} items currently low`
+      ].join("\n");
+    }
+
+    async function copyText(text) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+        return;
+      }
+
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      textarea.style.position = "fixed";
+      textarea.style.opacity = "0";
+      document.body.appendChild(textarea);
+      textarea.focus();
+      textarea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textarea);
+    }
+
+    async function copyWhatsappSummary() {
+      if (!currentReport) {
+        await generateDailyReport(false);
+      }
+
+      if (!currentReport) {
+        showToast("Report generate nahi hua", "error");
+        return;
+      }
+
+      try {
+        await copyText(buildWhatsappSummary(currentReport));
+        showToast("WhatsApp summary copied", "success");
+      } catch (error) {
+        console.log("Copy summary error:", error);
+        showToast("Summary copy failed", "error");
+      }
+    }
+
+    async function downloadReportPdf() {
+      if (!currentReport) {
+        await generateDailyReport(false);
+      }
+
+      if (!currentReport) {
+        showToast("Report generate nahi hua", "error");
+        return;
+      }
+
+      const reportBox = renderPdfReport(currentReport);
+      if (!reportBox) {
+        showToast("Printable report area missing", "error");
+        return;
+      }
+
+      const opt = {
+        margin: [6, 6, 6, 6],
+        filename: `daily-report-${currentReport.date}.pdf`,
+        image: { type: "jpeg", quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, scrollY: 0, windowWidth: 1200 },
+        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+        pagebreak: { mode: ["css", "legacy"] }
+      };
+
+      await html2pdf().set(opt).from(reportBox).save();
+      showToast("Full PDF report downloaded", "success");
+    }
+
+    async function initPage() {
+      if (!pageGuard()) return;
+
+      applySidebarState();
+      bindSidebarMenuAutoClose();
+      renderProfileBox();
+      renderCompanyInfo();
+      renderPageTitle();
+
+      const dateInput = document.getElementById("reportDate");
+      if (dateInput && !dateInput.value) {
+        dateInput.value = toDateInputValue();
+      }
+
+      await generateDailyReport(false);
+    }
+
+    initPage();
+  </script>
+</body>
+</html>

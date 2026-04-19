@@ -1,0 +1,1378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Invoice</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/toast.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+  <style>
+    .invoice-summary-box {
+      margin-top: 16px;
+      padding: 18px;
+      background: #fff;
+      border: 1px solid #ece5da;
+      border-radius: 18px;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+    }
+
+    .invoice-summary-box h3 {
+      margin-bottom: 14px;
+      color: #1e293b;
+      font-size: 20px;
+      font-weight: 800;
+    }
+
+    .summary-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .summary-stats-column {
+      display: grid;
+      gap: 16px;
+    }
+
+    .summary-wide-card {
+      background: #fcfaf7;
+      border: 1px solid #ebe3d8;
+      border-radius: 18px;
+      padding: 18px 18px;
+      min-height: 105px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .summary-wide-card span {
+      display: block;
+      font-size: 12px;
+      color: #6b7280;
+      font-weight: 700;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .summary-wide-card strong {
+      font-size: 24px;
+      color: #111827;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+
+    .product-summary-list {
+      display: grid;
+      gap: 14px;
+    }
+
+    .product-summary-card {
+      background: #fcfaf7;
+      border: 1px solid #ebe3d8;
+      border-radius: 16px;
+      padding: 14px 16px;
+      min-height: 92px;
+    }
+
+    .product-summary-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 14px;
+      flex-wrap: nowrap;
+    }
+
+    .product-summary-head h4 {
+      margin: 0;
+      color: #111827;
+      font-size: 19px;
+      font-weight: 800;
+      flex: 1;
+    }
+
+    .product-summary-right {
+      min-width: 150px;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .product-summary-right .weight-label {
+      display: block;
+      font-size: 11px;
+      color: #6b7280;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      margin-bottom: 3px;
+    }
+
+    .product-summary-right .weight-value {
+      color: #b7791f;
+      font-size: 16px;
+      font-weight: 800;
+    }
+
+    .size-summary-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .size-pill {
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: #fff;
+      border: 1px solid #e8dfd0;
+      color: #374151;
+      font-size: 13px;
+      font-weight: 700;
+      min-width: 100px;
+      text-align: center;
+    }
+
+    .invoice-action-btn {
+      border: none;
+      border-radius: 12px;
+      padding: 11px 14px;
+      cursor: pointer;
+      font-weight: 700;
+      color: #fff;
+      box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
+    }
+
+    .camera-btn {
+      background: linear-gradient(180deg, #d9ae67, #bb8134);
+    }
+
+    .update-barcode-btn {
+      background: linear-gradient(180deg, #b7791f, #8f5f18);
+    }
+
+    .send-billing-btn {
+      background: linear-gradient(180deg, #c58b2b, #9a6b1d);
+    }
+
+    .close-camera-btn {
+      background: linear-gradient(180deg, #7c5a1d, #5f4315);
+    }
+
+    .clear-invoice-btn {
+      background: linear-gradient(180deg, #ef4444, #dc2626);
+    }
+
+    .delete-row-btn {
+      width: 34px;
+      height: 34px;
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(180deg, #7c5a1d, #5f4315);
+      color: #fff;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+    }
+
+    .scanner-note {
+      margin-top: 10px;
+      font-size: 12px;
+      color: #6b7280;
+      line-height: 1.5;
+    }
+
+    .scanner-right th,
+    .scanner-right td {
+      vertical-align: middle;
+    }
+
+    #scannerBox {
+      margin-top: 12px;
+      display: none;
+      background: #fff;
+      border: 1px solid #dbe2ea;
+      border-radius: 12px;
+      padding: 10px;
+    }
+
+    #reader {
+      width: 100%;
+      max-width: 340px;
+      margin: 0 auto;
+    }
+
+    .company-info-chip {
+      margin-bottom: 12px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      color: #334155;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .profile-box {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      padding: 8px 12px;
+      border-radius: 999px;
+      color: #334155;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .profile-box i {
+      color: #b7791f;
+    }
+
+    @media (max-width: 900px) {
+      .summary-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .summary-stats-column {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .summary-stats-column {
+        grid-template-columns: 1fr;
+      }
+
+      .product-summary-head {
+        flex-wrap: wrap;
+      }
+
+      .product-summary-right {
+        min-width: auto;
+        width: 100%;
+        text-align: left;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-inner">
+        <div class="brand">
+          <a href="settings.html" class="sidebar-settings-btn" data-page-key="settings" title="Settings" aria-label="Open settings">
+            <i class="fas fa-gear"></i>
+          </a>
+          <h2>ERP PANEL</h2>
+          <p>Jewellery Management</p>
+        </div>
+
+        <ul class="menu">
+          <li><a href="dashboard.html"><i class="fas fa-chart-pie"></i> Dashboard</a></li>
+          <li><a href="process.html"><i class="fas fa-screwdriver-wrench"></i> Process</a></li>
+          <li><a href="sticker.html"><i class="fas fa-barcode"></i> Sticker</a></li>
+          <li><a href="stock.html"><i class="fas fa-boxes-stacked"></i> Stock</a></li>
+          <li><a href="material-stock.html"><i class="fas fa-box-open"></i> Material Stock</a></li>
+          <li><a href="daily-report.html"><i class="fas fa-chart-line"></i> Daily Report</a></li>
+          <li><a href="invoice.html" class="active"><i class="fas fa-file-invoice"></i> Invoice</a></li>
+          <li><a href="billing.html"><i class="fas fa-money-bill-wave"></i> Billing</a></li>
+          <li><a href="return.html"><i class="fas fa-rotate-left"></i> Return</a></li>
+          <li><a href="sales-history.html"><i class="fas fa-clock-rotate-left"></i> Sales History</a></li>
+          <li><a href="expense-manager.html"><i class="fas fa-wallet"></i> Expense Manager</a></li>
+          <li><a href="transaction.html"><i class="fas fa-arrow-right-arrow-left"></i> Transaction</a></li>
+          <li><a href="transaction-reports.html"><i class="fas fa-file-lines"></i> Transaction Reports</a></li>
+          <li><a href="admin-approval.html"><i class="fas fa-user-check"></i> Admin Approval</a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div class="top-left">
+          <button class="hamburger" type="button" onclick="toggleSidebar()">
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+
+          <div class="title">
+            <h1 id="pageCompanyTitle">RPJ MANUFACTURER</h1>
+            <p>Invoice Management</p>
+          </div>
+        </div>
+
+        <div class="top-right">
+          <button type="button" onclick="printSimpleInvoice()">Print</button>
+          <div class="profile-box" id="profileBox"></div>
+        </div>
+      </div>
+
+      <section class="page active">
+        <div class="section-box">
+          <div id="companyInfoChip" class="company-info-chip">Company: --</div>
+
+          <h2>Invoice</h2>
+          <p>Barcode scan karo, item automatic invoice me add ho jayega.</p>
+
+          <div class="sub-card">
+            <h3>Customer Details</h3>
+
+            <div class="form-grid">
+              <div class="input-box">
+                <label>Customer Name</label>
+                <input type="text" id="invoiceCustomerName" placeholder="Enter customer name" />
+              </div>
+
+              <div class="input-box">
+                <label>Mobile</label>
+                <input type="text" id="invoiceMobile" placeholder="Enter mobile no" />
+              </div>
+
+              <div class="input-box">
+                <label>Invoice Number</label>
+                <input type="text" id="invoiceNumber" placeholder="Enter invoice number" />
+              </div>
+
+              <div class="input-box">
+                <label>Date</label>
+                <input type="date" id="invoiceDate" />
+              </div>
+            </div>
+          </div>
+
+          <div class="invoice-summary-box">
+            <h3>Summary</h3>
+
+            <div class="summary-layout">
+              <div class="summary-stats-column">
+                <div class="summary-wide-card">
+                  <span>Total Count</span>
+                  <strong id="totalCount">0</strong>
+                </div>
+
+                <div class="summary-wide-card">
+                  <span>Total Weight</span>
+                  <strong><span id="totalWeight">0.000</span> g</strong>
+                </div>
+              </div>
+
+              <div id="productSummary" class="product-summary-list"></div>
+            </div>
+          </div>
+
+          <div class="scanner-layout">
+            <div class="scanner-left">
+              <h2>Barcode Scanner</h2>
+
+              <audio id="scanBeep" preload="auto">
+                <source src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg" type="audio/ogg">
+              </audio>
+
+              <div class="btn-row" style="margin-top:0;">
+                <button class="invoice-action-btn camera-btn" type="button" onclick="openBarcodeCamera()">Open Camera</button>
+                <button class="invoice-action-btn close-camera-btn" type="button" onclick="closeBarcodeCamera()">Close Camera</button>
+                <button class="invoice-action-btn update-barcode-btn" type="button" onclick="updateBarcodeDetails()">Update Barcode</button>
+                <button class="invoice-action-btn send-billing-btn" type="button" onclick="sendToBilling()">Send to Billing</button>
+                <button class="invoice-action-btn clear-invoice-btn" type="button" onclick="clearInvoiceData()">Clear Invoice</button>
+              </div>
+
+              <div id="scannerBox">
+                <div id="reader"></div>
+              </div>
+
+              <div class="input-box" style="margin-top:14px;">
+                <label>Scan Barcode</label>
+                <input
+                  type="text"
+                  id="invoiceBarcodeInput"
+                  placeholder="Scan Barcode"
+                  autocomplete="off"
+                />
+              </div>
+
+              <div class="scanner-note">
+                Mobile me back camera khulega. Scanner se barcode scan karo. Item automatic invoice me add ho jayega.
+              </div>
+            </div>
+
+            <div class="scanner-right">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Barcode</th>
+                    <th>Product</th>
+                    <th>SKU</th>
+                    <th>Weight</th>
+                    <th>Size</th>
+                    <th>Lot</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="invoiceTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/html5-qrcode"></script>
+
+  <script>
+    const API_BASE = "http://localhost:8080";
+
+    let stockItems = [];
+    let invoiceItems = [];
+    let processedInvoiceItems = [];
+    let html5QrCode = null;
+    let scannerRunning = false;
+    let scanDebounceTimer = null;
+    let lastAutoScannedValue = "";
+    let lastAutoScanTime = 0;
+    let stockLoadedOnce = false;
+    let currentInvoiceDraftId = null;
+    let invoiceHeaderSyncTimer = null;
+    let isHydratingInvoiceDraft = false;
+
+    function getLoggedInUser() {
+      try {
+        return JSON.parse(localStorage.getItem("erpLoggedInUser")) || null;
+      } catch (_) {
+        return null;
+      }
+    }
+
+    function getCurrentCompanyId() {
+      const user = getLoggedInUser();
+      const raw = user?.company_id ?? user?.companyId ?? null;
+      return raw === null || raw === undefined || raw === "" ? null : Number(raw);
+    }
+
+    function getCurrentCompanyName() {
+      const user = getLoggedInUser();
+      return String(user?.company_name || user?.companyName || "").trim();
+    }
+
+    function getCurrentUserId() {
+      const user = getLoggedInUser();
+      const raw = user?.id ?? user?.user_id ?? user?.userId ?? null;
+      return raw === null || raw === undefined || raw === "" ? null : Number(raw);
+    }
+
+    function isSuperAdmin() {
+      const user = getLoggedInUser();
+      const role = String(user?.role || "").toLowerCase();
+      const email = String(user?.email || "").toLowerCase();
+      return role === "superadmin" || email === "grudrapratap0@gmail.com";
+    }
+
+    function getItemCompanyId(item) {
+      const raw = item?.company_id ?? item?.companyId ?? null;
+      return raw === null || raw === undefined || raw === "" ? null : Number(raw);
+    }
+
+    function companyScopedKey(baseKey) {
+      const companyId = getCurrentCompanyId();
+      const scope = isSuperAdmin() ? "superadmin" : (companyId ?? "no_company");
+      return `${baseKey}_${scope}`;
+    }
+
+    function filterCompanyItems(items) {
+      if (isSuperAdmin()) return Array.isArray(items) ? items : [];
+
+      const currentCompanyId = getCurrentCompanyId();
+      return (Array.isArray(items) ? items : []).filter((item) => {
+        return getItemCompanyId(item) === currentCompanyId;
+      });
+    }
+
+    function num(value) {
+      const n = Number(value || 0);
+      return isNaN(n) ? 0 : n;
+    }
+
+    const ERP_SIDEBAR_STORAGE_KEY = "erpSidebarCollapsed";
+
+    function saveSidebarState(isCollapsed) {
+      localStorage.setItem(ERP_SIDEBAR_STORAGE_KEY, isCollapsed ? "true" : "false");
+    }
+
+    function applySidebarState() {
+      const sidebar = document.getElementById("sidebar");
+      if (!sidebar) return;
+
+      const isCollapsed = localStorage.getItem(ERP_SIDEBAR_STORAGE_KEY) === "true";
+      sidebar.classList.toggle("collapsed", isCollapsed);
+    }
+
+    function toggleSidebar() {
+      const sidebar = document.getElementById("sidebar");
+      if (!sidebar) return;
+
+      sidebar.classList.toggle("collapsed");
+      saveSidebarState(sidebar.classList.contains("collapsed"));
+    }
+
+    function bindSidebarMenuAutoClose() {
+      const sidebar = document.getElementById("sidebar");
+      if (!sidebar) return;
+
+      document.querySelectorAll(".menu a").forEach((link) => {
+        if (link.dataset.sidebarBound === "true") return;
+        link.dataset.sidebarBound = "true";
+        link.addEventListener("click", () => {
+          sidebar.classList.add("collapsed");
+          saveSidebarState(true);
+        });
+      });
+    }
+
+    applySidebarState();
+    bindSidebarMenuAutoClose();
+
+    function renderProfileBox() {
+      const box = document.getElementById("profileBox");
+      const user = getLoggedInUser();
+
+      if (!box) return;
+
+      if (!user) {
+        box.innerHTML = `<i class="fas fa-user"></i> Guest`;
+        return;
+      }
+
+      const role = String(user.role || "-");
+      const companyName = getCurrentCompanyName() || "No Company";
+      box.innerHTML = `<i class="fas fa-user-circle"></i> ${role} | ${companyName}`;
+    }
+
+    function renderCompanyInfo() {
+      const chip = document.getElementById("companyInfoChip");
+      if (!chip) return;
+
+      if (isSuperAdmin()) {
+        chip.textContent = "Company: Super Admin View";
+        return;
+      }
+
+      chip.textContent = `Company: ${getCurrentCompanyName() || "Unknown"}`;
+    }
+
+    function renderPageTitle() {
+      const title = document.getElementById("pageCompanyTitle");
+      if (!title) return;
+
+      if (isSuperAdmin()) {
+        title.textContent = "SUPER ADMIN PANEL";
+        return;
+      }
+
+      title.textContent = getCurrentCompanyName() || "RPJ MANUFACTURER";
+    }
+
+    async function loadFromServer(forceReload = false) {
+      if (stockLoadedOnce && !forceReload) return;
+
+      try {
+        const companyId = getCurrentCompanyId();
+        const actingUserId = getCurrentUserId();
+        const params = new URLSearchParams();
+
+        if (actingUserId !== null && !Number.isNaN(actingUserId)) {
+          params.set("actingUserId", String(actingUserId));
+        }
+
+        if (companyId !== null && !isSuperAdmin()) {
+          params.set("companyId", String(companyId));
+        }
+
+        const url = `${API_BASE}/getStock${params.toString() ? `?${params.toString()}` : ""}`;
+
+        const res = await fetch(url, { cache: "no-store" });
+        const data = await res.json();
+
+        stockItems = filterCompanyItems(Array.isArray(data) ? data : []);
+        stockLoadedOnce = true;
+      } catch (err) {
+        console.log("Load stock error:", err);
+      }
+    }
+
+    function buildAccessParams(forceCompany = false) {
+      const params = new URLSearchParams();
+      const companyId = getCurrentCompanyId();
+      const actingUserId = getCurrentUserId();
+
+      if (actingUserId !== null && !Number.isNaN(actingUserId)) {
+        params.set("actingUserId", String(actingUserId));
+      }
+
+      if ((forceCompany || !isSuperAdmin()) && companyId !== null && !Number.isNaN(companyId)) {
+        params.set("companyId", String(companyId));
+      }
+
+      return params;
+    }
+
+    function getInvoiceHeaderPayload() {
+      return {
+        customerName: document.getElementById("invoiceCustomerName")?.value.trim() || "",
+        mobile: document.getElementById("invoiceMobile")?.value.trim() || "",
+        invoiceNumber: document.getElementById("invoiceNumber")?.value.trim() || "",
+        invoiceDate: document.getElementById("invoiceDate")?.value || "",
+        companyId: getCurrentCompanyId(),
+        actingUserId: getCurrentUserId()
+      };
+    }
+
+    function hydrateInvoiceDraftState(payload, options = {}) {
+      const preserveInput = options.preserveInput === true;
+      currentInvoiceDraftId = payload?.draft?.id ?? null;
+      invoiceItems = Array.isArray(payload?.pendingItems) ? payload.pendingItems : [];
+      processedInvoiceItems = Array.isArray(payload?.processedItems) ? payload.processedItems : [];
+
+      if (!preserveInput) {
+        isHydratingInvoiceDraft = true;
+        document.getElementById("invoiceCustomerName").value = payload?.draft?.customerName || "";
+        document.getElementById("invoiceMobile").value = payload?.draft?.mobile || "";
+        document.getElementById("invoiceNumber").value = payload?.draft?.invoiceNumber || "";
+        document.getElementById("invoiceDate").value = payload?.draft?.invoiceDate || "";
+        isHydratingInvoiceDraft = false;
+      }
+    }
+
+    async function fetchCurrentInvoiceDraft() {
+      const response = await fetch(
+        `${API_BASE}/invoice-drafts/current?${buildAccessParams(true).toString()}`,
+        {
+          cache: "no-store"
+        }
+      );
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || "Invoice draft load failed");
+      }
+
+      hydrateInvoiceDraftState(result);
+      return result;
+    }
+
+    async function saveDraftHeaderToServer() {
+      const response = await fetch(`${API_BASE}/invoice-drafts/current/header`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(getInvoiceHeaderPayload())
+      });
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || "Invoice draft header save failed");
+      }
+
+      hydrateInvoiceDraftState(result);
+      return result;
+    }
+
+    function queueInvoiceHeaderSync() {
+      if (isHydratingInvoiceDraft) return;
+
+      clearTimeout(invoiceHeaderSyncTimer);
+      invoiceHeaderSyncTimer = setTimeout(async () => {
+        try {
+          await saveDraftHeaderToServer();
+          renderInvoiceTable();
+        } catch (error) {
+          console.log("Invoice draft header sync error:", error);
+        }
+      }, 250);
+    }
+
+    async function addDraftItem(barcode) {
+      const response = await fetch(`${API_BASE}/invoice-drafts/current/items`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          barcode,
+          companyId: getCurrentCompanyId(),
+          actingUserId: getCurrentUserId()
+        })
+      });
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || "Invoice draft item add failed");
+      }
+
+      hydrateInvoiceDraftState(result, { preserveInput: true });
+      return result;
+    }
+
+    async function removeDraftItem(barcode) {
+      const response = await fetch(
+        `${API_BASE}/invoice-drafts/current/items/${encodeURIComponent(barcode)}?${buildAccessParams(true).toString()}`,
+        {
+          method: "DELETE"
+        }
+      );
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || "Invoice draft item remove failed");
+      }
+
+      hydrateInvoiceDraftState(result, { preserveInput: true });
+      return result;
+    }
+
+    async function applyDraftDetailsToServer() {
+      const response = await fetch(`${API_BASE}/invoice-drafts/current/apply-details`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(getInvoiceHeaderPayload())
+      });
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || "Invoice draft update failed");
+      }
+
+      hydrateInvoiceDraftState(result);
+      return result;
+    }
+
+    async function clearDraftOnServer() {
+      const response = await fetch(
+        `${API_BASE}/invoice-drafts/current?${buildAccessParams(true).toString()}`,
+        {
+          method: "DELETE"
+        }
+      );
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || "Invoice draft clear failed");
+      }
+
+      hydrateInvoiceDraftState(result);
+      return result;
+    }
+
+    function focusInvoiceScanner() {
+      const input = document.getElementById("invoiceBarcodeInput");
+      if (input) input.focus();
+    }
+
+    function getInvoiceSummary() {
+      const sourceItems = processedInvoiceItems.length ? processedInvoiceItems : invoiceItems;
+
+      const summary = {
+        totalCount: sourceItems.length,
+        totalWeight: 0,
+        products: {}
+      };
+
+      sourceItems.forEach((item) => {
+        const product = String(item.productName || "").trim() || "Unknown Product";
+        const size = String(item.size || "").trim() || "No Size";
+        const weight = num(item.weight);
+
+        summary.totalWeight += weight;
+
+        if (!summary.products[product]) {
+          summary.products[product] = {
+            count: 0,
+            weight: 0,
+            sizes: {}
+          };
+        }
+
+        summary.products[product].count += 1;
+        summary.products[product].weight += weight;
+
+        if (!summary.products[product].sizes[size]) {
+          summary.products[product].sizes[size] = {
+            count: 0,
+            weight: 0
+          };
+        }
+
+        summary.products[product].sizes[size].count += 1;
+        summary.products[product].sizes[size].weight += weight;
+      });
+
+      return summary;
+    }
+
+    function renderSummary() {
+      const totalCountEl = document.getElementById("totalCount");
+      const totalWeightEl = document.getElementById("totalWeight");
+      const productSummaryEl = document.getElementById("productSummary");
+
+      const summary = getInvoiceSummary();
+
+      if (totalCountEl) totalCountEl.textContent = summary.totalCount;
+      if (totalWeightEl) totalWeightEl.textContent = summary.totalWeight.toFixed(3);
+
+      if (!productSummaryEl) return;
+
+      const productNames = Object.keys(summary.products);
+
+      if (!productNames.length) {
+        productSummaryEl.innerHTML = `
+          <div class="product-summary-card">
+            <div class="product-summary-head">
+              <h4>No items yet</h4>
+              <div class="product-summary-right">
+                <span class="weight-label">Status</span>
+                <div class="weight-value">Scan karo</div>
+              </div>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      let html = "";
+
+      productNames.forEach((productName) => {
+        const product = summary.products[productName];
+        const sizes = Object.keys(product.sizes);
+
+        html += `
+          <div class="product-summary-card">
+            <div class="product-summary-head">
+              <h4>${productName}</h4>
+              <div class="product-summary-right">
+                <span class="weight-label">Category Weight</span>
+                <div class="weight-value">${product.weight.toFixed(3)} g</div>
+              </div>
+            </div>
+            <div class="size-summary-row">
+        `;
+
+        sizes.forEach((sizeName) => {
+          const sizeInfo = product.sizes[sizeName];
+          html += `
+            <div class="size-pill">
+              ${sizeName} × ${sizeInfo.count}
+            </div>
+          `;
+        });
+
+        html += `
+            </div>
+          </div>
+        `;
+      });
+
+      productSummaryEl.innerHTML = html;
+    }
+
+    function renderInvoiceTable() {
+      const tbody = document.getElementById("invoiceTableBody");
+      if (!tbody) return;
+
+      tbody.innerHTML = "";
+
+      invoiceItems.forEach((item) => {
+        const safeBarcode = String(item.barcode || "").replace(/'/g, "\\'");
+        tbody.innerHTML += `
+          <tr>
+            <td>${item.barcode || ""}</td>
+            <td>${item.productName || ""}</td>
+            <td>${item.sku || ""}</td>
+            <td>${num(item.weight).toFixed(3)}</td>
+            <td>${item.size || ""}</td>
+            <td>${item.lot || ""}</td>
+            <td>
+              <button
+                type="button"
+                class="delete-row-btn"
+                onclick="deleteInvoiceItem('${safeBarcode}')"
+                title="Delete"
+              >
+                <i class="fas fa-trash"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      });
+
+      if (!invoiceItems.length) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" style="text-align:center;">No pending invoice items</td>
+          </tr>
+        `;
+      }
+
+      renderSummary();
+    }
+
+    async function deleteInvoiceItem(barcode) {
+      if (!barcode) return;
+
+      try {
+        await removeDraftItem(barcode);
+        renderInvoiceTable();
+        focusInvoiceScanner();
+      } catch (error) {
+        console.log("Delete invoice item error:", error);
+        showToast(error.message || "Invoice item delete failed", "error");
+      }
+    }
+
+    function getUniqueItemsByBarcode(items) {
+      const map = new Map();
+
+      (Array.isArray(items) ? items : []).forEach((item) => {
+        const barcode = String(item.barcode || "").trim();
+        if (!barcode) return;
+        if (!map.has(barcode)) {
+          map.set(barcode, item);
+        }
+      });
+
+      return Array.from(map.values());
+    }
+
+    async function updateBarcodeDetails() {
+      const customerName = document.getElementById("invoiceCustomerName")?.value.trim() || "";
+      const invoiceNumber = document.getElementById("invoiceNumber")?.value.trim() || "";
+
+      if (!invoiceItems.length) {
+        showToast("Pehle barcode scan karo", "error");
+        return;
+      }
+
+      if (!customerName) {
+        showToast("Customer name fill karo", "error");
+        return;
+      }
+
+      if (!invoiceNumber) {
+        showToast("Invoice number fill karo", "error");
+        return;
+      }
+
+      try {
+        const result = await applyDraftDetailsToServer();
+        renderInvoiceTable();
+        focusInvoiceScanner();
+        showToast(result.message || "Barcode customer details ke saath update ho gaya", "success");
+      } catch (error) {
+        console.log("Update barcode details error:", error);
+        showToast(error.message || "Invoice draft update failed", "error");
+      }
+    }
+
+    function sendToBilling() {
+      if (!processedInvoiceItems.length) {
+        showToast("Pehle Update Barcode karo", "error");
+        return;
+      }
+
+      if (!currentInvoiceDraftId) {
+        showToast("Invoice draft missing", "error");
+        return;
+      }
+
+      window.location.href = `billing.html?invoiceDraftId=${encodeURIComponent(currentInvoiceDraftId)}`;
+    }
+
+    async function autoAddBarcode(barcode) {
+      const cleanBarcode = String(barcode || "").trim();
+      if (!cleanBarcode) return;
+
+      const now = Date.now();
+
+      if (cleanBarcode === lastAutoScannedValue && now - lastAutoScanTime < 1500) {
+        document.getElementById("invoiceBarcodeInput").value = "";
+        focusInvoiceScanner();
+        return;
+      }
+
+      lastAutoScannedValue = cleanBarcode;
+      lastAutoScanTime = now;
+
+      await loadFromServer();
+
+      const item = stockItems.find(
+        (x) =>
+          String(x.barcode || "").trim() === cleanBarcode &&
+          String(x.status || "IN_STOCK").toUpperCase() === "IN_STOCK"
+      );
+
+      if (!item) {
+        document.getElementById("invoiceBarcodeInput").value = "";
+        focusInvoiceScanner();
+        return;
+      }
+
+      const existsInPending = invoiceItems.some((x) => String(x.barcode || "").trim() === cleanBarcode);
+      if (existsInPending) {
+        document.getElementById("invoiceBarcodeInput").value = "";
+        focusInvoiceScanner();
+        return;
+      }
+
+      const existsInProcessed = processedInvoiceItems.some((x) => String(x.barcode || "").trim() === cleanBarcode);
+      if (existsInProcessed) {
+        document.getElementById("invoiceBarcodeInput").value = "";
+        focusInvoiceScanner();
+        return;
+      }
+
+      try {
+        await addDraftItem(cleanBarcode);
+        renderInvoiceTable();
+      } catch (error) {
+        console.log("Auto add barcode error:", error);
+        showToast(error.message || "Invoice draft item add failed", "error");
+        document.getElementById("invoiceBarcodeInput").value = "";
+        focusInvoiceScanner();
+        return;
+      }
+
+      const beep = document.getElementById("scanBeep");
+      if (beep) {
+        try { beep.play(); } catch (_) {}
+      }
+
+      if (navigator.vibrate) {
+        try { navigator.vibrate(100); } catch (_) {}
+      }
+
+      document.getElementById("invoiceBarcodeInput").value = "";
+      focusInvoiceScanner();
+    }
+
+    function bindAutoScanInput() {
+      const input = document.getElementById("invoiceBarcodeInput");
+      if (!input) return;
+
+      input.addEventListener("input", function () {
+        const value = String(input.value || "").trim();
+        if (!value) return;
+
+        clearTimeout(scanDebounceTimer);
+        scanDebounceTimer = setTimeout(() => {
+          autoAddBarcode(value);
+        }, 180);
+      });
+
+      input.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          const value = String(input.value || "").trim();
+          if (value) autoAddBarcode(value);
+        }
+      });
+    }
+
+    async function clearInvoiceData() {
+      invoiceItems = [];
+      processedInvoiceItems = [];
+      currentInvoiceDraftId = null;
+
+      const ids = [
+        "invoiceBarcodeInput",
+        "invoiceCustomerName",
+        "invoiceMobile",
+        "invoiceNumber",
+        "invoiceDate"
+      ];
+
+      ids.forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) el.value = "";
+      });
+
+      try {
+        await clearDraftOnServer();
+      } catch (error) {
+        console.log("Clear invoice draft error:", error);
+      }
+
+      renderInvoiceTable();
+
+      focusInvoiceScanner();
+    }
+
+    function printSimpleInvoice() {
+      const sourceItems = processedInvoiceItems.length ? processedInvoiceItems : invoiceItems;
+
+      const invoiceNumber = document.getElementById("invoiceNumber")?.value || "";
+      const customerName = document.getElementById("invoiceCustomerName")?.value || "";
+      const mobile = document.getElementById("invoiceMobile")?.value || "";
+      const invoiceDate = document.getElementById("invoiceDate")?.value || "";
+
+      if (!sourceItems.length) {
+        showToast("Invoice me items nahi hain", "error");
+        return;
+      }
+
+      let rows = "";
+      let totalWeight = 0;
+
+      sourceItems.forEach((item, index) => {
+        totalWeight += num(item.weight);
+
+        rows += `
+          <tr>
+            <td>${index + 1}</td>
+            <td>${item.barcode || ""}</td>
+            <td>${item.productName || ""}</td>
+            <td>${item.sku || ""}</td>
+            <td>${item.size || ""}</td>
+            <td>${item.lot || ""}</td>
+            <td>${num(item.weight).toFixed(3)}</td>
+          </tr>
+        `;
+      });
+
+      const printWindow = window.open("", "_blank", "width=1200,height=900");
+      if (!printWindow) {
+        showToast("Popup block ho gaya. Browser me popup allow karo.", "error");
+        return;
+      }
+
+      printWindow.document.write(`
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Invoice Print</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      color: #111;
+    }
+    .print-box {
+      max-width: 1100px;
+      margin: auto;
+      border: 1px solid #111;
+      padding: 16px;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .top-info {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 16px;
+      font-size: 14px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+    }
+    th, td {
+      border: 1px solid #111;
+      padding: 8px;
+      text-align: center;
+      font-size: 13px;
+    }
+    th {
+      background: #111;
+      color: #fff;
+    }
+    .footer-summary {
+      margin-top: 16px;
+      font-size: 15px;
+      font-weight: 700;
+      display: flex;
+      justify-content: space-between;
+    }
+  </style>
+</head>
+<body>
+  <div class="print-box">
+    <h2>Invoice</h2>
+
+    <div class="top-info">
+      <div><strong>Invoice No:</strong> ${invoiceNumber}</div>
+      <div><strong>Date:</strong> ${invoiceDate}</div>
+      <div><strong>Customer Name:</strong> ${customerName}</div>
+      <div><strong>Mobile:</strong> ${mobile}</div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>SL</th>
+          <th>Barcode</th>
+          <th>Product</th>
+          <th>SKU</th>
+          <th>Size</th>
+          <th>Lot</th>
+          <th>Weight</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rows}
+      </tbody>
+    </table>
+
+    <div class="footer-summary">
+      <div>Total Items: ${sourceItems.length}</div>
+      <div>Total Weight: ${totalWeight.toFixed(3)} g</div>
+    </div>
+  </div>
+
+  <script>
+    window.onload = function () {
+      setTimeout(function () {
+        window.print();
+      }, 400);
+    };
+  <\/script>
+  <script src="js/toast.js"><\/script>
+</body>
+</html>
+      `);
+
+      printWindow.document.close();
+    }
+
+    async function openBarcodeCamera() {
+      const scannerBox = document.getElementById("scannerBox");
+      if (!scannerBox) return;
+
+      scannerBox.style.display = "block";
+
+      if (!html5QrCode) {
+        html5QrCode = new Html5Qrcode("reader");
+      }
+
+      if (scannerRunning) return;
+
+      try {
+        await html5QrCode.start(
+          { facingMode: "environment" },
+          {
+            fps: 15,
+            qrbox: { width: 250, height: 250 },
+            aspectRatio: 1.0
+          },
+          (decodedText) => {
+            autoAddBarcode(decodedText);
+          },
+          () => {}
+        );
+
+        scannerRunning = true;
+      } catch (err) {
+        console.log("Camera start error:", err);
+
+        try {
+          const devices = await Html5Qrcode.getCameras();
+          if (!devices || !devices.length) {
+            showToast("Camera nahi mila", "error");
+            return;
+          }
+
+          await html5QrCode.start(
+            devices[0].id,
+            {
+              fps: 15,
+              qrbox: { width: 250, height: 250 },
+              aspectRatio: 1.0
+            },
+            (decodedText) => {
+              autoAddBarcode(decodedText);
+            },
+            () => {}
+          );
+
+          scannerRunning = true;
+        } catch (err2) {
+          console.log("Camera fallback error:", err2);
+          showToast("Camera error", "error");
+        }
+      }
+    }
+
+    function closeBarcodeCamera() {
+      const scannerBox = document.getElementById("scannerBox");
+      if (scannerBox) scannerBox.style.display = "none";
+
+      if (html5QrCode && scannerRunning) {
+        html5QrCode.stop().then(() => {
+          scannerRunning = false;
+        }).catch((err) => {
+          console.log("Camera stop error:", err);
+        });
+      }
+    }
+
+    function bindInvoiceHeaderSync() {
+      [
+        "invoiceCustomerName",
+        "invoiceMobile",
+        "invoiceNumber",
+        "invoiceDate"
+      ].forEach((id) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener("input", queueInvoiceHeaderSync);
+        el.addEventListener("change", queueInvoiceHeaderSync);
+      });
+    }
+
+    window.addEventListener("load", async function () {
+      renderProfileBox();
+      renderCompanyInfo();
+      renderPageTitle();
+
+      await loadFromServer();
+      bindInvoiceHeaderSync();
+
+      try {
+        await fetchCurrentInvoiceDraft();
+      } catch (error) {
+        console.log("Invoice draft load error:", error);
+      }
+
+      renderInvoiceTable();
+      bindAutoScanInput();
+      focusInvoiceScanner();
+
+      const dateInput = document.getElementById("invoiceDate");
+      if (dateInput && !dateInput.value) {
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, "0");
+        const dd = String(today.getDate()).padStart(2, "0");
+        dateInput.value = `${yyyy}-${mm}-${dd}`;
+      }
+    });
+  </script>
+
+  <script src="js/auth.js"></script>
+  <script>
+    requireLogin();
+    requirePageAccess("invoice");
+    filterSidebarMenuByRole();
+  </script>
+  <script src="js/toast.js"></script>
+</body>
+</html>

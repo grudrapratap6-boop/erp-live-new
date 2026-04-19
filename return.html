@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Return Management</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/toast.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <style>
+    .company-info-chip {
+      margin-bottom: 12px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      color: #334155;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .profile-box {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      padding: 8px 12px;
+      border-radius: 999px;
+      color: #334155;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .profile-box i {
+      color: #b7791f;
+    }
+
+    .return-layout {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .detail-box {
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      background: #fcfcfd;
+      padding: 12px 14px;
+    }
+
+    .detail-box span {
+      display: block;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      color: #64748b;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .detail-box strong {
+      display: block;
+      color: #111827;
+      font-size: 15px;
+      word-break: break-word;
+    }
+
+    .summary-row.return-summary-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .summary-card.return-card {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 16px;
+      padding: 18px;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
+    }
+
+    .summary-card.return-card h4 {
+      margin: 0 0 8px;
+      font-size: 13px;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    .summary-card.return-card p {
+      margin: 0;
+      font-size: 28px;
+      font-weight: 800;
+      color: #111827;
+    }
+
+    .summary-card.return-card small {
+      display: block;
+      margin-top: 6px;
+      color: #6b7280;
+      font-size: 12px;
+    }
+
+    .history-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.3px;
+    }
+
+    .history-badge.normal {
+      background: #dbeafe;
+      color: #1d4ed8;
+    }
+
+    .history-badge.damage {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .history-table-wrap {
+      overflow-x: auto;
+      margin-top: 12px;
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      background: #fff;
+    }
+
+    .history-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .history-table th,
+    .history-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid #f1f5f9;
+      text-align: left;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+
+    .history-table th {
+      background: #f8fafc;
+      color: #475569;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .history-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .muted-help {
+      margin: 8px 0 0;
+      color: #6b7280;
+      font-size: 13px;
+    }
+
+    .empty-state {
+      padding: 20px;
+      text-align: center;
+      color: #6b7280;
+      font-size: 14px;
+    }
+
+    @media (max-width: 1100px) {
+      .return-layout,
+      .summary-row.return-summary-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .detail-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-inner">
+        <div class="brand">
+          <a href="settings.html" class="sidebar-settings-btn" data-page-key="settings" title="Settings" aria-label="Open settings">
+            <i class="fas fa-gear"></i>
+          </a>
+          <h2>ERP PANEL</h2>
+          <p>Jewellery Management</p>
+        </div>
+
+        <ul class="menu">
+          <li><a href="dashboard.html"><i class="fas fa-chart-pie"></i> Dashboard</a></li>
+          <li><a href="process.html"><i class="fas fa-screwdriver-wrench"></i> Process</a></li>
+          <li><a href="sticker.html"><i class="fas fa-barcode"></i> Sticker</a></li>
+          <li><a href="stock.html"><i class="fas fa-boxes-stacked"></i> Stock</a></li>
+          <li><a href="material-stock.html"><i class="fas fa-box-open"></i> Material Stock</a></li>
+          <li><a href="daily-report.html"><i class="fas fa-chart-line"></i> Daily Report</a></li>
+          <li><a href="invoice.html"><i class="fas fa-file-invoice"></i> Invoice</a></li>
+          <li><a href="billing.html"><i class="fas fa-money-bill-wave"></i> Billing</a></li>
+          <li><a href="return.html" class="active"><i class="fas fa-rotate-left"></i> Return</a></li>
+          <li><a href="sales-history.html"><i class="fas fa-clock-rotate-left"></i> Sales History</a></li>
+          <li><a href="expense-manager.html"><i class="fas fa-wallet"></i> Expense Manager</a></li>
+          <li><a href="transaction.html"><i class="fas fa-arrow-right-arrow-left"></i> Transaction</a></li>
+          <li><a href="transaction-reports.html"><i class="fas fa-file-lines"></i> Transaction Reports</a></li>
+          <li><a href="admin-approval.html"><i class="fas fa-user-check"></i> Admin Approval</a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div class="top-left">
+          <button class="hamburger" type="button" onclick="toggleSidebar()">
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+
+          <div class="title">
+            <h1>Return Management</h1>
+            <p>Return to stock aur damaged return dono yahin se manage honge.</p>
+          </div>
+        </div>
+
+        <div class="top-right" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+          <button type="button" onclick="loadReturnDashboard()">Refresh</button>
+          <button type="button" onclick="logoutUser()">Logout</button>
+          <div class="profile-box" id="profileBox">
+            <i class="fas fa-user-circle"></i> Loading...
+          </div>
+        </div>
+      </div>
+
+      <section class="content">
+        <div class="card">
+          <div id="companyInfoChip" class="company-info-chip">Company: Loading...</div>
+
+          <div class="return-layout">
+            <div class="sub-card">
+              <h3>Save Return</h3>
+              <p class="muted-help">Barcode scan karo, item details auto fetch hongi, phir return save karo.</p>
+
+              <div class="form-grid">
+                <div class="input-box">
+                  <label for="returnBarcode">Barcode</label>
+                  <input
+                    type="text"
+                    id="returnBarcode"
+                    placeholder="Scan or enter barcode"
+                    onkeydown="handleBarcodeKeydown(event)"
+                  />
+                </div>
+
+                <div class="input-box" style="display:flex; align-items:flex-end;">
+                  <button type="button" onclick="fetchBarcodeDetails()" style="width:100%;">Fetch Details</button>
+                </div>
+
+                <div class="input-box">
+                  <label for="returnInvoiceNumber">Invoice Number</label>
+                  <input type="text" id="returnInvoiceNumber" readonly />
+                </div>
+
+                <div class="input-box">
+                  <label for="returnCustomerName">Customer Name</label>
+                  <input type="text" id="returnCustomerName" readonly />
+                </div>
+
+                <div class="input-box">
+                  <label for="returnProductName">Product Name</label>
+                  <input type="text" id="returnProductName" readonly />
+                </div>
+
+                <div class="input-box">
+                  <label for="returnSku">SKU</label>
+                  <input type="text" id="returnSku" readonly />
+                </div>
+
+                <div class="input-box">
+                  <label for="returnType">Return Type</label>
+                  <select id="returnType">
+                    <option value="RETURN_TO_STOCK">Return to Stock</option>
+                    <option value="DAMAGED_RETURN">Damaged Return</option>
+                  </select>
+                </div>
+
+                <div class="input-box">
+                  <label for="returnReason">Return Reason</label>
+                  <input type="text" id="returnReason" placeholder="Reason for return" />
+                </div>
+              </div>
+
+              <div class="detail-grid">
+                <div class="detail-box">
+                  <span>Size</span>
+                  <strong id="detailSize">-</strong>
+                </div>
+                <div class="detail-box">
+                  <span>Weight</span>
+                  <strong id="detailWeight">0.000 g</strong>
+                </div>
+                <div class="detail-box">
+                  <span>Lot Number</span>
+                  <strong id="detailLot">-</strong>
+                </div>
+                <div class="detail-box">
+                  <span>Current Stock Status</span>
+                  <strong id="detailStatus">-</strong>
+                </div>
+              </div>
+
+              <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:16px;">
+                <button type="button" onclick="saveReturnEntry()">Save Return</button>
+                <button type="button" class="secondary-btn" onclick="clearReturnForm()">Clear</button>
+              </div>
+            </div>
+
+            <div class="sub-card">
+              <h3>Selected Item</h3>
+              <p class="muted-help">Fetched item detail yahan lock rahegi taaki wrong return na save ho.</p>
+              <div class="detail-grid">
+                <div class="detail-box">
+                  <span>Barcode</span>
+                  <strong id="detailBarcode">-</strong>
+                </div>
+                <div class="detail-box">
+                  <span>Company</span>
+                  <strong id="detailCompany">-</strong>
+                </div>
+                <div class="detail-box">
+                  <span>Invoice</span>
+                  <strong id="detailInvoice">-</strong>
+                </div>
+                <div class="detail-box">
+                  <span>Customer</span>
+                  <strong id="detailCustomer">-</strong>
+                </div>
+                <div class="detail-box">
+                  <span>Product</span>
+                  <strong id="detailProduct">-</strong>
+                </div>
+                <div class="detail-box">
+                  <span>SKU</span>
+                  <strong id="detailSku">-</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="summary-row return-summary-row">
+            <div class="summary-card return-card">
+              <h4>Total Returns</h4>
+              <p id="sumTotalReturns">0</p>
+              <small>All recorded return events</small>
+            </div>
+
+            <div class="summary-card return-card">
+              <h4>Normal Return</h4>
+              <p id="sumReturnToStock">0</p>
+              <small>Returned back to sellable stock</small>
+            </div>
+
+            <div class="summary-card return-card">
+              <h4>Damaged Return</h4>
+              <p id="sumDamagedReturn">0</p>
+              <small>Marked as damaged return</small>
+            </div>
+
+            <div class="summary-card return-card">
+              <h4>Today Returns</h4>
+              <p id="sumTodayReturns">0</p>
+              <small>Today recorded return entries</small>
+            </div>
+          </div>
+
+          <div class="sub-card" style="margin-top:16px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
+              <div>
+                <h3 style="margin:0 0 4px;">Return History</h3>
+                <p class="muted-help" style="margin:0;">Latest saved return records by company scope.</p>
+              </div>
+            </div>
+
+            <div class="history-table-wrap">
+              <table class="history-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Barcode</th>
+                    <th>Invoice</th>
+                    <th>Customer</th>
+                    <th>Product</th>
+                    <th>SKU</th>
+                    <th>Lot</th>
+                    <th>Type</th>
+                    <th>Reason</th>
+                  </tr>
+                </thead>
+                <tbody id="returnHistoryBody">
+                  <tr>
+                    <td colspan="9" class="empty-state">No return history found</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const API_BASE = "http://localhost:8080";
+    let selectedReturnItem = null;
+
+    function getLoggedInUser() {
+      try {
+        return JSON.parse(localStorage.getItem("erpLoggedInUser")) || null;
+      } catch (_) {
+        return null;
+      }
+    }
+
+    function getCurrentCompanyId() {
+      const user = getLoggedInUser();
+      const raw = user?.company_id ?? user?.companyId ?? null;
+      if (raw === null || raw === undefined || raw === "") return null;
+      const parsed = Number(raw);
+      return Number.isNaN(parsed) ? null : parsed;
+    }
+
+    function getCurrentUserId() {
+      const user = getLoggedInUser();
+      const raw = user?.id ?? user?.user_id ?? user?.userId ?? null;
+      if (raw === null || raw === undefined || raw === "") return null;
+      const parsed = Number(raw);
+      return Number.isNaN(parsed) ? null : parsed;
+    }
+
+    function isSuperAdmin() {
+      const user = getLoggedInUser();
+      const role = String(user?.role || "").trim().toLowerCase();
+      const email = String(user?.email || "").trim().toLowerCase();
+      return role === "superadmin" || email === "grudrapratap0@gmail.com";
+    }
+
+    function safeText(value) {
+      return String(value ?? "").trim();
+    }
+
+    const ERP_SIDEBAR_STORAGE_KEY = "erpSidebarCollapsed";
+
+    function saveSidebarState(isCollapsed) {
+      localStorage.setItem(ERP_SIDEBAR_STORAGE_KEY, isCollapsed ? "true" : "false");
+    }
+
+    function applySidebarState() {
+      const sidebar = document.getElementById("sidebar");
+      if (!sidebar) return;
+
+      const isCollapsed = localStorage.getItem(ERP_SIDEBAR_STORAGE_KEY) === "true";
+      sidebar.classList.toggle("collapsed", isCollapsed);
+    }
+
+    function toggleSidebar() {
+      const sidebar = document.getElementById("sidebar");
+      if (!sidebar) return;
+
+      sidebar.classList.toggle("collapsed");
+      saveSidebarState(sidebar.classList.contains("collapsed"));
+    }
+
+    function bindSidebarMenuAutoClose() {
+      const sidebar = document.getElementById("sidebar");
+      if (!sidebar) return;
+
+      document.querySelectorAll(".menu a").forEach((link) => {
+        if (link.dataset.sidebarBound === "true") return;
+        link.dataset.sidebarBound = "true";
+        link.addEventListener("click", () => {
+          sidebar.classList.add("collapsed");
+          saveSidebarState(true);
+        });
+      });
+    }
+
+    applySidebarState();
+    bindSidebarMenuAutoClose();
+
+    function logoutUser() {
+      localStorage.removeItem("erpLoggedInUser");
+      window.location.href = "login.html";
+    }
+
+    function buildProtectedParams(includeCompany = false, companyId = null) {
+      const params = new URLSearchParams();
+      const actingUserId = getCurrentUserId();
+      const finalCompanyId =
+        companyId !== null && companyId !== undefined ? Number(companyId) : getCurrentCompanyId();
+
+      if (actingUserId !== null && !Number.isNaN(actingUserId)) {
+        params.set("actingUserId", String(actingUserId));
+      }
+
+      if (includeCompany && finalCompanyId !== null && !Number.isNaN(finalCompanyId)) {
+        params.set("companyId", String(finalCompanyId));
+      }
+
+      return params;
+    }
+
+    function renderProfileBox() {
+      const user = getLoggedInUser();
+      if (!user) return;
+
+      const profileBox = document.getElementById("profileBox");
+      const companyChip = document.getElementById("companyInfoChip");
+      const name = safeText(user.name || "User");
+      const role = safeText(user.role || "-");
+      const companyName = safeText(user.company_name || user.companyName || "All Companies");
+
+      if (profileBox) {
+        profileBox.innerHTML = `
+          <i class="fas fa-user-circle"></i>
+          <span>${name} (${role})</span>
+        `;
+      }
+
+      if (companyChip) {
+        companyChip.textContent = isSuperAdmin()
+          ? "Company Scope: Super Admin / All Companies"
+          : `Company Scope: ${companyName}`;
+      }
+    }
+
+    async function fetchBarcodeDetails() {
+      const barcode = safeText(document.getElementById("returnBarcode")?.value);
+      if (!barcode) {
+        alert("Barcode enter karo");
+        return;
+      }
+
+      try {
+        let itemCompanyId = getCurrentCompanyId();
+        let foundItem = null;
+
+        if (isSuperAdmin()) {
+          const stockParams = buildProtectedParams(false);
+          const stockUrl = `${API_BASE}/getStock${stockParams.toString() ? `?${stockParams.toString()}` : ""}`;
+          const stockRes = await fetch(stockUrl, { cache: "no-store" });
+          const stockData = await stockRes.json();
+          const stockItems = Array.isArray(stockData) ? stockData : [];
+
+          foundItem = stockItems.find(
+            (item) => safeText(item.barcode).toUpperCase() === barcode.toUpperCase()
+          );
+
+          if (foundItem) {
+            itemCompanyId = Number(foundItem.company_id || 0) || null;
+          }
+        }
+
+        const returnItemParams = buildProtectedParams(true, itemCompanyId);
+        const returnItemUrl = `${API_BASE}/getReturnItem/${encodeURIComponent(barcode)}${returnItemParams.toString() ? `?${returnItemParams.toString()}` : ""}`;
+        const returnItemRes = await fetch(returnItemUrl, { cache: "no-store" });
+        const returnItemData = await returnItemRes.json();
+
+        if (returnItemData?.success && returnItemData.item) {
+          foundItem = returnItemData.item;
+          itemCompanyId = Number(foundItem.company_id || itemCompanyId || 0) || null;
+        }
+
+        if (!foundItem) {
+          alert("Barcode stock me nahi mila");
+          clearReturnForm(false);
+          return;
+        }
+
+        selectedReturnItem = {
+          barcode: safeText(foundItem.barcode),
+          invoice_number: safeText(foundItem.invoice_number),
+          customer_name: safeText(foundItem.customer_name),
+          product_name: safeText(foundItem.product_name),
+          sku: safeText(foundItem.sku),
+          size: safeText(foundItem.size),
+          weight: Number(foundItem.weight || 0),
+          lot_number: safeText(foundItem.lot_number),
+          status: safeText(foundItem.status || "IN_STOCK"),
+          company_id: itemCompanyId,
+          company_name: safeText(
+            foundItem.company_name ||
+            foundItem.companyName ||
+            getLoggedInUser()?.company_name ||
+            getLoggedInUser()?.companyName ||
+            ""
+          )
+        };
+
+        fillReturnDetails(selectedReturnItem);
+      } catch (error) {
+        console.log("Return barcode fetch error:", error);
+        alert("Barcode details load nahi hui");
+      }
+    }
+
+    function fillReturnDetails(item) {
+      document.getElementById("returnInvoiceNumber").value = item.invoice_number || "";
+      document.getElementById("returnCustomerName").value = item.customer_name || "";
+      document.getElementById("returnProductName").value = item.product_name || "";
+      document.getElementById("returnSku").value = item.sku || "";
+
+      document.getElementById("detailBarcode").textContent = item.barcode || "-";
+      document.getElementById("detailCompany").textContent =
+        item.company_name || (item.company_id ? `Company ID ${item.company_id}` : "-");
+      document.getElementById("detailInvoice").textContent = item.invoice_number || "-";
+      document.getElementById("detailCustomer").textContent = item.customer_name || "-";
+      document.getElementById("detailProduct").textContent = item.product_name || "-";
+      document.getElementById("detailSku").textContent = item.sku || "-";
+      document.getElementById("detailSize").textContent = item.size || "-";
+      document.getElementById("detailWeight").textContent = Number(item.weight || 0).toFixed(3) + " g";
+      document.getElementById("detailLot").textContent = item.lot_number || "-";
+      document.getElementById("detailStatus").textContent = item.status || "-";
+    }
+
+    function clearReturnForm(resetBarcode = true) {
+      selectedReturnItem = null;
+
+      if (resetBarcode) {
+        document.getElementById("returnBarcode").value = "";
+      }
+
+      document.getElementById("returnInvoiceNumber").value = "";
+      document.getElementById("returnCustomerName").value = "";
+      document.getElementById("returnProductName").value = "";
+      document.getElementById("returnSku").value = "";
+      document.getElementById("returnReason").value = "";
+      document.getElementById("returnType").value = "RETURN_TO_STOCK";
+
+      fillReturnDetails({
+        barcode: "-",
+        company_name: "-",
+        invoice_number: "-",
+        customer_name: "-",
+        product_name: "-",
+        sku: "-",
+        size: "-",
+        weight: 0,
+        lot_number: "-",
+        status: "-"
+      });
+    }
+
+    async function saveReturnEntry() {
+      if (!selectedReturnItem) {
+        alert("Pehle barcode details fetch karo");
+        return;
+      }
+
+      const actingUserId = getCurrentUserId();
+      const returnType = safeText(document.getElementById("returnType")?.value).toUpperCase();
+      const returnReason = safeText(document.getElementById("returnReason")?.value);
+      const companyId = selectedReturnItem.company_id ?? getCurrentCompanyId();
+
+      if (actingUserId === null || Number.isNaN(actingUserId)) {
+        alert("Login user missing");
+        return;
+      }
+
+      if (companyId === null || Number.isNaN(Number(companyId))) {
+        alert("Company scope missing for this return");
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/saveReturn`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            barcode: selectedReturnItem.barcode,
+            invoice_number: selectedReturnItem.invoice_number,
+            customer_name: selectedReturnItem.customer_name,
+            product_name: selectedReturnItem.product_name,
+            sku: selectedReturnItem.sku,
+            size: selectedReturnItem.size,
+            weight: selectedReturnItem.weight,
+            lot_number: selectedReturnItem.lot_number,
+            return_type: returnType,
+            return_reason: returnReason,
+            actingUserId,
+            companyId
+          })
+        });
+
+        const data = await res.json();
+        if (!data.success) {
+          alert(data.message || "Return save failed");
+          return;
+        }
+
+        alert("Return saved successfully");
+        clearReturnForm();
+        await loadReturnDashboard();
+      } catch (error) {
+        console.log("Return save error:", error);
+        alert("Return save error");
+      }
+    }
+
+    function renderReturnSummary(summary) {
+      document.getElementById("sumTotalReturns").textContent = String(Number(summary?.totalReturns || 0));
+      document.getElementById("sumReturnToStock").textContent = String(Number(summary?.returnToStockCount || 0));
+      document.getElementById("sumDamagedReturn").textContent = String(Number(summary?.damagedReturnCount || 0));
+      document.getElementById("sumTodayReturns").textContent = String(Number(summary?.todayReturns || 0));
+    }
+
+    function renderReturnHistory(rows) {
+      const tbody = document.getElementById("returnHistoryBody");
+      if (!tbody) return;
+
+      tbody.innerHTML = "";
+
+      if (!Array.isArray(rows) || !rows.length) {
+        tbody.innerHTML = `<tr><td colspan="9" class="empty-state">No return history found</td></tr>`;
+        return;
+      }
+
+      rows.forEach((item) => {
+        const type = safeText(item.return_type).toUpperCase();
+        const badgeClass = type === "DAMAGED_RETURN" ? "damage" : "normal";
+        const badgeLabel = type === "DAMAGED_RETURN" ? "DAMAGED_RETURN" : "RETURN_TO_STOCK";
+
+        tbody.innerHTML += `
+          <tr>
+            <td>${safeText(item.return_date || item.created_at || "-")}</td>
+            <td>${safeText(item.barcode || "-")}</td>
+            <td>${safeText(item.invoice_number || "-")}</td>
+            <td>${safeText(item.customer_name || "-")}</td>
+            <td>${safeText(item.product_name || "-")}</td>
+            <td>${safeText(item.sku || "-")}</td>
+            <td>${safeText(item.lot_number || "-")}</td>
+            <td><span class="history-badge ${badgeClass}">${badgeLabel}</span></td>
+            <td>${safeText(item.return_reason || "-")}</td>
+          </tr>
+        `;
+      });
+    }
+
+    async function loadReturnDashboard() {
+      try {
+        const params = buildProtectedParams(!isSuperAdmin());
+        const summaryUrl = `${API_BASE}/getReturnSummary${params.toString() ? `?${params.toString()}` : ""}`;
+        const historyUrl = `${API_BASE}/getReturns${params.toString() ? `?${params.toString()}` : ""}`;
+
+        const [summaryRes, historyRes] = await Promise.all([
+          fetch(summaryUrl, { cache: "no-store" }),
+          fetch(historyUrl, { cache: "no-store" })
+        ]);
+
+        const summaryData = await summaryRes.json();
+        const historyData = await historyRes.json();
+
+        renderReturnSummary(summaryData || {});
+        renderReturnHistory(
+          historyData && historyData.success && Array.isArray(historyData.returns)
+            ? historyData.returns
+            : []
+        );
+      } catch (error) {
+        console.log("Return dashboard load error:", error);
+        renderReturnSummary({});
+        renderReturnHistory([]);
+      }
+    }
+
+    function handleBarcodeKeydown(event) {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        fetchBarcodeDetails();
+      }
+    }
+
+    window.addEventListener("load", () => {
+      renderProfileBox();
+      clearReturnForm();
+      loadReturnDashboard();
+    });
+  </script>
+
+  <script src="js/auth.js"></script>
+  <script src="js/toast.js"></script>
+  <script>
+    requireLogin();
+    requirePageAccess("return");
+    filterSidebarMenuByRole();
+  </script>
+</body>
+</html>

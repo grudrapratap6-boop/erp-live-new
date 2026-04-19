@@ -1,0 +1,1686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sticker ERP</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/toast.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+  <style>
+
+    .inline-edit {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #d9c7a4;
+      border-radius: 8px;
+      background: #fffaf2;
+      outline: none;
+      font-size: 13px;
+    }
+
+    .inline-edit:focus {
+      border-color: #c58b2b;
+      box-shadow: 0 0 0 3px rgba(197, 139, 43, 0.14);
+    }
+
+    .inline-row-actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: nowrap;
+      align-items: center;
+    }
+
+    .inline-save-btn {
+      background: linear-gradient(180deg, #d9ae67, #bb8134);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 7px 10px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .inline-cancel-btn {
+      background: linear-gradient(180deg, #7c5a1d, #5f4315);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 7px 10px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .edit-btn,
+    .save-btn,
+    .add-btn,
+    .lot-btn {
+      background: linear-gradient(180deg, #d9ae67, #bb8134) !important;
+      color: #fff !important;
+      white-space: nowrap;
+    }
+
+    .lot-btn.active {
+      background: linear-gradient(180deg, #7c5a1d, #5f4315) !important;
+      color: #fff !important;
+    }
+
+    .delete-icon-btn {
+      width: 34px;
+      height: 34px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      background: linear-gradient(180deg, #7c5a1d, #5f4315);
+      color: #fff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+
+    .delete-icon-btn:hover {
+      opacity: 0.92;
+    }
+
+    .print-action-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+
+    .print-action-row button {
+      flex: 1;
+      min-width: 140px;
+    }
+
+    .pending-note {
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: #fff8eb;
+      border: 1px solid #ecd5a5;
+      color: #7c5a1d;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .saved-badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      background: #ecfdf5;
+      color: #047857;
+      border: 1px solid #a7f3d0;
+      margin-left: 6px;
+      white-space: nowrap;
+    }
+
+    .unsaved-badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      background: #fff7ed;
+      color: #b45309;
+      border: 1px solid #fed7aa;
+      margin-left: 6px;
+      white-space: nowrap;
+    }
+
+    .action-wrap {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      flex-wrap: nowrap;
+      justify-content: flex-start;
+    }
+
+    .action-wrap .mini-btn,
+    .action-wrap .delete-icon-btn {
+      margin: 0;
+    }
+
+    #stickerListBody td:last-child,
+    #stickerListBody th:last-child {
+      min-width: 130px;
+      white-space: nowrap;
+    }
+
+    .company-info-chip {
+      margin-bottom: 12px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      color: #334155;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .profile-box {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      padding: 8px 12px;
+      border-radius: 999px;
+      color: #334155;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .profile-box i {
+      color: #b7791f;
+    }
+
+    .history-card {
+      background: #fffaf2;
+      border: 1px solid #ecd5a5;
+      border-radius: 10px;
+      padding: 12px;
+    }
+
+    .history-card p {
+      margin: 0;
+      line-height: 1.6;
+      font-size: 13px;
+      color: #334155;
+    }
+
+    .lot-buttons-wrap {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 0;
+      margin-bottom: 12px;
+    }
+  </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-inner">
+        <div class="brand">
+          <a href="settings.html" class="sidebar-settings-btn" data-page-key="settings" title="Settings" aria-label="Open settings">
+            <i class="fas fa-gear"></i>
+          </a>
+          <h2>ERP PANEL</h2>
+          <p>Jewellery Management</p>
+        </div>
+
+        <ul class="menu">
+          <li><a href="dashboard.html"><i class="fas fa-chart-pie"></i> Dashboard</a></li>
+          <li><a href="process.html"><i class="fas fa-screwdriver-wrench"></i> Process</a></li>
+          <li><a href="sticker.html" class="active"><i class="fas fa-barcode"></i> Sticker</a></li>
+          <li><a href="stock.html"><i class="fas fa-boxes-stacked"></i> Stock</a></li>
+          <li><a href="material-stock.html"><i class="fas fa-box-open"></i> Material Stock</a></li>
+          <li><a href="daily-report.html"><i class="fas fa-chart-line"></i> Daily Report</a></li>
+          <li><a href="invoice.html"><i class="fas fa-file-invoice"></i> Invoice</a></li>
+          <li><a href="billing.html"><i class="fas fa-money-bill-wave"></i> Billing</a></li>
+          <li><a href="return.html"><i class="fas fa-rotate-left"></i> Return</a></li>
+          <li><a href="sales-history.html"><i class="fas fa-clock-rotate-left"></i> Sales History</a></li>
+          <li><a href="expense-manager.html"><i class="fas fa-wallet"></i> Expense Manager</a></li>
+          <li><a href="transaction.html"><i class="fas fa-arrow-right-arrow-left"></i> Transaction</a></li>
+          <li><a href="transaction-reports.html"><i class="fas fa-file-lines"></i> Transaction Reports</a></li>
+          <li><a href="admin-approval.html"><i class="fas fa-user-check"></i> Admin Approval</a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div class="top-left">
+          <button class="hamburger" type="button" onclick="toggleSidebar()">
+            <span></span><span></span><span></span>
+          </button>
+
+          <div class="title">
+            <h1 id="pageCompanyTitle">ERP PANEL</h1>
+            <p>Sticker Management</p>
+          </div>
+        </div>
+
+        <div class="top-right">
+          <div class="profile-box" id="profileBox"></div>
+        </div>
+      </div>
+
+      <div class="section-box sticker-pro-box">
+        <div id="companyInfoChip" class="company-info-chip">Company: --</div>
+
+        <div style="font-size:14px; margin-bottom:12px; color:#475569; font-weight:600;">
+          Choose lot to continue:
+        </div>
+
+        <div id="lotButtonsWrap" class="lot-buttons-wrap"></div>
+
+        <div class="form-grid" style="grid-template-columns: 1fr 1fr 1fr 2fr;">
+          <div class="input-box">
+            <label for="lotSelector">Lot Number</label>
+            <input type="text" id="lotSelector" oninput="handleLotInputChange()" />
+          </div>
+
+          <div class="input-box">
+            <label for="metalTypeSelector">Metal Type</label>
+            <select id="metalTypeSelector" onchange="syncLotPreview()">
+              <option value="Silver">Silver</option>
+              <option value="Gold">Gold</option>
+            </select>
+          </div>
+
+          <div class="input-box">
+            <label for="processTypeSelector">Process Type</label>
+            <select id="processTypeSelector" onchange="syncLotPreview()"></select>
+          </div>
+
+          <div class="input-box">
+            <label>&nbsp;</label>
+            <div class="lot-preview-line" style="margin-top:0;">
+              <span>Lot Number: <b id="lotPreviewText">--</b></span>
+              <span>Process Type: <b id="processPreviewText">--</b></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="btn-row" style="margin-top:10px; margin-bottom:10px;">
+          <input
+            type="text"
+            id="newProcessType"
+            placeholder="New Process Type likho"
+            style="flex:1; padding:10px; border:1px solid #cbd5e1; border-radius:8px;"
+          />
+          <button class="mini-btn" type="button" onclick="addProcessType()">Add Process</button>
+        </div>
+
+        <input type="hidden" id="selectedLotPreview" />
+        <input type="hidden" id="selectedProcessPreview" />
+        <input type="hidden" id="stickerBarcode" />
+
+        <div class="compact-grid" style="margin-top:14px;">
+          <div class="compact-box compact-form">
+            <div class="input-box">
+              <label for="stickerSerial">Serial Number</label>
+              <input id="stickerSerial" type="number" />
+            </div>
+
+            <div class="input-box">
+              <label for="stickerProductName">Product</label>
+              <input id="stickerProductName" />
+            </div>
+
+            <div class="input-box">
+              <label for="stickerPurity">Purity</label>
+              <input id="stickerPurity" />
+            </div>
+
+            <div class="input-box">
+              <label for="stickerSku">SKU ID</label>
+              <input id="stickerSku" />
+            </div>
+
+            <div class="input-box">
+              <label for="stickerMM">MM</label>
+              <input id="stickerMM" />
+            </div>
+
+            <div class="input-box">
+              <label for="stickerSize">Size</label>
+              <input id="stickerSize" />
+            </div>
+
+            <div class="input-box">
+              <label for="stickerWeight">Weight</label>
+              <input id="stickerWeight" placeholder="1.500" />
+            </div>
+
+            <div class="btn-row" style="margin-top:10px;">
+              <button class="mini-btn add-btn" type="button" onclick="addStickerItem()">Add Item</button>
+            </div>
+
+            <div class="input-box" style="margin-top:12px;">
+              <label for="startFrom">Print Start From</label>
+              <input type="number" id="startFrom" min="1" max="108" value="1" placeholder="e.g. 11" />
+            </div>
+
+            <div class="input-box" style="margin-top:10px;">
+              <label for="printExtraWeight">Add Weight (Print Time)</label>
+              <input type="number" step="0.001" id="printExtraWeight" placeholder="0.000" />
+            </div>
+
+            <div class="print-action-row">
+              <button class="primary-btn save-btn" type="button" onclick="savePendingToServer()">Save All</button>
+              <button class="primary-btn" type="button" onclick="printStickerSheet()">Print Sticker</button>
+            </div>
+
+            <div class="pending-note">
+              Weight pe Enter = auto barcode generate + Add Item. Lot choose karte hi next serial auto aayega.
+            </div>
+          </div>
+
+          <div class="compact-box">
+            <h3 id="totalStickerWeight">Sticker List Total Weight: 0.000</h3>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Sl. No</th>
+                    <th>Product</th>
+                    <th>Purity</th>
+                    <th>SKU</th>
+                    <th>MM</th>
+                    <th>Size</th>
+                    <th>Weight</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="stickerListBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="compact-box">
+            <div style="display:flex; gap:8px; align-items:center; margin-bottom:12px;">
+              <select id="historyType" style="flex:1; padding:10px; border:1px solid #cbd5e1; border-radius:8px;">
+                <option>Saved Stock History</option>
+              </select>
+              <button class="mini-btn" type="button" style="min-width:44px; padding:10px;" onclick="renderHistory()">↻</button>
+            </div>
+
+            <div id="historyList"></div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const API_BASE = "http://localhost:8080";
+
+    let stockItems = [];
+    let pendingStickerItems = [];
+    let processTypes = [];
+    let editingPendingBarcode = null;
+    let lotOptions = [];
+
+    function getLoggedInUser() {
+      try {
+        return JSON.parse(localStorage.getItem("erpLoggedInUser")) || null;
+      } catch (_) {
+        return null;
+      }
+    }
+
+    function getCurrentCompanyId() {
+      const user = getLoggedInUser();
+      const raw = user?.company_id ?? user?.companyId ?? null;
+      return raw === null || raw === undefined || raw === "" ? null : Number(raw);
+    }
+
+    function getCurrentCompanyName() {
+      const user = getLoggedInUser();
+      return String(user?.company_name || user?.companyName || "").trim();
+    }
+
+    function getCurrentUserId() {
+      const user = getLoggedInUser();
+      const raw = user?.id ?? user?.user_id ?? user?.userId ?? null;
+      return raw === null || raw === undefined || raw === "" ? null : Number(raw);
+    }
+
+    function isSuperAdmin() {
+      const user = getLoggedInUser();
+      const role = String(user?.role || "").trim().toLowerCase();
+      const email = String(user?.email || "").trim().toLowerCase();
+      return role === "superadmin" || email === "grudrapratap0@gmail.com";
+    }
+
+    function getPendingStorageKey() {
+      const companyId = getCurrentCompanyId();
+      return `pendingStickerItems_company_${companyId || "guest"}`;
+    }
+
+    function getProcessTypeStorageKey() {
+      const companyId = getCurrentCompanyId();
+      return `processTypes_company_${companyId || "guest"}`;
+    }
+
+    function getLotStorageKey() {
+      const companyId = getCurrentCompanyId();
+      return `lotOptions_company_${companyId || "guest"}`;
+    }
+
+    function savePendingItemsToLocal() {
+      localStorage.setItem(getPendingStorageKey(), JSON.stringify(pendingStickerItems));
+    }
+
+    function loadPendingItemsFromLocal() {
+      try {
+        const raw = localStorage.getItem(getPendingStorageKey());
+        pendingStickerItems = raw ? JSON.parse(raw) : [];
+        if (!Array.isArray(pendingStickerItems)) pendingStickerItems = [];
+      } catch (_) {
+        pendingStickerItems = [];
+      }
+    }
+
+    function saveProcessTypesToLocal() {
+      localStorage.setItem(getProcessTypeStorageKey(), JSON.stringify(processTypes));
+    }
+
+    function loadProcessTypesFromLocal() {
+      try {
+        const raw = localStorage.getItem(getProcessTypeStorageKey());
+        const parsed = raw ? JSON.parse(raw) : null;
+        if (Array.isArray(parsed) && parsed.length) {
+          processTypes = parsed;
+        } else {
+          processTypes = ["MixOrnaments", "Sankha", "Pola"];
+          saveProcessTypesToLocal();
+        }
+      } catch (_) {
+        processTypes = ["MixOrnaments", "Sankha", "Pola"];
+        saveProcessTypesToLocal();
+      }
+    }
+
+    function saveLotOptionsToLocal() {
+      localStorage.setItem(getLotStorageKey(), JSON.stringify(lotOptions));
+    }
+
+    function loadLotOptionsFromLocal() {
+      try {
+        const raw = localStorage.getItem(getLotStorageKey());
+        const parsed = raw ? JSON.parse(raw) : null;
+        if (Array.isArray(parsed) && parsed.length) {
+          lotOptions = parsed.map(v => String(v).trim()).filter(Boolean);
+        } else {
+          lotOptions = ["1", "5"];
+          saveLotOptionsToLocal();
+        }
+      } catch (_) {
+        lotOptions = ["1", "5"];
+        saveLotOptionsToLocal();
+      }
+    }
+
+    function escapeHtml(value) {
+      return String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function requireLogin() {
+      const user = getLoggedInUser();
+      if (!user) {
+        showToast("Login required", "error");
+        window.location.href = "login.html";
+        return false;
+      }
+      return true;
+    }
+
+    function requireRole(allowedRoles = []) {
+      const user = getLoggedInUser();
+
+      if (!user) {
+        window.location.href = "login.html";
+        return false;
+      }
+
+      const userRole = String(user.role || "").trim();
+      if (!allowedRoles.includes(userRole)) {
+        showToast("Access denied", "error");
+        window.location.href = "dashboard.html";
+        return false;
+      }
+
+      return true;
+    }
+
+    function requireCompanyContext() {
+      if (isSuperAdmin()) return true;
+
+      const companyId = getCurrentCompanyId();
+      if (companyId === null || Number.isNaN(companyId)) {
+        showToast("Company access missing", "error");
+        window.location.href = "login.html";
+        return false;
+      }
+
+      return true;
+    }
+
+    function renderProfileBox() {
+      const box = document.getElementById("profileBox");
+      const user = getLoggedInUser();
+
+      if (!box) return;
+
+      if (!user) {
+        box.innerHTML = `<i class="fas fa-user"></i> Guest`;
+        return;
+      }
+
+      const role = escapeHtml(user.role || "-");
+      const companyName = escapeHtml(getCurrentCompanyName() || "No Company");
+      box.innerHTML = `<i class="fas fa-user-circle"></i> ${role} | ${companyName}`;
+    }
+
+    function renderCompanyInfo() {
+      const chip = document.getElementById("companyInfoChip");
+      if (!chip) return;
+
+      if (isSuperAdmin()) {
+        chip.textContent = "Company: Super Admin View";
+        return;
+      }
+
+      const companyName = getCurrentCompanyName();
+      chip.textContent = `Company: ${companyName || "Unknown"}`;
+    }
+
+    function renderPageTitle() {
+      const title = document.getElementById("pageCompanyTitle");
+      if (!title) return;
+
+      if (isSuperAdmin()) {
+        title.textContent = "SUPER ADMIN PANEL";
+        return;
+      }
+
+      title.textContent = getCurrentCompanyName() || "ERP PANEL";
+    }
+
+    const ERP_SIDEBAR_STORAGE_KEY = "erpSidebarCollapsed";
+
+    function saveSidebarState(isCollapsed) {
+      localStorage.setItem(ERP_SIDEBAR_STORAGE_KEY, isCollapsed ? "true" : "false");
+    }
+
+    function applySidebarState() {
+      const sidebar = document.getElementById("sidebar");
+      if (!sidebar) return;
+
+      const isCollapsed = localStorage.getItem(ERP_SIDEBAR_STORAGE_KEY) === "true";
+      sidebar.classList.toggle("collapsed", isCollapsed);
+    }
+
+    function toggleSidebar() {
+      const sidebar = document.getElementById("sidebar");
+      if (!sidebar) return;
+
+      sidebar.classList.toggle("collapsed");
+      saveSidebarState(sidebar.classList.contains("collapsed"));
+    }
+
+    function bindSidebarMenuAutoClose() {
+      const sidebar = document.getElementById("sidebar");
+      if (!sidebar) return;
+
+      document.querySelectorAll(".menu a").forEach((link) => {
+        if (link.dataset.sidebarBound === "true") return;
+        link.dataset.sidebarBound = "true";
+        link.addEventListener("click", () => {
+          sidebar.classList.add("collapsed");
+          saveSidebarState(true);
+        });
+      });
+    }
+
+    applySidebarState();
+    bindSidebarMenuAutoClose();
+
+    function format3(value) {
+      const n = Number(value || 0);
+      return isNaN(n) ? "0.000" : n.toFixed(3);
+    }
+
+    function normalizeText(value) {
+      return String(value || "").trim();
+    }
+
+    function getLotValue(item) {
+      return normalizeText(item.lot_number || item.lot || "");
+    }
+
+    function getSerialValue(item) {
+      return Number(item.serial || 0);
+    }
+
+    function getBarcodeValue(item) {
+      return normalizeText(item.barcode || "");
+    }
+
+    function generateUniqueBarcode() {
+      return "B" + Date.now().toString().slice(-6) + Math.floor(Math.random() * 10);
+    }
+
+    function isDuplicateBarcodeEverywhere(barcode, ignoreBarcode = "") {
+      const cleanBarcode = normalizeText(barcode);
+      const cleanIgnore = normalizeText(ignoreBarcode);
+
+      const existsInStock = stockItems.some((item) => {
+        const itemBarcode = getBarcodeValue(item);
+        const statusOk = String(item.status || "IN_STOCK").toUpperCase() === "IN_STOCK";
+        return statusOk && itemBarcode === cleanBarcode && itemBarcode !== cleanIgnore;
+      });
+
+      const existsInPending = pendingStickerItems.some((item) => {
+        const itemBarcode = getBarcodeValue(item);
+        return itemBarcode === cleanBarcode && itemBarcode !== cleanIgnore;
+      });
+
+      return existsInStock || existsInPending;
+    }
+
+    function isDuplicateLotSerialEverywhere(lot, serial, ignoreBarcode = "") {
+      const cleanLot = normalizeText(lot);
+      const numSerial = Number(serial);
+      const cleanIgnore = normalizeText(ignoreBarcode);
+
+      const existsInStock = stockItems.some((item) => {
+        const statusOk = String(item.status || "IN_STOCK").toUpperCase() === "IN_STOCK";
+        if (!statusOk) return false;
+
+        return (
+          getLotValue(item) === cleanLot &&
+          getSerialValue(item) === numSerial &&
+          getBarcodeValue(item) !== cleanIgnore
+        );
+      });
+
+      const existsInPending = pendingStickerItems.some((item) => {
+        return (
+          getLotValue(item) === cleanLot &&
+          getSerialValue(item) === numSerial &&
+          getBarcodeValue(item) !== cleanIgnore
+        );
+      });
+
+      return existsInStock || existsInPending;
+    }
+
+    function generateBarcodeNow(forceNew = false) {
+      const barcodeField = document.getElementById("stickerBarcode");
+      if (!barcodeField) return "";
+
+      const oldBarcode = barcodeField.value.trim();
+      if (oldBarcode && !forceNew) return oldBarcode;
+
+      let barcode = generateUniqueBarcode();
+      let tries = 0;
+
+      while (isDuplicateBarcodeEverywhere(barcode) && tries < 50) {
+        barcode = generateUniqueBarcode();
+        tries++;
+      }
+
+      barcodeField.value = barcode;
+      return barcode;
+    }
+
+    function loadProcessTypeOptions(selectedValue = "") {
+      const select = document.getElementById("processTypeSelector");
+      if (!select) return;
+
+      select.innerHTML = "";
+      processTypes.forEach((type) => {
+        const option = document.createElement("option");
+        option.value = type;
+        option.textContent = type;
+        select.appendChild(option);
+      });
+
+      if (selectedValue && processTypes.includes(selectedValue)) {
+        select.value = selectedValue;
+      } else if (processTypes.length) {
+        select.value = processTypes[0];
+      }
+    }
+
+    function addProcessType() {
+      const input = document.getElementById("newProcessType");
+      const value = String(input?.value || "").trim();
+
+      if (!value) {
+        showToast("New process type likho", "error");
+        return;
+      }
+
+      if (!processTypes.includes(value)) {
+        processTypes.push(value);
+        saveProcessTypesToLocal();
+      }
+
+      loadProcessTypeOptions(value);
+      syncLotPreview();
+      input.value = "";
+      showToast("Process type added", "success");
+    }
+
+    function sortLotOptions(list) {
+      return [...new Set(list.map(v => String(v).trim()).filter(Boolean))]
+        .sort((a, b) => {
+          const na = Number(a);
+          const nb = Number(b);
+          const bothNum = !Number.isNaN(na) && !Number.isNaN(nb);
+          if (bothNum) return na - nb;
+          return String(a).localeCompare(String(b), undefined, { numeric: true });
+        });
+    }
+
+    function ensureLotExists(lotValue) {
+      const cleanLot = normalizeText(lotValue);
+      if (!cleanLot) return;
+
+      if (!lotOptions.includes(cleanLot)) {
+        lotOptions.push(cleanLot);
+        lotOptions = sortLotOptions(lotOptions);
+        saveLotOptionsToLocal();
+        renderLotButtons();
+      }
+    }
+
+    function collectLotsFromData() {
+      const lots = ["1", "5"];
+
+      stockItems.forEach((item) => {
+        const lot = getLotValue(item);
+        if (lot) lots.push(lot);
+      });
+
+      pendingStickerItems.forEach((item) => {
+        const lot = getLotValue(item);
+        if (lot) lots.push(lot);
+      });
+
+      lotOptions = sortLotOptions([...lotOptions, ...lots]);
+      saveLotOptionsToLocal();
+    }
+
+    function renderLotButtons() {
+      const wrap = document.getElementById("lotButtonsWrap");
+      const currentLot = normalizeText(document.getElementById("lotSelector")?.value || "");
+
+      if (!wrap) return;
+      wrap.innerHTML = "";
+
+      lotOptions.forEach((lot) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = `mini-btn lot-btn ${currentLot === lot ? "active" : ""}`;
+        btn.textContent = lot;
+        btn.onclick = () => setQuickLot(lot);
+        wrap.appendChild(btn);
+      });
+    }
+
+    function syncLotPreview() {
+      const lotValue = document.getElementById("lotSelector")?.value.trim() || "";
+      const processValue = document.getElementById("processTypeSelector")?.value || "";
+
+      document.getElementById("selectedLotPreview").value = lotValue;
+      document.getElementById("selectedProcessPreview").value = processValue;
+      document.getElementById("lotPreviewText").textContent = lotValue || "--";
+      document.getElementById("processPreviewText").textContent = processValue || "--";
+
+      renderLotButtons();
+    }
+
+    function handleLotInputChange() {
+      const lotValue = document.getElementById("lotSelector")?.value.trim() || "";
+      syncLotPreview();
+
+      if (lotValue) {
+        ensureLotExists(lotValue);
+      }
+
+      updateNextSerialForCurrentLot();
+    }
+
+    function setQuickLot(lotNo) {
+      const lotSelector = document.getElementById("lotSelector");
+      if (lotSelector) lotSelector.value = String(lotNo).trim();
+
+      ensureLotExists(lotNo);
+      syncLotPreview();
+      updateNextSerialForCurrentLot();
+    }
+
+    function getStickerFormData() {
+      return {
+        serial: document.getElementById("stickerSerial")?.value.trim() || "",
+        productName: document.getElementById("stickerProductName")?.value.trim() || "",
+        purity: document.getElementById("stickerPurity")?.value.trim() || "",
+        sku: document.getElementById("stickerSku")?.value.trim() || "",
+        mm: document.getElementById("stickerMM")?.value.trim() || "",
+        size: document.getElementById("stickerSize")?.value.trim() || "",
+        weight: format3(document.getElementById("stickerWeight")?.value || 0),
+        lot: document.getElementById("lotSelector")?.value.trim() || "",
+        metalType: document.getElementById("metalTypeSelector")?.value || "",
+        processType: document.getElementById("processTypeSelector")?.value || "",
+        barcode: document.getElementById("stickerBarcode")?.value.trim() || ""
+      };
+    }
+
+    function clearStickerFormForNext() {
+      const weightInput = document.getElementById("stickerWeight");
+      const barcodeInput = document.getElementById("stickerBarcode");
+
+      if (weightInput) weightInput.value = "";
+      if (barcodeInput) barcodeInput.value = "";
+
+      generateBarcodeNow(true);
+      if (weightInput) weightInput.focus();
+    }
+
+    async function loadFromServer() {
+      try {
+        const companyId = getCurrentCompanyId();
+        const actingUserId = getCurrentUserId();
+        const params = new URLSearchParams();
+
+        if (actingUserId !== null && !Number.isNaN(actingUserId)) {
+          params.set("actingUserId", String(actingUserId));
+        }
+
+        if (!isSuperAdmin()) {
+          if (companyId === null || Number.isNaN(companyId)) {
+            showToast("Company access missing hai", "error");
+            stockItems = [];
+            renderHistory();
+            return;
+          }
+          params.set("companyId", String(companyId));
+        }
+
+        const url = `${API_BASE}/getStock${params.toString() ? `?${params.toString()}` : ""}`;
+
+        const res = await fetch(url, { cache: "no-store" });
+        const data = await res.json();
+        stockItems = Array.isArray(data) ? data : [];
+
+        collectLotsFromData();
+        renderLotButtons();
+        renderHistory();
+      } catch (err) {
+        console.log("Load error:", err);
+        showToast("Load error", "error");
+      }
+    }
+
+    function getNextSerialForLot(lot) {
+      const cleanLot = normalizeText(lot);
+      if (!cleanLot) return 1;
+
+      let maxSerial = 0;
+
+      stockItems.forEach((item) => {
+        const statusOk = String(item.status || "IN_STOCK").toUpperCase() === "IN_STOCK";
+        if (statusOk && getLotValue(item) === cleanLot) {
+          maxSerial = Math.max(maxSerial, getSerialValue(item));
+        }
+      });
+
+      pendingStickerItems.forEach((item) => {
+        if (getLotValue(item) === cleanLot) {
+          maxSerial = Math.max(maxSerial, getSerialValue(item));
+        }
+      });
+
+      return maxSerial + 1;
+    }
+
+    function updateNextSerialForCurrentLot() {
+      const lot = document.getElementById("lotSelector")?.value.trim() || "";
+      const serialInput = document.getElementById("stickerSerial");
+
+      if (!serialInput) return;
+
+      if (!lot) {
+        serialInput.value = "";
+        return;
+      }
+
+      serialInput.value = String(getNextSerialForLot(lot));
+    }
+
+    function keepFieldsAndPrepareNext() {
+      const currentLot = document.getElementById("lotSelector")?.value.trim() || "";
+
+      if (currentLot) {
+        document.getElementById("stickerSerial").value = String(getNextSerialForLot(currentLot));
+      } else {
+        const currentSerial = Number(document.getElementById("stickerSerial").value || 0);
+        document.getElementById("stickerSerial").value = String(isNaN(currentSerial) ? 1 : currentSerial + 1);
+      }
+
+      clearStickerFormForNext();
+      renderLotButtons();
+    }
+
+    function addStickerItem() {
+      const companyId = getCurrentCompanyId();
+
+      if (!isSuperAdmin() && (companyId === null || Number.isNaN(companyId))) {
+        showToast("Company access missing hai", "error");
+        return;
+      }
+
+      let data = getStickerFormData();
+
+      if (!data.lot) {
+        showToast("Lot Number daalo", "error");
+        return;
+      }
+
+      ensureLotExists(data.lot);
+
+      if (!data.serial) {
+        document.getElementById("stickerSerial").value = String(getNextSerialForLot(data.lot));
+        data = getStickerFormData();
+      }
+
+      if (!data.productName || !data.purity || !data.sku || !data.size || !data.weight) {
+        showToast("Serial, Product, Purity, SKU, Size, Weight aur Lot Number daalo", "error");
+        return;
+      }
+
+      const expectedNextSerial = getNextSerialForLot(data.lot);
+      if (Number(data.serial) < expectedNextSerial && isDuplicateLotSerialEverywhere(data.lot, data.serial)) {
+        showToast(`Lot ${data.lot} me serial ${data.serial} pehle se stock me hai`, "error");
+        document.getElementById("stickerSerial").value = String(expectedNextSerial);
+        return;
+      }
+
+      if (!data.barcode) {
+        const autoBarcode = generateBarcodeNow(true);
+        document.getElementById("stickerBarcode").value = autoBarcode;
+        data = getStickerFormData();
+      }
+
+      if (isDuplicateLotSerialEverywhere(data.lot, data.serial)) {
+        showToast(`Lot ${data.lot} me serial ${data.serial} pehle se exist hai`, "error");
+        document.getElementById("stickerSerial").value = String(getNextSerialForLot(data.lot));
+        return;
+      }
+
+      if (isDuplicateBarcodeEverywhere(data.barcode)) {
+        const newBarcode = generateBarcodeNow(true);
+        document.getElementById("stickerBarcode").value = newBarcode;
+        data = getStickerFormData();
+
+        if (isDuplicateBarcodeEverywhere(data.barcode)) {
+          showToast("Barcode duplicate aa raha hai", "error");
+          return;
+        }
+      }
+
+      pendingStickerItems.push({
+        serial: Number(data.serial),
+        product_name: data.productName,
+        productName: data.productName,
+        purity: data.purity,
+        sku: data.sku,
+        mm: data.mm,
+        size: data.size,
+        weight: format3(data.weight),
+        lot: data.lot,
+        lot_number: data.lot,
+        metalType: data.metalType,
+        metal_type: data.metalType,
+        processType: data.processType,
+        process_type: data.processType,
+        barcode: data.barcode,
+        status: "PENDING",
+        company_id: companyId,
+        created_by: getCurrentUserId(),
+        created_at: new Date().toISOString(),
+        saved_to_server: false
+      });
+
+      ensureLotExists(data.lot);
+      savePendingItemsToLocal();
+      renderStickerList();
+      keepFieldsAndPrepareNext();
+      showToast("Item sticker list me add ho gaya", "success");
+    }
+
+    async function savePendingToServer() {
+      const companyId = getCurrentCompanyId();
+
+      if (!isSuperAdmin() && (companyId === null || Number.isNaN(companyId))) {
+        showToast("Company access missing hai", "error");
+        return;
+      }
+
+      const unsavedItems = pendingStickerItems.filter(item => !item.saved_to_server);
+
+      if (!unsavedItems.length) {
+        showToast("Koi naya unsaved item nahi hai", "info");
+        return;
+      }
+
+      try {
+        for (const item of unsavedItems) {
+          const payload = {
+            serial: item.serial,
+            productName: item.product_name || item.productName || "",
+            purity: item.purity || "",
+            sku: item.sku || "",
+            mm: item.mm || "",
+            size: item.size || "",
+            weight: format3(item.weight || 0),
+            lot: item.lot_number || item.lot || "",
+            metalType: item.metal_type || item.metalType || "Silver",
+            processType: item.process_type || item.processType || "",
+            barcode: item.barcode || "",
+            companyId: companyId,
+            userId: getCurrentUserId()
+          };
+
+          const res = await fetch(`${API_BASE}/addSticker`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          });
+
+          const result = await res.json();
+
+          if (!result.success) {
+            showToast(result.message || "Kuch item save nahi hua", "error");
+            return;
+          }
+        }
+
+        pendingStickerItems = pendingStickerItems.map(item =>
+          unsavedItems.some(u => u.barcode === item.barcode)
+            ? { ...item, saved_to_server: true }
+            : item
+        );
+
+        savePendingItemsToLocal();
+        await loadFromServer();
+        renderStickerList();
+        updateNextSerialForCurrentLot();
+        showToast("Sab new item stock me save ho gaya ✅", "success");
+      } catch (err) {
+        console.log("Bulk save error:", err);
+        showToast("Server save error", "error");
+      }
+    }
+
+    function startInlineEdit(barcode) {
+      editingPendingBarcode = barcode;
+      renderStickerList();
+    }
+
+    function cancelInlineEdit() {
+      editingPendingBarcode = null;
+      renderStickerList();
+    }
+
+    function getInlineEditedValues(row, oldBarcode) {
+      return {
+        serial: row.querySelector('[data-field="serial"]')?.value.trim() || "",
+        productName: row.querySelector('[data-field="product_name"]')?.value.trim() || "",
+        purity: row.querySelector('[data-field="purity"]')?.value.trim() || "",
+        sku: row.querySelector('[data-field="sku"]')?.value.trim() || "",
+        mm: row.querySelector('[data-field="mm"]')?.value.trim() || "",
+        size: row.querySelector('[data-field="size"]')?.value.trim() || "",
+        weight: format3(row.querySelector('[data-field="weight"]')?.value.trim() || 0),
+        lot: row.querySelector('[data-field="lot_number"]')?.value.trim() || "",
+        metalType: row.querySelector('[data-field="metal_type"]')?.value.trim() || "",
+        processType: row.querySelector('[data-field="process_type"]')?.value.trim() || "",
+        barcode: row.querySelector('[data-field="barcode"]')?.value.trim() || oldBarcode
+      };
+    }
+
+    function saveInlineEdit(oldBarcode) {
+      const row = document.querySelector(`tr[data-editing-barcode="${oldBarcode}"]`);
+      if (!row) return;
+
+      const data = getInlineEditedValues(row, oldBarcode);
+
+      if (!data.serial || !data.productName || !data.purity || !data.sku || !data.size || !data.weight || !data.lot) {
+        showToast("Serial, Product, Purity, SKU, Size, Weight aur Lot Number required hai", "error");
+        return;
+      }
+
+      if (isDuplicateLotSerialEverywhere(data.lot, data.serial, oldBarcode)) {
+        showToast(`Lot ${data.lot} me serial ${data.serial} pehle se exist hai`, "error");
+        return;
+      }
+
+      if (isDuplicateBarcodeEverywhere(data.barcode, oldBarcode)) {
+        showToast("Barcode duplicate hai", "error");
+        return;
+      }
+
+      ensureLotExists(data.lot);
+
+      pendingStickerItems = pendingStickerItems.map((item) => {
+        if (String(item.barcode || "").trim() === String(oldBarcode).trim()) {
+          return {
+            ...item,
+            serial: Number(data.serial),
+            product_name: data.productName,
+            productName: data.productName,
+            purity: data.purity,
+            sku: data.sku,
+            mm: data.mm,
+            size: data.size,
+            weight: format3(data.weight),
+            lot: data.lot,
+            lot_number: data.lot,
+            metalType: data.metalType,
+            metal_type: data.metalType,
+            processType: data.processType,
+            process_type: data.processType,
+            barcode: data.barcode,
+            saved_to_server: false
+          };
+        }
+        return item;
+      });
+
+      editingPendingBarcode = null;
+      savePendingItemsToLocal();
+      renderStickerList();
+      renderLotButtons();
+      showToast("Pending item updated. Save All phir se dabana hoga", "success");
+    }
+
+    function attachInlineRowEvents() {
+      document.querySelectorAll(".inline-edit").forEach((input) => {
+        input.addEventListener("keydown", function (e) {
+          const row = e.target.closest("tr");
+          const oldBarcode = row?.dataset.editingBarcode || "";
+
+          if (e.key === "Enter") {
+            e.preventDefault();
+            saveInlineEdit(oldBarcode);
+          }
+
+          if (e.key === "Escape") {
+            e.preventDefault();
+            cancelInlineEdit();
+          }
+        });
+      });
+
+      const firstInput = document.querySelector(".inline-edit");
+      if (firstInput) firstInput.focus();
+    }
+
+    function deleteStickerByIndex(index) {
+      const item = pendingStickerItems[index];
+      if (!item) return;
+
+      pendingStickerItems.splice(index, 1);
+      savePendingItemsToLocal();
+      collectLotsFromData();
+      renderLotButtons();
+      renderStickerList();
+      updateNextSerialForCurrentLot();
+      showToast("Item sticker list se delete ho gaya", "success");
+    }
+
+    function renderStickerList() {
+      const tbody = document.getElementById("stickerListBody");
+      const totalWeightEl = document.getElementById("totalStickerWeight");
+      if (!tbody) return;
+
+      tbody.innerHTML = "";
+      let totalWeight = 0;
+
+      if (!pendingStickerItems.length) {
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;">No sticker items found</td></tr>`;
+      }
+
+      pendingStickerItems.forEach((item, index) => {
+        totalWeight += Number(item.weight || 0);
+        const itemBarcode = getBarcodeValue(item);
+        const isEditing = editingPendingBarcode === itemBarcode;
+        const badge = item.saved_to_server
+          ? `<span class="saved-badge">Saved</span>`
+          : `<span class="unsaved-badge">Unsaved</span>`;
+
+        if (isEditing) {
+          tbody.innerHTML += `
+            <tr data-editing-barcode="${escapeHtml(itemBarcode)}">
+              <td><input class="inline-edit" data-field="serial" type="number" value="${escapeHtml(item.serial || "")}"></td>
+              <td><input class="inline-edit" data-field="product_name" value="${escapeHtml(item.product_name || item.productName || "")}"></td>
+              <td><input class="inline-edit" data-field="purity" value="${escapeHtml(item.purity || "")}"></td>
+              <td><input class="inline-edit" data-field="sku" value="${escapeHtml(item.sku || "")}"></td>
+              <td><input class="inline-edit" data-field="mm" value="${escapeHtml(item.mm || "")}"></td>
+              <td><input class="inline-edit" data-field="size" value="${escapeHtml(item.size || "")}"></td>
+              <td><input class="inline-edit" data-field="weight" type="number" step="0.001" value="${escapeHtml(format3(item.weight || 0))}"></td>
+              <td>
+                <input type="hidden" data-field="lot_number" value="${escapeHtml(item.lot_number || item.lot || "")}">
+                <input type="hidden" data-field="metal_type" value="${escapeHtml(item.metal_type || item.metalType || "Silver")}">
+                <input type="hidden" data-field="process_type" value="${escapeHtml(item.process_type || item.processType || "")}">
+                <input type="hidden" data-field="barcode" value="${escapeHtml(itemBarcode)}">
+                <div class="inline-row-actions">
+                  <button type="button" class="inline-save-btn" onclick="saveInlineEdit('${escapeHtml(itemBarcode)}')">Save</button>
+                  <button type="button" class="inline-cancel-btn" onclick="cancelInlineEdit()">Cancel</button>
+                </div>
+              </td>
+            </tr>
+          `;
+        } else {
+          tbody.innerHTML += `
+            <tr>
+              <td>${escapeHtml(item.serial || "")}</td>
+              <td>${escapeHtml(item.product_name || item.productName || "")}${badge}</td>
+              <td>${escapeHtml(item.purity || "")}</td>
+              <td>${escapeHtml(item.sku || "")}</td>
+              <td>${escapeHtml(item.mm || "")}</td>
+              <td>${escapeHtml(item.size || "")}</td>
+              <td>${escapeHtml(format3(item.weight || 0))}</td>
+              <td>
+                <div class="action-wrap">
+                  <button type="button" class="mini-btn edit-btn" onclick="startInlineEdit('${escapeHtml(itemBarcode)}')">Edit</button>
+                  <button type="button" class="delete-icon-btn" onclick="deleteStickerByIndex(${index})" title="Delete">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          `;
+        }
+      });
+
+      totalWeightEl.innerHTML =
+        "Sticker List Total Weight: <span style='color:#b7791f; font-weight:700;'>" +
+        format3(totalWeight) +
+        "</span>";
+
+      attachInlineRowEvents();
+    }
+
+    function renderHistory() {
+      const historyList = document.getElementById("historyList");
+      if (!historyList) return;
+
+      historyList.innerHTML = "";
+
+      const latestItems = stockItems
+        .filter((item) => String(item.status || "IN_STOCK").toUpperCase() === "IN_STOCK")
+        .sort((a, b) => new Date(b.created_at || b.createdAt || 0) - new Date(a.created_at || a.createdAt || 0))
+        .slice(0, 10);
+
+      if (!latestItems.length) {
+        historyList.innerHTML = `<div class="history-card"><p>No history found</p></div>`;
+        return;
+      }
+
+      latestItems.forEach((item) => {
+        historyList.innerHTML += `
+          <div class="history-card" style="margin-bottom:10px;">
+            <p>
+              <strong>Status:</strong> SAVED<br>
+              <strong>Lot Number:</strong> ${escapeHtml(item.lot_number || item.lot || "-")}<br>
+              <strong>Metal Type:</strong> ${escapeHtml(item.metal_type || item.metalType || "-")}<br>
+              <strong>Serial:</strong> ${escapeHtml(item.serial || "-")}<br>
+              <strong>Barcode:</strong> ${escapeHtml(item.barcode || "-")}<br>
+              <strong>Time:</strong> ${escapeHtml(item.created_at || item.createdAt || "-")}
+            </p>
+          </div>
+        `;
+      });
+    }
+
+    function printStickerSheet() {
+      const rows = 18;
+      const cols = 6;
+      const total = rows * cols;
+
+      const labelWidth = 2.5;
+      const labelHeight = 1.2;
+
+      const startFrom = Math.max(
+        1,
+        Math.min(total, Number(document.getElementById("startFrom")?.value || 1))
+      );
+
+      const visibleItems = [...pendingStickerItems];
+
+      if (!visibleItems.length) {
+        showToast("Print ke liye sticker items nahi hai", "error");
+        return;
+      }
+
+      let html = "";
+      const barcodes = [];
+
+      for (let i = 1; i <= total; i++) {
+        const itemIndex = i - startFrom;
+
+        if (i < startFrom || itemIndex < 0 || itemIndex >= visibleItems.length) {
+          html += `<div class="label empty"></div>`;
+        } else {
+          const item = visibleItems[itemIndex];
+          const extraWeight = Number(document.getElementById("printExtraWeight")?.value || 0);
+          const actualWeight = Number(item.weight || 0) + extraWeight;
+          const itemWeight = format3(actualWeight);
+          const itemSize = String(item.size || "").trim();
+          const itemPurity = String(item.purity || "").trim();
+          const itemBarcode = String(item.barcode || "").trim();
+          const itemLot = String(item.lot || item.lot_number || "").trim();
+          const itemSerial = String(item.serial || "").trim();
+
+          html += `
+            <div class="label">
+              <div class="label-inner">
+                <div class="top">
+                  <span class="top-main">${escapeHtml(itemWeight)}g ${escapeHtml(itemSize)}</span>
+                  <span class="purity">${escapeHtml(itemPurity)}</span>
+                </div>
+
+                <svg id="b${i}"></svg>
+
+                <div class="barcode">${escapeHtml(itemBarcode)}</div>
+
+                <div class="bottom">Lot:${escapeHtml(itemLot)} | No:${escapeHtml(itemSerial)}</div>
+              </div>
+            </div>
+          `;
+
+          barcodes.push({ id: `#b${i}`, value: itemBarcode });
+        }
+      }
+
+      const win = window.open("", "_blank", "width=1200,height=900");
+      if (!win) {
+        showToast("Popup block ho gaya", "error");
+        return;
+      }
+
+      win.document.open();
+      win.document.write(`
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<title>Sticker Print</title>
+<style>
+  @page {
+    size: 19.5cm 30.3cm;
+    margin: 0;
+  }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 19.5cm;
+    height: 30.3cm;
+    background: white;
+    font-family: Arial, sans-serif;
+    overflow: hidden;
+  }
+
+  .sheet {
+    box-sizing: border-box;
+    width: 19.5cm;
+    display: grid;
+    grid-template-columns: repeat(6, 2.5cm);
+    grid-auto-rows: 1.2cm;
+    column-gap: 0.32cm;
+    row-gap: 0.4cm;
+    padding: 0.4cm 0 0 1.5cm;
+    justify-content: start;
+    align-content: start;
+  }
+
+  .label {
+    width: ${labelWidth}cm;
+    height: ${labelHeight}cm;
+    position: relative;
+    overflow: visible;
+    box-sizing: border-box;
+  }
+
+  .label-inner {
+    position: absolute;
+    inset: 0;
+    box-sizing: border-box;
+    padding-left: 0.8mm;
+    padding-right: 0.8mm;
+    padding-top: 0;
+    padding-bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    text-align: center;
+    transform: translateY(0mm);
+  }
+
+  .top {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 8px;
+    font-weight: 700;
+    line-height: 1;
+    position: relative;
+  }
+
+  .top-main {
+    display: block;
+    width: 100%;
+    font-size: 8px;
+    font-weight: 700;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-right: 10px;
+    box-sizing: border-box;
+  }
+
+  .purity {
+    position: absolute;
+    right: 0;
+    top: 0;
+    font-size: 6px;
+    font-weight: 700;
+  }
+
+  svg {
+    width: 92%;
+    height: 18px;
+    display: block;
+    margin: 0 auto;
+  }
+
+  .barcode,
+  .bottom {
+    width: 100%;
+    text-align: center;
+    font-size: 5.5px;
+    line-height: 1;
+    margin-top: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .empty {
+    visibility: hidden;
+  }
+
+  .sheet > .label:nth-child(n+1):nth-child(-n+6) .label-inner { transform: translateY(1mm); }
+  .sheet > .label:nth-child(n+7):nth-child(-n+12) .label-inner { transform: translateY(3mm); }
+  .sheet > .label:nth-child(n+13):nth-child(-n+18) .label-inner { transform: translateY(4mm); }
+  .sheet > .label:nth-child(n+19):nth-child(-n+24) .label-inner { transform: translateY(5.5mm); }
+  .sheet > .label:nth-child(n+25):nth-child(-n+30) .label-inner { transform: translateY(6.0mm); }
+  .sheet > .label:nth-child(n+31):nth-child(-n+36) .label-inner { transform: translateY(7.0mm); }
+  .sheet > .label:nth-child(n+37):nth-child(-n+42) .label-inner { transform: translateY(8.0mm); }
+  .sheet > .label:nth-child(n+43):nth-child(-n+48) .label-inner { transform: translateY(9.1mm); }
+  .sheet > .label:nth-child(n+49):nth-child(-n+54) .label-inner { transform: translateY(10.3mm); }
+  .sheet > .label:nth-child(n+55):nth-child(-n+60) .label-inner { transform: translateY(11.3mm); }
+  .sheet > .label:nth-child(n+61):nth-child(-n+66) .label-inner { transform: translateY(12.3mm); }
+  .sheet > .label:nth-child(n+67):nth-child(-n+72) .label-inner { transform: translateY(13.5mm); }
+  .sheet > .label:nth-child(n+73):nth-child(-n+78) .label-inner { transform: translateY(14.5mm); }
+  .sheet > .label:nth-child(n+79):nth-child(-n+84) .label-inner { transform: translateY(15.7mm); }
+  .sheet > .label:nth-child(n+85):nth-child(-n+90) .label-inner { transform: translateY(17.5mm) !important; }
+  .sheet > .label:nth-child(n+91):nth-child(-n+96) .label-inner { transform: translateY(18.5mm) !important; }
+  .sheet > .label:nth-child(n+97):nth-child(-n+102) .label-inner { transform: translateY(19.5mm) !important; }
+  .sheet > .label:nth-child(n+103):nth-child(-n+108) .label-inner { transform: translateY(20.5mm) !important; }
+</style>
+</head>
+<body>
+  <div class="sheet">${html}</div>
+
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"><\/script>
+  <script>
+    const list = ${JSON.stringify(barcodes)};
+
+    function run() {
+      if (!window.JsBarcode) {
+        setTimeout(run, 200);
+        return;
+      }
+
+      list.forEach(b => {
+        JsBarcode(b.id, b.value, {
+          format: "CODE128",
+          width: 0.8,
+          height: 16,
+          displayValue: false,
+          margin: 0
+        });
+      });
+
+      setTimeout(() => {
+        window.focus();
+        window.print();
+      }, 500);
+    }
+
+    window.onload = run;
+
+    window.onafterprint = function () {
+      window.close();
+    };
+  <\/script>
+  <script src="js/toast.js"><\/script>
+</body>
+</html>
+      `);
+      win.document.close();
+    }
+
+    function moveNextOnEnter() {
+      const fields = [
+        "stickerSerial",
+        "stickerProductName",
+        "stickerPurity",
+        "stickerSku",
+        "stickerMM",
+        "stickerSize",
+        "stickerWeight"
+      ];
+
+      fields.forEach((id, index) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+
+        el.addEventListener("keydown", function (e) {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            e.stopPropagation();
+
+            if (id === "stickerWeight") {
+              addStickerItem();
+              return;
+            }
+
+            const nextId = fields[index + 1];
+            const nextEl = document.getElementById(nextId);
+            if (nextEl) nextEl.focus();
+          }
+        });
+      });
+    }
+
+    async function initPage() {
+      const loginOk = requireLogin();
+      const roleOk =
+        typeof requirePageAccess === "function"
+          ? requirePageAccess("sticker")
+          : requireRole(["Admin", "Sticker", "SuperAdmin"]);
+      const companyOk = requireCompanyContext();
+
+      if (!loginOk || !roleOk || !companyOk) return;
+
+      renderProfileBox();
+      renderCompanyInfo();
+      renderPageTitle();
+
+      loadProcessTypesFromLocal();
+      loadProcessTypeOptions();
+
+      loadPendingItemsFromLocal();
+      loadLotOptionsFromLocal();
+      collectLotsFromData();
+      renderLotButtons();
+
+      syncLotPreview();
+      renderStickerList();
+
+      await loadFromServer();
+
+      if (!document.getElementById("stickerSerial").value) {
+        updateNextSerialForCurrentLot();
+      }
+
+      generateBarcodeNow(true);
+      moveNextOnEnter();
+
+      document.getElementById("lotSelector")?.addEventListener("blur", function () {
+        const lotValue = this.value.trim();
+        if (lotValue) {
+          ensureLotExists(lotValue);
+          updateNextSerialForCurrentLot();
+        }
+      });
+
+      setTimeout(() => {
+        updateNextSerialForCurrentLot();
+        renderLotButtons();
+      }, 300);
+    }
+
+    window.addEventListener("load", initPage);
+  </script>
+  <script src="js/auth.js"></script>
+  <script>
+    requireLogin();
+    requirePageAccess("sticker");
+    filterSidebarMenuByRole();
+  </script>
+  <script src="js/toast.js"></script>
+</body>
+</html>

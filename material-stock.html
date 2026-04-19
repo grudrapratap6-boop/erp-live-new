@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Material Stock</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/toast.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+  <style>
+    .company-info-chip {
+      margin-bottom: 12px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      color: #334155;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .material-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .material-layout-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .material-layout-grid > *,
+    .material-summary-grid > *,
+    .section-box,
+    .sub-card,
+    .topbar,
+    .top-left,
+    .title {
+      min-width: 0;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      max-width: 100%;
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      background: #fff;
+      margin-top: 12px;
+    }
+
+    table {
+      width: 100%;
+      min-width: 1120px;
+      border-collapse: collapse;
+      background: #fff;
+    }
+
+    table th,
+    table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid #f1f5f9;
+      text-align: left;
+      font-size: 14px;
+      white-space: normal;
+      vertical-align: middle;
+      word-break: break-word;
+    }
+
+    table th {
+      background: #f8fafc;
+      color: #475569;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.2px;
+    }
+
+    .status-badge.in-stock {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .status-badge.low-stock {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .status-badge.out-of-stock {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .tag-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      color: #334155;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .inline-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .mini-ghost-btn {
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid #d9c7a4;
+      background: #fffaf2;
+      color: #7c5a1d;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .metric-note {
+      margin-top: 6px;
+      font-size: 12px;
+      color: #64748b;
+      text-align: center;
+    }
+
+    .empty-state {
+      padding: 18px;
+      text-align: center;
+      color: #64748b;
+      font-size: 14px;
+    }
+
+    .section-topline {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 4px;
+    }
+
+    .muted-help {
+      color: #6b7280;
+      font-size: 13px;
+      margin: 0;
+    }
+
+    .profile-box {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      padding: 8px 12px;
+      border-radius: 999px;
+      color: #334155;
+      font-size: 13px;
+      font-weight: 700;
+      width: auto;
+      height: auto;
+    }
+
+    .profile-box i {
+      color: #b7791f;
+    }
+
+    @media (max-width: 1180px) {
+      .material-summary-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .material-layout-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 1024px) {
+      table {
+        min-width: 980px;
+      }
+    }
+
+    @media (max-width: 860px) {
+      .material-layout-grid,
+      .material-summary-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      table {
+        min-width: 900px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-inner">
+        <div class="brand">
+          <a href="settings.html" class="sidebar-settings-btn" data-page-key="settings" title="Settings" aria-label="Open settings">
+            <i class="fas fa-gear"></i>
+          </a>
+          <h2>ERP PANEL</h2>
+          <p>Jewellery Management</p>
+        </div>
+
+        <ul class="menu">
+          <li><a href="dashboard.html"><i class="fas fa-chart-pie"></i> Dashboard</a></li>
+          <li><a href="process.html"><i class="fas fa-screwdriver-wrench"></i> Process</a></li>
+          <li><a href="sticker.html"><i class="fas fa-barcode"></i> Sticker</a></li>
+          <li><a href="stock.html"><i class="fas fa-boxes-stacked"></i> Stock</a></li>
+          <li><a href="material-stock.html" class="active"><i class="fas fa-box-open"></i> Material Stock</a></li>
+          <li><a href="daily-report.html"><i class="fas fa-chart-line"></i> Daily Report</a></li>
+          <li><a href="invoice.html"><i class="fas fa-file-invoice"></i> Invoice</a></li>
+          <li><a href="billing.html"><i class="fas fa-money-bill-wave"></i> Billing</a></li>
+          <li><a href="return.html"><i class="fas fa-rotate-left"></i> Return</a></li>
+          <li><a href="sales-history.html"><i class="fas fa-clock-rotate-left"></i> Sales History</a></li>
+          <li><a href="expense-manager.html"><i class="fas fa-wallet"></i> Expense Manager</a></li>
+          <li><a href="transaction.html"><i class="fas fa-arrow-right-arrow-left"></i> Transaction</a></li>
+          <li><a href="transaction-reports.html"><i class="fas fa-file-lines"></i> Transaction Reports</a></li>
+          <li><a href="admin-approval.html"><i class="fas fa-user-check"></i> Admin Approval</a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div class="top-left">
+          <button class="hamburger" type="button" onclick="toggleSidebar()">
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+
+          <div class="title">
+            <h1 id="pageCompanyTitle">RPJ MANUFACTURER</h1>
+            <p>Factory Raw Material & Accessories Stock</p>
+          </div>
+        </div>
+
+        <div class="top-right">
+          <button type="button" onclick="window.print()">Print</button>
+          <div class="profile-box" id="profileBox"><i class="fas fa-user-circle"></i> Loading...</div>
+        </div>
+      </div>
+
+      <section class="page active">
+        <div class="section-box">
+          <div id="companyInfoChip" class="company-info-chip">Company: Loading...</div>
+
+          <h2>Material Stock</h2>
+          <p>Yahan factory support materials ka master, inward, usage, current balance aur low stock alert manage hoga.</p>
+
+          <div class="material-summary-grid">
+            <div class="summary-card">
+              <h4>Total Material Types</h4>
+              <p id="sumMaterialTypes">0</p>
+              <div class="metric-note">All active variants</div>
+            </div>
+            <div class="summary-card">
+              <h4>Total Current Stock</h4>
+              <p id="sumCurrentStock">0.000</p>
+              <div class="metric-note">All units combined</div>
+            </div>
+            <div class="summary-card">
+              <h4>Low Stock Items</h4>
+              <p id="sumLowStock">0</p>
+              <div class="metric-note">Current <= low alert</div>
+            </div>
+            <div class="summary-card">
+              <h4>Out of Stock Items</h4>
+              <p id="sumOutOfStock">0</p>
+              <div class="metric-note">Current <= 0</div>
+            </div>
+            <div class="summary-card">
+              <h4>Today Stock In</h4>
+              <p id="sumTodayIn">0.000</p>
+              <div class="metric-note">Today inward total</div>
+            </div>
+            <div class="summary-card">
+              <h4>Today Stock Out</h4>
+              <p id="sumTodayOut">0.000</p>
+              <div class="metric-note">Today usage total</div>
+            </div>
+          </div>
+
+          <div class="material-layout-grid">
+            <div class="sub-card">
+              <div class="section-topline">
+                <h3 style="margin:0;">Material Master</h3>
+                <span class="tag-chip"><i class="fas fa-layer-group"></i> Unique by category + name + variant + size + unit</span>
+              </div>
+              <p class="muted-help">Plastic pola, sticker, lamination, packing aur factory material master yahan maintain karo.</p>
+
+              <input type="hidden" id="materialEditId" />
+
+              <div class="form-grid" style="margin-top:12px;">
+                <div class="input-box">
+                  <label for="materialCategory">Category</label>
+                  <select id="materialCategory">
+                    <option value="">Select Category</option>
+                    <option value="Plastic Pola">Plastic Pola</option>
+                    <option value="Sticker">Sticker</option>
+                    <option value="Lamination">Lamination</option>
+                    <option value="Packing">Packing</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+
+                <div class="input-box">
+                  <label for="materialName">Material Name</label>
+                  <input type="text" id="materialName" placeholder="Oval Pola / Plastic Pola / etc." />
+                </div>
+
+                <div class="input-box">
+                  <label for="materialVariant">Variant / Cut Type</label>
+                  <input type="text" id="materialVariant" placeholder="23 Cut / 32 Cut / Oval" />
+                </div>
+
+                <div class="input-box">
+                  <label for="materialSize">Size</label>
+                  <input type="text" id="materialSize" placeholder="1 inch / 1/2 inch / 3/4 inch" />
+                </div>
+
+                <div class="input-box">
+                  <label for="materialUnit">Unit</label>
+                  <input type="text" id="materialUnit" placeholder="pcs / roll / packet / box" />
+                </div>
+
+                <div class="input-box">
+                  <label for="materialOpeningStock">Opening Stock</label>
+                  <input type="number" step="0.001" id="materialOpeningStock" placeholder="0" />
+                </div>
+
+                <div class="input-box">
+                  <label for="materialLowLevel">Low Stock Alert Level</label>
+                  <input type="number" step="0.001" id="materialLowLevel" placeholder="0" />
+                </div>
+
+                <div class="input-box">
+                  <label for="materialSupplier">Preferred Supplier Name</label>
+                  <input type="text" id="materialSupplier" placeholder="Supplier name" />
+                </div>
+
+                <div class="input-box" style="grid-column: 1 / -1;">
+                  <label for="materialRemarks">Remarks</label>
+                  <textarea id="materialRemarks" placeholder="Extra notes..." style="min-height:86px; padding:10px;"></textarea>
+                </div>
+              </div>
+
+              <div class="btn-row" style="margin-top:12px;">
+                <button type="button" class="primary-btn" id="saveMaterialBtn" onclick="saveMaterialItem()">Save Material</button>
+                <button type="button" class="secondary-btn" onclick="clearMaterialForm()">Clear</button>
+              </div>
+            </div>
+
+            <div class="sub-card">
+              <div class="section-topline">
+                <h3 style="margin:0;">Stock Movement</h3>
+                <span class="tag-chip"><i class="fas fa-arrow-right-arrow-left"></i> In / Out / Adjustment</span>
+              </div>
+              <p class="muted-help">Material select karke inward, usage ya adjustment movement save karo.</p>
+
+              <div class="form-grid" style="margin-top:12px;">
+                <div class="input-box" style="grid-column: 1 / -1;">
+                  <label for="movementMaterialId">Select Material</label>
+                  <select id="movementMaterialId"></select>
+                </div>
+
+                <div class="input-box">
+                  <label for="movementType">Movement Type</label>
+                  <select id="movementType">
+                    <option value="IN">Stock In</option>
+                    <option value="OUT">Stock Out</option>
+                    <option value="ADJUSTMENT">Adjustment</option>
+                  </select>
+                </div>
+
+                <div class="input-box">
+                  <label for="movementQty">Quantity</label>
+                  <input type="number" step="0.001" id="movementQty" placeholder="0" />
+                </div>
+
+                <div class="input-box">
+                  <label for="movementDate">Date</label>
+                  <input type="date" id="movementDate" />
+                </div>
+
+                <div class="input-box">
+                  <label for="movementSupplier">Supplier Name</label>
+                  <input type="text" id="movementSupplier" placeholder="Supplier name" />
+                </div>
+
+                <div class="input-box">
+                  <label for="movementReference">Reference No</label>
+                  <input type="text" id="movementReference" placeholder="Bill / challan / note no" />
+                </div>
+
+                <div class="input-box" style="grid-column: 1 / -1;">
+                  <label for="movementRemarks">Remarks</label>
+                  <textarea id="movementRemarks" placeholder="Use note / adjustment reason..." style="min-height:86px; padding:10px;"></textarea>
+                </div>
+              </div>
+
+              <div class="btn-row" style="margin-top:12px;">
+                <button type="button" class="primary-btn" onclick="saveMaterialMovement()">Save Movement</button>
+                <button type="button" class="secondary-btn" onclick="clearMovementForm()">Clear</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="sub-card" style="margin-top:16px;">
+            <div class="section-topline">
+              <div>
+                <h3 style="margin:0 0 4px;">Search & Filter</h3>
+                <p class="muted-help">Stock table aur movement history dono yahin ke filters se control honge.</p>
+              </div>
+              <button type="button" class="secondary-btn" onclick="resetFilters()">Reset Filters</button>
+            </div>
+
+            <div class="form-grid" style="margin-top:12px;">
+              <div class="input-box">
+                <label for="filterCategory">Category</label>
+                <select id="filterCategory" onchange="applyFilters()">
+                  <option value="">All Categories</option>
+                </select>
+              </div>
+
+              <div class="input-box">
+                <label for="filterMaterialName">Material Name</label>
+                <input type="text" id="filterMaterialName" placeholder="Search material" oninput="applyFilters()" />
+              </div>
+
+              <div class="input-box">
+                <label for="filterVariant">Variant</label>
+                <input type="text" id="filterVariant" placeholder="23 Cut / Oval" oninput="applyFilters()" />
+              </div>
+
+              <div class="input-box">
+                <label for="filterSize">Size</label>
+                <input type="text" id="filterSize" placeholder="1 inch / 1/2 inch" oninput="applyFilters()" />
+              </div>
+
+              <div class="input-box">
+                <label for="filterSupplier">Supplier</label>
+                <input type="text" id="filterSupplier" placeholder="Supplier name" oninput="applyFilters()" />
+              </div>
+
+              <div class="input-box">
+                <label for="filterMovementType">Movement Type</label>
+                <select id="filterMovementType" onchange="applyFilters()">
+                  <option value="">All</option>
+                  <option value="OPENING">Opening</option>
+                  <option value="IN">Stock In</option>
+                  <option value="OUT">Stock Out</option>
+                  <option value="ADJUSTMENT">Adjustment</option>
+                </select>
+              </div>
+
+              <div class="input-box">
+                <label for="filterDate">Date</label>
+                <input type="date" id="filterDate" onchange="applyFilters()" />
+              </div>
+
+              <div class="input-box">
+                <label for="filterLowStockOnly">Low Stock Only</label>
+                <select id="filterLowStockOnly" onchange="applyFilters()">
+                  <option value="">All</option>
+                  <option value="YES">Only Low / Out of Stock</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="sub-card" style="margin-top:16px;">
+            <div class="section-topline">
+              <div>
+                <h3 style="margin:0 0 4px;">Main Material Stock Table</h3>
+                <p class="muted-help">Current stock, inward, usage aur last movement ek jagah.</p>
+              </div>
+              <span class="tag-chip"><i class="fas fa-table"></i> Live company-scoped stock</span>
+            </div>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Category</th>
+                    <th>Material Name</th>
+                    <th>Variant</th>
+                    <th>Size</th>
+                    <th>Unit</th>
+                    <th>Opening</th>
+                    <th>In</th>
+                    <th>Out</th>
+                    <th>Current Stock</th>
+                    <th>Low Stock Level</th>
+                    <th>Stock Status</th>
+                    <th>Supplier</th>
+                    <th>Last Movement Date</th>
+                    <th>Remarks</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="materialStockBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="sub-card" style="margin-top:16px;">
+            <div class="section-topline">
+              <div>
+                <h3 style="margin:0 0 4px;">Recent Movement History</h3>
+                <p class="muted-help">Opening, stock in, stock out aur adjustments ka latest trail.</p>
+              </div>
+              <span class="tag-chip"><i class="fas fa-clock-rotate-left"></i> Latest first</span>
+            </div>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Material</th>
+                    <th>Category</th>
+                    <th>Variant</th>
+                    <th>Size</th>
+                    <th>Type</th>
+                    <th>Qty</th>
+                    <th>Unit</th>
+                    <th>Supplier</th>
+                    <th>Reference</th>
+                    <th>Remarks</th>
+                  </tr>
+                </thead>
+                <tbody id="movementHistoryBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const API_BASE = "http://localhost:8080";
+
+    let materialItems = [];
+    let materialMovements = [];
+    let filteredMaterialItems = [];
+    let filteredMaterialMovements = [];
+
+    function getLoggedInUser() {
+      try {
+        return JSON.parse(localStorage.getItem("erpLoggedInUser")) || null;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function getCurrentCompanyId() {
+      const user = getLoggedInUser();
+      const raw = user?.company_id ?? user?.companyId ?? null;
+      if (raw === null || raw === undefined || raw === "") return null;
+      const n = Number(raw);
+      return Number.isNaN(n) ? null : n;
+    }
+
+    function getCurrentCompanyName() {
+      const user = getLoggedInUser();
+      return String(user?.company_name || user?.companyName || "").trim();
+    }
+
+    function getCurrentUserId() {
+      const user = getLoggedInUser();
+      const raw = user?.id ?? user?.user_id ?? user?.userId ?? null;
+      if (raw === null || raw === undefined || raw === "") return null;
+      const n = Number(raw);
+      return Number.isNaN(n) ? null : n;
+    }
+
+    function isSuperAdmin() {
+      const user = getLoggedInUser();
+      const role = String(user?.role || "").trim().toLowerCase();
+      const email = String(user?.email || "").trim().toLowerCase();
+      return role === "superadmin" || email === "grudrapratap0@gmail.com";
+    }
+
+    function pageGuard() {
+      if (typeof requirePageAccess === "function" && !requirePageAccess("material-stock")) {
+        return false;
+      }
+
+      if (!isSuperAdmin()) {
+        const companyId = getCurrentCompanyId();
+        if (companyId === null || Number.isNaN(companyId)) {
+          showToast("Company access missing", "error");
+          window.location.href = "login.html";
+          return false;
+        }
+      }
+
+      return true;
+    }
+
+    const ERP_SIDEBAR_STORAGE_KEY = "erpSidebarCollapsed";
+
+    function saveSidebarState(isCollapsed) {
+      localStorage.setItem(ERP_SIDEBAR_STORAGE_KEY, isCollapsed ? "true" : "false");
+    }
+
+    function applySidebarState() {
+      const sidebar = document.getElementById("sidebar");
+      if (!sidebar) return;
+
+      const isCollapsed = localStorage.getItem(ERP_SIDEBAR_STORAGE_KEY) === "true";
+      sidebar.classList.toggle("collapsed", isCollapsed);
+    }
+
+    function toggleSidebar() {
+      const sidebar = document.getElementById("sidebar");
+      if (!sidebar) return;
+
+      sidebar.classList.toggle("collapsed");
+      saveSidebarState(sidebar.classList.contains("collapsed"));
+    }
+
+    function bindSidebarMenuAutoClose() {
+      const sidebar = document.getElementById("sidebar");
+      if (!sidebar) return;
+
+      document.querySelectorAll(".menu a").forEach((link) => {
+        if (link.dataset.sidebarBound === "true") return;
+        link.dataset.sidebarBound = "true";
+        link.addEventListener("click", () => {
+          sidebar.classList.add("collapsed");
+          saveSidebarState(true);
+        });
+      });
+    }
+
+    applySidebarState();
+    bindSidebarMenuAutoClose();
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function normalizeText(value) {
+      return String(value || "").trim().toLowerCase();
+    }
+
+    function buildProtectedParams(forceCompany = false) {
+      const params = new URLSearchParams();
+      const actingUserId = getCurrentUserId();
+      const companyId = getCurrentCompanyId();
+
+      if (actingUserId !== null && !Number.isNaN(actingUserId)) {
+        params.set("actingUserId", String(actingUserId));
+      }
+
+      if ((forceCompany || !isSuperAdmin()) && companyId !== null && !Number.isNaN(companyId)) {
+        params.set("companyId", String(companyId));
+      }
+
+      return params;
+    }
+
+    function renderProfileBox() {
+      const box = document.getElementById("profileBox");
+      const user = getLoggedInUser();
+      if (!box) return;
+
+      if (!user) {
+        box.innerHTML = `<i class="fas fa-user-circle"></i> Guest`;
+        return;
+      }
+
+      const role = String(user.role || "-");
+      const companyName = isSuperAdmin() ? "All Companies" : (getCurrentCompanyName() || "No Company");
+      box.innerHTML = `<i class="fas fa-user-circle"></i> ${escapeHtml(role)} | ${escapeHtml(companyName)}`;
+    }
+
+    function renderCompanyInfo() {
+      const chip = document.getElementById("companyInfoChip");
+      if (!chip) return;
+
+      chip.textContent = isSuperAdmin()
+        ? "Company: Super Admin View (All Companies)"
+        : `Company: ${getCurrentCompanyName() || "Unknown Company"}`;
+    }
+
+    function renderPageTitle() {
+      const title = document.getElementById("pageCompanyTitle");
+      if (!title) return;
+
+      title.textContent = isSuperAdmin() ? "SUPER ADMIN PANEL" : (getCurrentCompanyName() || "RPJ MANUFACTURER");
+    }
+
+    function formatQty(value) {
+      const n = Number(value || 0);
+      return Number.isNaN(n) ? "0.000" : n.toFixed(3);
+    }
+
+    function formatDateDisplay(value) {
+      if (!value) return "-";
+      const d = new Date(value);
+      if (Number.isNaN(d.getTime())) return escapeHtml(String(value));
+      return d.toLocaleDateString("en-GB");
+    }
+
+    function getStatusBadge(status) {
+      const clean = String(status || "").trim().toUpperCase();
+      if (clean === "LOW_STOCK") return `<span class="status-badge low-stock"><i class="fas fa-bell"></i> LOW STOCK</span>`;
+      if (clean === "OUT_OF_STOCK") return `<span class="status-badge out-of-stock"><i class="fas fa-triangle-exclamation"></i> OUT OF STOCK</span>`;
+      return `<span class="status-badge in-stock"><i class="fas fa-check"></i> IN STOCK</span>`;
+    }
+
+    function getMovementTypeLabel(type) {
+      const clean = String(type || "").trim().toUpperCase();
+      if (clean === "OPENING") return "Opening";
+      if (clean === "IN") return "Stock In";
+      if (clean === "OUT") return "Stock Out";
+      if (clean === "ADJUSTMENT") return "Adjustment";
+      return clean || "-";
+    }
+
+    async function loadSummary() {
+      try {
+        const params = buildProtectedParams(false);
+        const res = await fetch(`${API_BASE}/materialStock/summary?${params.toString()}`, { cache: "no-store" });
+        const result = await res.json();
+
+        if (!result.success) {
+          throw new Error(result.message || "Summary load failed");
+        }
+
+        document.getElementById("sumMaterialTypes").textContent = String(Number(result.totalMaterialTypes || 0));
+        document.getElementById("sumCurrentStock").textContent = formatQty(result.totalCurrentStock || 0);
+        document.getElementById("sumLowStock").textContent = String(Number(result.lowStockItems || 0));
+        document.getElementById("sumOutOfStock").textContent = String(Number(result.outOfStockItems || 0));
+        document.getElementById("sumTodayIn").textContent = formatQty(result.todayStockIn || 0);
+        document.getElementById("sumTodayOut").textContent = formatQty(result.todayStockOut || 0);
+      } catch (error) {
+        console.log("Material summary load error:", error);
+      }
+    }
+
+    async function loadMaterialItems() {
+      const params = buildProtectedParams(false);
+      const res = await fetch(`${API_BASE}/materialStock/items?${params.toString()}`, { cache: "no-store" });
+      const result = await res.json();
+
+      if (!result.success) {
+        throw new Error(result.message || "Material item load failed");
+      }
+
+      materialItems = Array.isArray(result.items) ? result.items : [];
+      filteredMaterialItems = [...materialItems];
+    }
+
+    async function loadMaterialMovements() {
+      const params = buildProtectedParams(false);
+      const res = await fetch(`${API_BASE}/materialStock/movements?${params.toString()}`, { cache: "no-store" });
+      const result = await res.json();
+
+      if (!result.success) {
+        throw new Error(result.message || "Material movement load failed");
+      }
+
+      materialMovements = Array.isArray(result.movements) ? result.movements : [];
+      filteredMaterialMovements = [...materialMovements];
+    }
+
+    function populateMaterialSelect() {
+      const select = document.getElementById("movementMaterialId");
+      if (!select) return;
+
+      const oldValue = select.value || "";
+      select.innerHTML = `<option value="">Select Material</option>`;
+
+      materialItems.forEach((item) => {
+        const label = [
+          item.material_name || "",
+          item.variant ? `| ${item.variant}` : "",
+          item.size ? `| ${item.size}` : "",
+          item.unit ? `(${item.unit})` : ""
+        ].join(" ").replace(/\s+/g, " ").trim();
+
+        select.innerHTML += `<option value="${item.id}">${escapeHtml(label)}</option>`;
+      });
+
+      if ([...select.options].some((opt) => String(opt.value) === String(oldValue))) {
+        select.value = oldValue;
+      }
+    }
+
+    function populateCategoryFilter() {
+      const select = document.getElementById("filterCategory");
+      if (!select) return;
+
+      const oldValue = select.value || "";
+      const categories = [...new Set(materialItems.map((item) => String(item.category || "").trim()).filter(Boolean))];
+      select.innerHTML = `<option value="">All Categories</option>`;
+
+      categories.forEach((category) => {
+        select.innerHTML += `<option value="${escapeHtml(category)}">${escapeHtml(category)}</option>`;
+      });
+
+      if ([...select.options].some((opt) => opt.value === oldValue)) {
+        select.value = oldValue;
+      }
+    }
+
+    function getMovementMatchedMaterialIds() {
+      const movementType = normalizeText(document.getElementById("filterMovementType")?.value);
+      const filterDate = document.getElementById("filterDate")?.value || "";
+
+      if (!movementType && !filterDate) return null;
+
+      const matched = new Set();
+
+      materialMovements.forEach((movement) => {
+        const movementDate = String(movement.movement_date || "").slice(0, 10);
+        const typeOk = !movementType || normalizeText(movement.movement_type) === movementType;
+        const dateOk = !filterDate || movementDate === filterDate;
+
+        if (typeOk && dateOk) {
+          matched.add(String(movement.material_id || ""));
+        }
+      });
+
+      return matched;
+    }
+
+    function getFilteredItems() {
+      const category = normalizeText(document.getElementById("filterCategory")?.value);
+      const materialName = normalizeText(document.getElementById("filterMaterialName")?.value);
+      const variant = normalizeText(document.getElementById("filterVariant")?.value);
+      const size = normalizeText(document.getElementById("filterSize")?.value);
+      const supplier = normalizeText(document.getElementById("filterSupplier")?.value);
+      const lowStockOnly = String(document.getElementById("filterLowStockOnly")?.value || "").trim().toUpperCase() === "YES";
+      const matchedMaterialIds = getMovementMatchedMaterialIds();
+
+      return materialItems.filter((item) => {
+        const status = String(item.status || "").trim().toUpperCase();
+        const categoryOk = !category || normalizeText(item.category).includes(category);
+        const nameOk = !materialName || normalizeText(item.material_name).includes(materialName);
+        const variantOk = !variant || normalizeText(item.variant).includes(variant);
+        const sizeOk = !size || normalizeText(item.size).includes(size);
+        const supplierOk = !supplier || normalizeText(item.supplier_name).includes(supplier);
+        const lowOk = !lowStockOnly || status === "LOW_STOCK" || status === "OUT_OF_STOCK";
+        const movementOk = !matchedMaterialIds || matchedMaterialIds.has(String(item.id || ""));
+
+        return categoryOk && nameOk && variantOk && sizeOk && supplierOk && lowOk && movementOk;
+      });
+    }
+
+    function getFilteredMovements() {
+      const category = normalizeText(document.getElementById("filterCategory")?.value);
+      const materialName = normalizeText(document.getElementById("filterMaterialName")?.value);
+      const variant = normalizeText(document.getElementById("filterVariant")?.value);
+      const size = normalizeText(document.getElementById("filterSize")?.value);
+      const supplier = normalizeText(document.getElementById("filterSupplier")?.value);
+      const movementType = normalizeText(document.getElementById("filterMovementType")?.value);
+      const filterDate = document.getElementById("filterDate")?.value || "";
+      const lowStockOnly = String(document.getElementById("filterLowStockOnly")?.value || "").trim().toUpperCase() === "YES";
+
+      return materialMovements.filter((movement) => {
+        const movementDate = String(movement.movement_date || "").slice(0, 10);
+        const itemStatus = String(
+          materialItems.find((item) => Number(item.id) === Number(movement.material_id))?.status || ""
+        ).toUpperCase();
+
+        const categoryOk = !category || normalizeText(movement.category).includes(category);
+        const nameOk = !materialName || normalizeText(movement.material_name).includes(materialName);
+        const variantOk = !variant || normalizeText(movement.variant).includes(variant);
+        const sizeOk = !size || normalizeText(movement.size).includes(size);
+        const supplierOk = !supplier || normalizeText(movement.supplier_name).includes(supplier);
+        const typeOk = !movementType || normalizeText(movement.movement_type) === movementType;
+        const dateOk = !filterDate || movementDate === filterDate;
+        const lowOk = !lowStockOnly || itemStatus === "LOW_STOCK" || itemStatus === "OUT_OF_STOCK";
+
+        return categoryOk && nameOk && variantOk && sizeOk && supplierOk && typeOk && dateOk && lowOk;
+      });
+    }
+
+    function renderMaterialTable() {
+      const tbody = document.getElementById("materialStockBody");
+      if (!tbody) return;
+
+      tbody.innerHTML = "";
+
+      if (!filteredMaterialItems.length) {
+        tbody.innerHTML = `<tr><td colspan="15" class="empty-state">No material stock data found</td></tr>`;
+        return;
+      }
+
+      filteredMaterialItems.forEach((item) => {
+        tbody.innerHTML += `
+          <tr>
+            <td>${escapeHtml(item.category || "-")}</td>
+            <td>${escapeHtml(item.material_name || "-")}</td>
+            <td>${escapeHtml(item.variant || "-")}</td>
+            <td>${escapeHtml(item.size || "-")}</td>
+            <td>${escapeHtml(item.unit || "-")}</td>
+            <td>${formatQty(item.opening_total ?? item.opening_stock)}</td>
+            <td>${formatQty(item.total_in)}</td>
+            <td>${formatQty(item.total_out)}</td>
+            <td><strong>${formatQty(item.current_stock)}</strong></td>
+            <td>${formatQty(item.low_stock_level)}</td>
+            <td>${getStatusBadge(item.status)}</td>
+            <td>${escapeHtml(item.supplier_name || "-")}</td>
+            <td>${formatDateDisplay(item.last_movement_date)}</td>
+            <td>${escapeHtml(item.remarks || "-")}</td>
+            <td>
+              <div class="inline-actions">
+                <button type="button" class="mini-ghost-btn" onclick="editMaterialItem(${item.id})">Edit</button>
+                <button type="button" class="mini-ghost-btn" onclick="useMaterialForMovement(${item.id})">Use</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    function renderMovementTable() {
+      const tbody = document.getElementById("movementHistoryBody");
+      if (!tbody) return;
+
+      tbody.innerHTML = "";
+
+      if (!filteredMaterialMovements.length) {
+        tbody.innerHTML = `<tr><td colspan="11" class="empty-state">No movement history found</td></tr>`;
+        return;
+      }
+
+      filteredMaterialMovements.forEach((movement) => {
+        tbody.innerHTML += `
+          <tr>
+            <td>${formatDateDisplay(movement.movement_date)}</td>
+            <td>${escapeHtml(movement.material_name || "-")}</td>
+            <td>${escapeHtml(movement.category || "-")}</td>
+            <td>${escapeHtml(movement.variant || "-")}</td>
+            <td>${escapeHtml(movement.size || "-")}</td>
+            <td>${escapeHtml(getMovementTypeLabel(movement.movement_type))}</td>
+            <td>${formatQty(movement.qty)}</td>
+            <td>${escapeHtml(movement.unit || "-")}</td>
+            <td>${escapeHtml(movement.supplier_name || "-")}</td>
+            <td>${escapeHtml(movement.reference_no || "-")}</td>
+            <td>${escapeHtml(movement.remarks || "-")}</td>
+          </tr>
+        `;
+      });
+    }
+
+    function applyFilters() {
+      filteredMaterialItems = getFilteredItems();
+      filteredMaterialMovements = getFilteredMovements();
+      renderMaterialTable();
+      renderMovementTable();
+    }
+
+    function resetFilters() {
+      document.getElementById("filterCategory").value = "";
+      document.getElementById("filterMaterialName").value = "";
+      document.getElementById("filterVariant").value = "";
+      document.getElementById("filterSize").value = "";
+      document.getElementById("filterSupplier").value = "";
+      document.getElementById("filterMovementType").value = "";
+      document.getElementById("filterDate").value = "";
+      document.getElementById("filterLowStockOnly").value = "";
+      applyFilters();
+    }
+
+    function clearMaterialForm() {
+      document.getElementById("materialEditId").value = "";
+      document.getElementById("materialCategory").value = "";
+      document.getElementById("materialName").value = "";
+      document.getElementById("materialVariant").value = "";
+      document.getElementById("materialSize").value = "";
+      document.getElementById("materialUnit").value = "";
+      document.getElementById("materialOpeningStock").value = "";
+      document.getElementById("materialLowLevel").value = "";
+      document.getElementById("materialSupplier").value = "";
+      document.getElementById("materialRemarks").value = "";
+      document.getElementById("saveMaterialBtn").textContent = "Save Material";
+    }
+
+    function clearMovementForm() {
+      document.getElementById("movementMaterialId").value = "";
+      document.getElementById("movementType").value = "IN";
+      document.getElementById("movementQty").value = "";
+      document.getElementById("movementSupplier").value = "";
+      document.getElementById("movementReference").value = "";
+      document.getElementById("movementRemarks").value = "";
+    }
+
+    function getMaterialFormData() {
+      return {
+        category: document.getElementById("materialCategory")?.value.trim() || "",
+        material_name: document.getElementById("materialName")?.value.trim() || "",
+        variant: document.getElementById("materialVariant")?.value.trim() || "",
+        size: document.getElementById("materialSize")?.value.trim() || "",
+        unit: document.getElementById("materialUnit")?.value.trim() || "",
+        opening_stock: Number(document.getElementById("materialOpeningStock")?.value || 0),
+        low_stock_level: Number(document.getElementById("materialLowLevel")?.value || 0),
+        supplier_name: document.getElementById("materialSupplier")?.value.trim() || "",
+        remarks: document.getElementById("materialRemarks")?.value.trim() || "",
+        companyId: getCurrentCompanyId(),
+        actingUserId: getCurrentUserId()
+      };
+    }
+
+    async function saveMaterialItem() {
+      const data = getMaterialFormData();
+      const editId = Number(document.getElementById("materialEditId")?.value || 0);
+
+      if (!data.category || !data.material_name || !data.unit) {
+        showToast("Category, material name aur unit required hai", "error");
+        return;
+      }
+
+      try {
+        const method = editId ? "PUT" : "POST";
+        const url = editId
+          ? `${API_BASE}/materialStock/items/${editId}`
+          : `${API_BASE}/materialStock/items`;
+
+        const res = await fetch(url, {
+          method,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data)
+        });
+        const result = await res.json();
+
+        if (!result.success) {
+          showToast(result.message || "Material save failed", "error");
+          return;
+        }
+
+        clearMaterialForm();
+        await refreshMaterialPage();
+        showToast(result.message || "Material save ho gaya", "success");
+      } catch (error) {
+        console.log("Material save error:", error);
+        showToast("Material save failed", "error");
+      }
+    }
+
+    function editMaterialItem(id) {
+      const item = materialItems.find((row) => Number(row.id) === Number(id));
+      if (!item) return;
+
+      document.getElementById("materialEditId").value = item.id || "";
+      document.getElementById("materialCategory").value = item.category || "";
+      document.getElementById("materialName").value = item.material_name || "";
+      document.getElementById("materialVariant").value = item.variant || "";
+      document.getElementById("materialSize").value = item.size || "";
+      document.getElementById("materialUnit").value = item.unit || "";
+      document.getElementById("materialOpeningStock").value = item.opening_total ?? item.opening_stock ?? "";
+      document.getElementById("materialLowLevel").value = item.low_stock_level ?? "";
+      document.getElementById("materialSupplier").value = item.supplier_name || "";
+      document.getElementById("materialRemarks").value = item.remarks || "";
+      document.getElementById("saveMaterialBtn").textContent = "Update Material";
+
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      showToast("Edit mode on", "info");
+    }
+
+    function useMaterialForMovement(id) {
+      const item = materialItems.find((row) => Number(row.id) === Number(id));
+      if (!item) return;
+
+      document.getElementById("movementMaterialId").value = String(item.id);
+      document.getElementById("movementSupplier").value = item.supplier_name || "";
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      showToast("Movement form ready", "success");
+    }
+
+    async function saveMaterialMovement() {
+      const materialId = Number(document.getElementById("movementMaterialId")?.value || 0);
+      const movementType = document.getElementById("movementType")?.value || "";
+      const qty = Number(document.getElementById("movementQty")?.value || 0);
+      const movementDate = document.getElementById("movementDate")?.value || "";
+      const supplierName = document.getElementById("movementSupplier")?.value.trim() || "";
+      const referenceNo = document.getElementById("movementReference")?.value.trim() || "";
+      const remarks = document.getElementById("movementRemarks")?.value.trim() || "";
+
+      if (!materialId || !movementType || qty === 0) {
+        showToast("Material, movement type aur quantity required hai", "error");
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/materialStock/movements`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            material_id: materialId,
+            movement_type: movementType,
+            qty,
+            movement_date: movementDate,
+            supplier_name: supplierName,
+            reference_no: referenceNo,
+            remarks,
+            companyId: getCurrentCompanyId(),
+            actingUserId: getCurrentUserId()
+          })
+        });
+        const result = await res.json();
+
+        if (!result.success) {
+          showToast(result.message || "Movement save failed", "error");
+          return;
+        }
+
+        clearMovementForm();
+        await refreshMaterialPage();
+        showToast(result.message || "Movement save ho gaya", "success");
+      } catch (error) {
+        console.log("Movement save error:", error);
+        showToast("Movement save failed", "error");
+      }
+    }
+
+    async function refreshMaterialPage() {
+      await Promise.all([loadSummary(), loadMaterialItems(), loadMaterialMovements()]);
+      populateMaterialSelect();
+      populateCategoryFilter();
+      applyFilters();
+    }
+
+    async function initPage() {
+      if (!pageGuard()) return;
+
+      renderProfileBox();
+      renderCompanyInfo();
+      renderPageTitle();
+      document.getElementById("movementDate").value = new Date().toISOString().slice(0, 10);
+
+      try {
+        await refreshMaterialPage();
+      } catch (error) {
+        console.log("Material stock init error:", error);
+        showToast("Material stock page load failed", "error");
+      }
+    }
+
+    window.addEventListener("load", initPage);
+  </script>
+
+  <script src="js/auth.js"></script>
+  <script>
+    requireLogin();
+    requirePageAccess("material-stock");
+    filterSidebarMenuByRole();
+  </script>
+  <script src="js/toast.js"></script>
+</body>
+</html>
