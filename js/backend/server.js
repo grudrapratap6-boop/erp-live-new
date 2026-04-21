@@ -439,7 +439,7 @@ async function resolveAccessContext(
     return {
       ok: false,
       status: 401,
-      message: "actingUserId ya userId required hai"
+      message: "actingUserId or userId is required"
     };
   }
 
@@ -449,7 +449,7 @@ async function resolveAccessContext(
     return {
       ok: false,
       status: 401,
-      message: "Acting user nahi mila"
+      message: "Acting user not found"
     };
   }
 
@@ -465,7 +465,7 @@ async function resolveAccessContext(
       return {
         ok: false,
         status: 400,
-        message: "companyId required hai"
+        message: "companyId is required"
       };
     }
 
@@ -485,7 +485,7 @@ async function resolveAccessContext(
     return {
       ok: false,
       status: 403,
-      message: "Approved user hi protected data access kar sakta hai"
+      message: "Only approved users can access protected data"
     };
   }
 
@@ -493,7 +493,7 @@ async function resolveAccessContext(
     return {
       ok: false,
       status: 403,
-      message: "Aapke account me company scope missing hai"
+      message: "Company scope is missing from your account"
     };
   }
 
@@ -501,7 +501,7 @@ async function resolveAccessContext(
     return {
       ok: false,
       status: 403,
-      message: "Aap dusri company ka data access nahi kar sakte"
+      message: "You cannot access data from another company"
     };
   }
 
@@ -509,7 +509,7 @@ async function resolveAccessContext(
     return {
       ok: false,
       status: 400,
-      message: "companyId required hai"
+      message: "companyId is required"
     };
   }
 
@@ -540,7 +540,7 @@ async function requireSuperAdminAccess(req, res) {
   if (!access.isSuperAdmin) {
     sendAccessError(res, {
       status: 403,
-      message: "Sirf SuperAdmin ko access hai"
+      message: "Only the SuperAdmin has access"
     });
     return null;
   }
@@ -581,7 +581,7 @@ async function validateInvoiceSaveRequest(connection, invoiceNumber, items, comp
     return {
       ok: false,
       status: 400,
-      message: "Ye invoice number is company me pehle se exist hai"
+      message: "This invoice number already exists in this company"
     };
   }
 
@@ -604,7 +604,7 @@ async function validateInvoiceSaveRequest(connection, invoiceNumber, items, comp
       return {
         ok: false,
         status: 400,
-        message: `Barcode ${barcode} same company stock me nahi mila`
+        message: `Barcode ${barcode} was not found in this company's stock`
       };
     }
 
@@ -615,7 +615,7 @@ async function validateInvoiceSaveRequest(connection, invoiceNumber, items, comp
       return {
         ok: false,
         status: 400,
-        message: `Barcode ${barcode} sellable stock me nahi hai`
+        message: `Barcode ${barcode} is not in sellable stock`
       };
     }
   }
@@ -731,7 +731,7 @@ async function setSaleStatusAndSyncStock(connection, invoiceNumber, companyId, s
     return {
       ok: false,
       status: 404,
-      message: "Sale nahi mila"
+      message: "Sale not found"
     };
   }
 
@@ -1206,14 +1206,14 @@ async function handleUserApprovalAction(req, res, { action = "approve", label = 
   if (!targetUserId) {
     return res.json({
       success: false,
-      message: "User id required hai"
+      message: "User id is required"
     });
   }
 
   if (!access.isSuperAdmin && !access.isApprovedAdmin) {
     return res.json({
       success: false,
-      message: `Aapko ${action === "approve" ? "approve" : "reject"} karne ka access nahi hai`
+      message: `You do not have access to ${action === "approve" ? "approve" : "reject"}`
     });
   }
 
@@ -1222,7 +1222,7 @@ async function handleUserApprovalAction(req, res, { action = "approve", label = 
   if (!targetUser) {
     return res.json({
       success: false,
-      message: "Target user nahi mila"
+      message: "Target user not found"
     });
   }
 
@@ -1233,7 +1233,7 @@ async function handleUserApprovalAction(req, res, { action = "approve", label = 
   ) {
     return res.json({
       success: false,
-      message: `Aap sirf apni company ke ${label.toLowerCase()} ${action === "approve" ? "approve" : "reject"} kar sakte ho`
+      message: `You can only ${action === "approve" ? "approve" : "reject"} your own company's ${label.toLowerCase()}`
     });
   }
 
@@ -1243,7 +1243,7 @@ async function handleUserApprovalAction(req, res, { action = "approve", label = 
     if (!role) {
       return res.json({
         success: false,
-        message: "Valid role required hai"
+        message: "A valid role is required"
       });
     }
 
@@ -2478,7 +2478,7 @@ async function getLotMetalContext(connection, payload) {
     };
   }
 
-  throw new Error(`Lot ${lotNo} ke liye metal context nahi mila`);
+  throw new Error(`Metal context was not found for lot ${lotNo}`);
 }
 
 async function createProcessKarigarTransaction(connection, payload) {
@@ -2503,7 +2503,7 @@ async function createProcessKarigarTransaction(connection, payload) {
 
   const party = await getPartyByIdForCompany(connection, companyId, partyId);
   if (!party) {
-    throw new Error("Karigar party nahi mila");
+    throw new Error("Karigar party not found");
   }
 
   const finalPartyType = normalizePartyType(party.party_type) || "KARIGAR";
@@ -3588,7 +3588,7 @@ app.post("/expenses", async (req, res) => {
     if (!person || !expenseDate || amount <= 0 || !category) {
       return res.status(400).json({
         success: false,
-        message: "Name, date, amount aur category required hai"
+        message: "Name, date, amount, and category are required"
       });
     }
 
@@ -3689,7 +3689,7 @@ app.put("/expenses/:id", async (req, res) => {
     if (!person || !expenseDate || amount <= 0 || !category) {
       return res.status(400).json({
         success: false,
-        message: "Name, date, amount aur category required hai"
+        message: "Name, date, amount, and category are required"
       });
     }
 
@@ -3708,7 +3708,7 @@ app.put("/expenses/:id", async (req, res) => {
     if (!existingRows.length) {
       return res.status(404).json({
         success: false,
-        message: "Expense nahi mila"
+        message: "Expense not found"
       });
     }
 
@@ -3801,7 +3801,7 @@ app.delete("/expenses/:id", async (req, res) => {
     if (Number(deleteResult.affectedRows || 0) === 0) {
       return res.status(404).json({
         success: false,
-        message: "Expense nahi mila"
+        message: "Expense not found"
       });
     }
 
@@ -4309,7 +4309,7 @@ app.post("/process/lots", async (req, res) => {
     if (!lotNo) {
       return res.status(400).json({
         success: false,
-        message: "lotNo required hai"
+        message: "lotNo is required"
       });
     }
 
@@ -4415,14 +4415,14 @@ app.post("/process/karigar-work", async (req, res) => {
     if (!karigarName || !lotNo) {
       return res.status(400).json({
         success: false,
-        message: "Karigar name aur lot no required hai"
+        message: "Karigar name and lot number are required"
       });
     }
 
     if (issueWeight <= 0) {
       return res.status(400).json({
         success: false,
-        message: "Issue weight 0 se bada hona chahiye"
+        message: "Issue weight must be greater than 0"
       });
     }
 
@@ -4510,7 +4510,7 @@ app.get("/getSticker/:barcode", async (req, res) => {
     if (!barcode) {
       return res.status(400).json({
         success: false,
-        message: "Barcode required hai"
+        message: "Barcode is required"
       });
     }
 
@@ -4564,7 +4564,7 @@ app.get("/getReturnItem/:barcode", async (req, res) => {
     if (!barcode) {
       return res.status(400).json({
         success: false,
-        message: "Barcode required hai"
+        message: "Barcode is required"
       });
     }
 
@@ -4660,14 +4660,14 @@ app.post("/saveReturn", async (req, res) => {
     if (!barcode) {
       return res.status(400).json({
         success: false,
-        message: "Barcode required hai"
+        message: "Barcode is required"
       });
     }
 
     if (!returnType) {
       return res.status(400).json({
         success: false,
-        message: "Valid return_type required hai"
+        message: "A valid return_type is required"
       });
     }
 
@@ -4688,7 +4688,7 @@ app.post("/saveReturn", async (req, res) => {
       await connection.rollback();
       return res.status(404).json({
         success: false,
-        message: "Barcode same company stock me nahi mila"
+        message: "Barcode was not found in this company's stock"
       });
     }
 
@@ -4699,7 +4699,7 @@ app.post("/saveReturn", async (req, res) => {
       await connection.rollback();
       return res.status(400).json({
         success: false,
-        message: "Deleted stock item par return save nahi kar sakte"
+        message: "You cannot save a return for a deleted stock item"
       });
     }
 
@@ -4707,7 +4707,7 @@ app.post("/saveReturn", async (req, res) => {
       await connection.rollback();
       return res.status(400).json({
         success: false,
-        message: "Ye item already IN_STOCK me hai"
+        message: "This item is already marked as IN_STOCK"
       });
     }
 
@@ -4715,7 +4715,7 @@ app.post("/saveReturn", async (req, res) => {
       await connection.rollback();
       return res.status(400).json({
         success: false,
-        message: "Ye item already DAMAGED_RETURN me hai"
+        message: "This item is already marked as DAMAGED_RETURN"
       });
     }
 
@@ -4753,7 +4753,7 @@ app.post("/saveReturn", async (req, res) => {
       await connection.rollback();
       return res.status(400).json({
         success: false,
-        message: "Return ke liye matching sold invoice item nahi mila"
+        message: "No matching sold invoice item was found for this return"
       });
     }
 
@@ -4761,7 +4761,7 @@ app.post("/saveReturn", async (req, res) => {
       await connection.rollback();
       return res.status(400).json({
         success: false,
-        message: "Deleted sale ke item par return save nahi kar sakte"
+        message: "You cannot save a return for a deleted sale item"
       });
     }
 
@@ -4769,7 +4769,7 @@ app.post("/saveReturn", async (req, res) => {
       await connection.rollback();
       return res.status(400).json({
         success: false,
-        message: "Ye sale item pehle hi return ho chuka hai"
+        message: "This sale item has already been returned"
       });
     }
 
@@ -5024,14 +5024,14 @@ app.post("/materialStock/items", async (req, res) => {
     if (!category || !materialName || !unit) {
       return res.status(400).json({
         success: false,
-        message: "Category, material name aur unit required hai"
+        message: "Category, material name, and unit are required"
       });
     }
 
     if (Number.isNaN(openingStock) || Number.isNaN(lowStockLevel)) {
       return res.status(400).json({
         success: false,
-        message: "Opening stock aur low stock level valid number hona chahiye"
+        message: "Opening stock and low stock level must be valid numbers"
       });
     }
 
@@ -5057,7 +5057,7 @@ app.post("/materialStock/items", async (req, res) => {
       await connection.rollback();
       return res.status(400).json({
         success: false,
-        message: "Ye material variant/size/unit same company me already exist hai"
+        message: "This material variant/size/unit already exists in the same company"
       });
     }
 
@@ -5102,7 +5102,7 @@ app.post("/materialStock/items", async (req, res) => {
 
     return res.json({
       success: true,
-      message: "Material item save ho gaya",
+      message: "Material item saved successfully",
       materialId: insertResult.insertId
     });
   } catch (error) {
@@ -5147,21 +5147,21 @@ app.put("/materialStock/items/:id", async (req, res) => {
     if (!materialId) {
       return res.status(400).json({
         success: false,
-        message: "Material id required hai"
+        message: "Material id is required"
       });
     }
 
     if (!category || !materialName || !unit) {
       return res.status(400).json({
         success: false,
-        message: "Category, material name aur unit required hai"
+        message: "Category, material name, and unit are required"
       });
     }
 
     if (Number.isNaN(openingStock) || Number.isNaN(lowStockLevel)) {
       return res.status(400).json({
         success: false,
-        message: "Opening stock aur low stock level valid number hona chahiye"
+        message: "Opening stock and low stock level must be valid numbers"
       });
     }
 
@@ -5182,7 +5182,7 @@ app.put("/materialStock/items/:id", async (req, res) => {
       await connection.rollback();
       return res.status(404).json({
         success: false,
-        message: "Material item nahi mila"
+        message: "Material item not found"
       });
     }
 
@@ -5206,7 +5206,7 @@ app.put("/materialStock/items/:id", async (req, res) => {
       await connection.rollback();
       return res.status(400).json({
         success: false,
-        message: "Same company me ye material identity already exist hai"
+        message: "This material identity already exists in the same company"
       });
     }
 
@@ -5267,7 +5267,7 @@ app.put("/materialStock/items/:id", async (req, res) => {
 
     return res.json({
       success: true,
-      message: "Material item update ho gaya"
+      message: "Material item updated successfully"
     });
   } catch (error) {
     if (connection) await connection.rollback();
@@ -5370,21 +5370,21 @@ app.post("/materialStock/movements", async (req, res) => {
     if (!materialId) {
       return res.status(400).json({
         success: false,
-        message: "Material select karo"
+        message: "Please select a material"
       });
     }
 
     if (!movementType || movementType === "OPENING") {
       return res.status(400).json({
         success: false,
-        message: "Valid movement type required hai"
+        message: "A valid movement type is required"
       });
     }
 
     if (Number.isNaN(qty) || qty === 0) {
       return res.status(400).json({
         success: false,
-        message: "Quantity valid hona chahiye"
+        message: "Quantity must be valid"
       });
     }
 
@@ -5405,7 +5405,7 @@ app.post("/materialStock/movements", async (req, res) => {
       await connection.rollback();
       return res.status(404).json({
         success: false,
-        message: "Material item nahi mila"
+        message: "Material item not found"
       });
     }
 
@@ -5421,7 +5421,7 @@ app.post("/materialStock/movements", async (req, res) => {
       await connection.rollback();
       return res.status(400).json({
         success: false,
-        message: "Current stock zero se niche nahi ja sakta"
+        message: "Current stock cannot go below zero"
       });
     }
 
@@ -5453,7 +5453,7 @@ app.post("/materialStock/movements", async (req, res) => {
 
     return res.json({
       success: true,
-      message: "Material movement save ho gaya"
+      message: "Material movement saved successfully"
     });
   } catch (error) {
     if (connection) await connection.rollback();
@@ -5588,7 +5588,7 @@ app.post("/addSticker", async (req, res) => {
     if (!serial || !productName || !purity || !sku || !size || !weight || !lot || !barcode) {
       return res.json({
         success: false,
-        message: "Serial, Product, Purity, SKU, Size, Weight, Lot aur Barcode required hai"
+        message: "Serial, product, purity, SKU, size, weight, lot, and barcode are required"
       });
     }
 
@@ -5611,7 +5611,7 @@ app.post("/addSticker", async (req, res) => {
     if (dupLotSerial.length > 0) {
       return res.json({
         success: false,
-        message: `Lot ${cleanLot} me serial ${cleanSerial} pehle se exist hai`
+        message: `Serial ${cleanSerial} already exists in lot ${cleanLot}`
       });
     }
 
@@ -5629,7 +5629,7 @@ app.post("/addSticker", async (req, res) => {
     if (dupBarcode.length > 0) {
       return res.json({
         success: false,
-        message: `Barcode ${cleanBarcode} pehle se exist hai`
+        message: `Barcode ${cleanBarcode} already exists`
       });
     }
 
@@ -5724,7 +5724,7 @@ app.put("/updateSticker/:barcode", async (req, res) => {
     const finalCompanyId = access.companyScope;
 
     if (!oldBarcode) {
-      return res.json({ success: false, message: "Old barcode missing hai" });
+      return res.json({ success: false, message: "Old barcode is missing" });
     }
 
     if (String(status).toUpperCase() === "SOLD") {
@@ -5739,7 +5739,7 @@ app.put("/updateSticker/:barcode", async (req, res) => {
       const [soldResult] = await pool.query(soldSql, soldParams);
 
       if (Number(soldResult.affectedRows || 0) === 0) {
-        return res.json({ success: false, message: "Sticker item nahi mila" });
+        return res.json({ success: false, message: "Sticker item not found" });
       }
 
       return res.json({
@@ -5751,7 +5751,7 @@ app.put("/updateSticker/:barcode", async (req, res) => {
     if (!serial || !productName || !purity || !sku || !size || !weight || !lot) {
       return res.json({
         success: false,
-        message: "Serial, Product, Purity, SKU, Size, Weight aur Lot required hai"
+        message: "Serial, product, purity, SKU, size, weight, and lot are required"
       });
     }
 
@@ -5770,7 +5770,7 @@ app.put("/updateSticker/:barcode", async (req, res) => {
     );
 
     if (currentRows.length === 0) {
-      return res.json({ success: false, message: "Sticker item nahi mila" });
+      return res.json({ success: false, message: "Sticker item not found" });
     }
 
     const currentId = currentRows[0].id;
@@ -5791,7 +5791,7 @@ app.put("/updateSticker/:barcode", async (req, res) => {
     if (dupLotSerial.length > 0) {
       return res.json({
         success: false,
-        message: `Lot ${cleanLot} me serial ${cleanSerial} pehle se exist hai`
+        message: `Serial ${cleanSerial} already exists in lot ${cleanLot}`
       });
     }
 
@@ -5810,7 +5810,7 @@ app.put("/updateSticker/:barcode", async (req, res) => {
     if (dupBarcode.length > 0) {
       return res.json({
         success: false,
-        message: `Barcode ${newBarcode} pehle se exist hai`
+        message: `Barcode ${newBarcode} already exists`
       });
     }
 
@@ -5881,7 +5881,7 @@ app.delete("/deleteSticker/:barcode", async (req, res) => {
     if (!barcode) {
       return res.json({
         success: false,
-        message: "Barcode required hai"
+        message: "Barcode is required"
       });
     }
 
@@ -5904,7 +5904,7 @@ app.delete("/deleteSticker/:barcode", async (req, res) => {
     if (Number(result.affectedRows || 0) === 0) {
       return res.json({
         success: false,
-        message: "Sticker item nahi mila"
+        message: "Sticker item not found"
       });
     }
 
@@ -5937,7 +5937,7 @@ app.put("/restoreSticker/:barcode", async (req, res) => {
     if (!barcode) {
       return res.json({
         success: false,
-        message: "Barcode required hai"
+        message: "Barcode is required"
       });
     }
 
@@ -5960,13 +5960,13 @@ app.put("/restoreSticker/:barcode", async (req, res) => {
     if (Number(result.affectedRows || 0) === 0) {
       return res.json({
         success: false,
-        message: "Restore ke liye item nahi mila"
+        message: "No item was found to restore"
       });
     }
 
     return res.json({
       success: true,
-      message: "Sticker restored"
+      message: "Sticker restored successfully"
     });
   } catch (err) {
     console.error("Restore error:", err);
@@ -6138,7 +6138,7 @@ app.post("/invoice-drafts/current/items", async (req, res) => {
     if (!stockRows.length) {
       return res.status(404).json({
         success: false,
-        message: "Barcode stock me nahi mila"
+        message: "The barcode was not found in stock"
       });
     }
 
@@ -6147,7 +6147,7 @@ app.post("/invoice-drafts/current/items", async (req, res) => {
     if (stockStatus !== "IN_STOCK") {
       return res.status(400).json({
         success: false,
-        message: "Ye barcode sellable stock me nahi hai"
+        message: "This barcode is not in sellable stock"
       });
     }
 
@@ -6279,14 +6279,14 @@ app.post("/invoice-drafts/current/apply-details", async (req, res) => {
     if (!customerName) {
       return res.status(400).json({
         success: false,
-        message: "Customer name fill karo"
+        message: "Please enter the customer name"
       });
     }
 
     if (!invoiceNumber) {
       return res.status(400).json({
         success: false,
-        message: "Invoice number fill karo"
+        message: "Please enter the invoice number"
       });
     }
 
@@ -6297,7 +6297,7 @@ app.post("/invoice-drafts/current/apply-details", async (req, res) => {
     if (!draftRow) {
       return res.status(400).json({
         success: false,
-        message: "Pehle barcode scan karo"
+        message: "Please scan a barcode first"
       });
     }
 
@@ -6315,7 +6315,7 @@ app.post("/invoice-drafts/current/apply-details", async (req, res) => {
     if (!pendingRows.length) {
       return res.status(400).json({
         success: false,
-        message: "Pehle barcode scan karo"
+        message: "Please scan a barcode first"
       });
     }
 
@@ -6355,7 +6355,7 @@ app.post("/invoice-drafts/current/apply-details", async (req, res) => {
     const payload = await getInvoiceDraftPayload(connection, draftRow.id);
     return res.json({
       success: true,
-      message: "Barcode customer details ke saath update ho gaya",
+      message: "The barcode has been updated with customer details",
       ...payload
     });
   } catch (error) {
@@ -6473,7 +6473,7 @@ app.get("/invoice-drafts/:id/billing", async (req, res) => {
     if (!draftRow) {
       return res.status(404).json({
         success: false,
-        message: "Invoice draft nahi mila"
+        message: "Invoice draft not found"
       });
     }
 
@@ -6662,7 +6662,7 @@ app.post("/saveInvoice", async (req, res) => {
           await connection.rollback();
           return res.status(400).json({
             success: false,
-            message: `Barcode ${barcode} ko same company stock me SOLD mark nahi kar paye`
+            message: `Barcode ${barcode} could not be marked as SOLD in this company's stock`
           });
         }
       }
@@ -6864,7 +6864,7 @@ app.post("/saveBilling", async (req, res) => {
           await connection.rollback();
           return res.status(400).json({
             success: false,
-            message: `Barcode ${barcode} ko same company stock me SOLD mark nahi kar paye`
+            message: `Barcode ${barcode} could not be marked as SOLD in this company's stock`
           });
         }
       }
@@ -7199,7 +7199,7 @@ app.put("/returnItem/:barcode", async (req, res) => {
     if (Number(result.affectedRows || 0) === 0) {
       return res.json({
         success: false,
-        message: "Item nahi mila"
+        message: "Item not found"
       });
     }
 
@@ -7239,7 +7239,7 @@ app.post("/requestCompanySignup", async (req, res) => {
     if (!cleanCompanyName || !cleanOwnerName || !cleanEmail || !cleanPassword) {
       return res.json({
         success: false,
-        message: "Company name, owner name, email aur password required hai"
+        message: "Company name, owner name, email, and password are required"
       });
     }
 
@@ -7257,7 +7257,7 @@ app.post("/requestCompanySignup", async (req, res) => {
     if (existingRequest.length > 0) {
       return res.json({
         success: false,
-        message: "Ye signup request already pending hai"
+        message: "This signup request is already pending"
       });
     }
 
@@ -7269,7 +7269,7 @@ app.post("/requestCompanySignup", async (req, res) => {
     if (existingUser.length > 0) {
       return res.json({
         success: false,
-        message: "Ye email pehle se system me exist hai"
+        message: "This email already exists in the system"
       });
     }
 
@@ -7284,7 +7284,7 @@ app.post("/requestCompanySignup", async (req, res) => {
 
     return res.json({
       success: true,
-      message: "Signup request admin approval ke liye chali gayi"
+      message: "The signup request has been submitted for admin approval"
     });
   } catch (error) {
     console.error("Company signup request error:", error);
@@ -7334,7 +7334,7 @@ app.put("/approveCompanyRequest/:id", async (req, res) => {
     if (!requestId) {
       return res.json({
         success: false,
-        message: "Request id required hai"
+        message: "Request id is required"
       });
     }
 
@@ -7356,7 +7356,7 @@ app.put("/approveCompanyRequest/:id", async (req, res) => {
       await connection.rollback();
       return res.json({
         success: false,
-        message: "Pending request nahi mila"
+        message: "Pending request not found"
       });
     }
 
@@ -7371,7 +7371,7 @@ app.put("/approveCompanyRequest/:id", async (req, res) => {
       await connection.rollback();
       return res.json({
         success: false,
-        message: "Is email ke liye company already exist hai"
+        message: "A company already exists for this email"
       });
     }
 
@@ -7384,7 +7384,7 @@ app.put("/approveCompanyRequest/:id", async (req, res) => {
       await connection.rollback();
       return res.json({
         success: false,
-        message: "Is email ka user already exist hai"
+        message: "A user already exists for this email"
       });
     }
 
@@ -7432,7 +7432,7 @@ app.put("/approveCompanyRequest/:id", async (req, res) => {
 
     return res.json({
       success: true,
-      message: "Company aur admin user successfully create ho gaya",
+      message: "The company and admin user have been created successfully",
       companyId
     });
   } catch (error) {
@@ -7463,7 +7463,7 @@ app.put("/rejectCompanyRequest/:id", async (req, res) => {
     if (!requestId) {
       return res.json({
         success: false,
-        message: "Request id required hai"
+        message: "Request id is required"
       });
     }
 
@@ -7481,7 +7481,7 @@ app.put("/rejectCompanyRequest/:id", async (req, res) => {
     if (!requestRows.length) {
       return res.json({
         success: false,
-        message: "Pending request nahi mila"
+        message: "Pending request not found"
       });
     }
 
@@ -7607,14 +7607,14 @@ app.post("/registerUser", async (req, res) => {
     if (!cleanName || !cleanEmail || !cleanPassword) {
       return res.json({
         success: false,
-        message: "Name, email aur password required hai"
+        message: "Name, email, and password are required"
       });
     }
 
     if (finalCompanyId === null || Number.isNaN(finalCompanyId)) {
       return res.json({
         success: false,
-        message: "companyId required hai"
+        message: "companyId is required"
       });
     }
 
@@ -7626,7 +7626,7 @@ app.post("/registerUser", async (req, res) => {
     if (existingUsers.length > 0) {
       return res.json({
         success: false,
-        message: "Ye email pehle se registered hai"
+        message: "This email is already registered"
       });
     }
 
@@ -7640,7 +7640,7 @@ app.post("/registerUser", async (req, res) => {
 
     return res.json({
       success: true,
-      message: "Request admin approval ke liye chali gayi"
+      message: "The request has been submitted for admin approval"
     });
   } catch (error) {
     console.error("Register user error:", error);
@@ -7682,7 +7682,7 @@ app.post("/requestStaffJoin", async (req, res) => {
     ) {
       return res.json({
         success: false,
-        message: "Sab required fields fill karo"
+        message: "Please fill in all required fields"
       });
     }
 
@@ -7701,7 +7701,7 @@ app.post("/requestStaffJoin", async (req, res) => {
     if (!companyRows.length) {
       return res.json({
         success: false,
-        message: "Company ya admin email match nahi hua"
+        message: "The company or admin email did not match"
       });
     }
 
@@ -7715,7 +7715,7 @@ app.post("/requestStaffJoin", async (req, res) => {
     if (existingUsers.length > 0) {
       return res.json({
         success: false,
-        message: "Ye email pehle se registered hai"
+        message: "This email is already registered"
       });
     }
 
@@ -7729,7 +7729,7 @@ app.post("/requestStaffJoin", async (req, res) => {
 
     return res.json({
       success: true,
-      message: "Staff request admin approval ke liye chali gayi"
+      message: "The staff request has been submitted for admin approval"
     });
   } catch (error) {
     console.error("Request staff join error:", error);
@@ -7963,7 +7963,7 @@ app.post("/login", async (req, res) => {
     if (!email || !password) {
       return res.json({
         success: false,
-        message: "Email aur password required hai"
+        message: "Email and password are required"
       });
     }
 
@@ -8020,7 +8020,7 @@ app.get("/userByEmail", async (req, res) => {
     const email = normalizeEmail(req.query.email);
 
     if (!email) {
-      return res.json({ success: false, message: "email required hai" });
+      return res.json({ success: false, message: "Email is required" });
     }
 
     const [rows] = await pool.query(
@@ -8037,7 +8037,7 @@ app.get("/userByEmail", async (req, res) => {
     );
 
     if (!rows.length) {
-      return res.json({ success: false, message: "User nahi mila" });
+      return res.json({ success: false, message: "User not found" });
     }
 
     return res.json({ success: true, user: rows[0] });
@@ -8091,7 +8091,7 @@ app.post("/transaction/parties", async (req, res) => {
     if (!partyName || !partyType) {
       return res.status(400).json({
         success: false,
-        message: "party_name aur party_type required hai"
+        message: "party_name and party_type are required"
       });
     }
 
@@ -8114,7 +8114,7 @@ app.post("/transaction/parties", async (req, res) => {
       await connection.rollback();
       return res.status(400).json({
         success: false,
-        message: "Same party name aur type already exist hai"
+        message: "The same party name and type already exist"
       });
     }
 
@@ -8157,7 +8157,7 @@ app.post("/transaction/parties", async (req, res) => {
 
     return res.json({
       success: true,
-      message: "Party create ho gaya",
+      message: "Party created successfully",
       partyId: insertResult.insertId
     });
   } catch (error) {
@@ -8292,7 +8292,7 @@ app.post("/transaction/transactions", async (req, res) => {
     if (!partyId || !transactionType) {
       return res.status(400).json({
         success: false,
-        message: "party_id aur transaction_type required hai"
+        message: "party_id and transaction_type are required"
       });
     }
 
@@ -8305,7 +8305,7 @@ app.post("/transaction/transactions", async (req, res) => {
       await connection.rollback();
       return res.status(404).json({
         success: false,
-        message: "Party nahi mila"
+        message: "Party not found"
       });
     }
 
@@ -8548,7 +8548,7 @@ app.post("/transaction/transactions", async (req, res) => {
 
     return res.json({
       success: true,
-      message: "Transaction create ho gaya",
+      message: "Transaction created successfully",
       transactionId,
       voucherNo
     });
@@ -9243,7 +9243,7 @@ app.get("/transaction/reports/metal-ledger", async (req, res) => {
     if (!metalType) {
       return res.status(400).json({
         success: false,
-        message: "metal_type required hai"
+        message: "metal_type is required"
       });
     }
 
@@ -9400,10 +9400,11 @@ app.listen(PORT, "0.0.0.0", async () => {
 
   try {
     await testDbConnection();
-    console.log("MySQL Connected ✅");
+    console.log("MySQL Connected");
     await ensureSchema();
     await ensureSuperAdminExists();
   } catch (error) {
     console.error("MySQL connection failed:", error);
   }
 });
+
