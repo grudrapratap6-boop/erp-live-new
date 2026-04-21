@@ -599,7 +599,7 @@
 
           <div class="auth-note">
             <i class="fas fa-key"></i>
-            <span>A reset request will be created when you enter your email. Backend integration will be connected later.</span>
+            <span>Enter your registered email, verify the code sent to your inbox, and set a new password.</span>
           </div>
 
           <div class="form-grid">
@@ -610,11 +610,45 @@
                 <input type="email" id="forgotEmail" class="no-right" placeholder="Enter registered email" />
               </div>
             </div>
+
+            <div class="input-box full">
+              <label>Verification Code</label>
+              <div class="input-wrap">
+                <i class="fas fa-shield-halved left-icon"></i>
+                <input type="text" id="forgotOtp" class="no-right" placeholder="Enter the 6-digit code" />
+              </div>
+            </div>
+
+            <div class="input-box">
+              <label>New Password</label>
+              <div class="input-wrap">
+                <i class="fas fa-lock left-icon"></i>
+                <input type="password" id="forgotNewPassword" placeholder="Enter new password" />
+                <i class="fas fa-eye toggle-password" onclick="togglePassword('forgotNewPassword', this)"></i>
+              </div>
+            </div>
+
+            <div class="input-box">
+              <label>Confirm New Password</label>
+              <div class="input-wrap">
+                <i class="fas fa-lock left-icon"></i>
+                <input type="password" id="forgotConfirmPassword" placeholder="Confirm new password" />
+                <i class="fas fa-eye toggle-password" onclick="togglePassword('forgotConfirmPassword', this)"></i>
+              </div>
+            </div>
           </div>
 
           <div class="action-stack" style="margin-top:18px;">
-            <button class="primary-btn" onclick="forgotPassword()">
-              <i class="fas fa-paper-plane"></i> Send Reset Request
+            <button class="primary-btn" onclick="requestForgotPasswordCode()">
+              <i class="fas fa-paper-plane"></i> Send Code
+            </button>
+
+            <button class="secondary-btn" onclick="verifyForgotPasswordCode()">
+              Verify Code
+            </button>
+
+            <button class="secondary-btn" onclick="resetForgotPassword()">
+              Reset Password
             </button>
 
             <button class="secondary-btn" onclick="switchAuthTab('login')">
@@ -634,6 +668,7 @@
 
   <script>
     const API_BASE = "https://erp-live-new-production.up.railway.app";
+    let forgotPasswordResetToken = "";
     function switchAuthTab(tabName) {
       document.querySelectorAll(".auth-tab").forEach((tab) => tab.classList.remove("active"));
       document.querySelectorAll(".auth-panel").forEach((panel) => panel.classList.remove("active"));
@@ -876,7 +911,7 @@
       }
     }
 
-    function forgotPassword() {
+    async function requestForgotPasswordCode() {
       const email = document.getElementById("forgotEmail").value.trim().toLowerCase();
 
       if (!email) {
@@ -884,11 +919,112 @@
         return;
       }
 
-      showStatus(
-        "forgotStatus",
-        "Forgot password will be connected to the backend later.",
-        "info"
-      );
+      try {
+        const res = await fetch(`${API_BASE}/otp/request`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            purpose: "PASSWORD_RESET",
+            email
+          })
+        });
+        const data = await res.json();
+
+        if (!res.ok || !data.success) {
+          throw new Error(data.message || "Failed to send verification code");
+        }
+
+        forgotPasswordResetToken = "";
+        showStatus("forgotStatus", data.message || "If the email is registered, a verification code has been sent.", "info");
+      } catch (error) {
+        console.log("Forgot password request error:", error);
+        showStatus("forgotStatus", error.message || "Failed to send verification code", "error");
+      }
+    }
+
+    async function verifyForgotPasswordCode() {
+      const email = document.getElementById("forgotEmail").value.trim().toLowerCase();
+      const otp = document.getElementById("forgotOtp").value.trim();
+
+      if (!email || !otp) {
+        showStatus("forgotStatus", "Please enter your email and verification code.", "error");
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/otp/verify`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            purpose: "PASSWORD_RESET",
+            email,
+            otp
+          })
+        });
+        const data = await res.json();
+
+        if (!res.ok || !data.success) {
+          throw new Error(data.message || "Verification failed");
+        }
+
+        forgotPasswordResetToken = data.sessionToken || "";
+        showStatus("forgotStatus", data.message || "Verification successful. You can now reset your password.", "success");
+      } catch (error) {
+        console.log("Forgot password verify error:", error);
+        showStatus("forgotStatus", error.message || "Verification failed", "error");
+      }
+    }
+
+    async function resetForgotPassword() {
+      const email = document.getElementById("forgotEmail").value.trim().toLowerCase();
+      const newPassword = document.getElementById("forgotNewPassword").value.trim();
+      const confirmPassword = document.getElementById("forgotConfirmPassword").value.trim();
+
+      if (!email || !newPassword || !confirmPassword) {
+        showStatus("forgotStatus", "Please fill in all required fields.", "error");
+        return;
+      }
+
+      if (!forgotPasswordResetToken) {
+        showStatus("forgotStatus", "Please verify the code before resetting your password.", "error");
+        return;
+      }
+
+      if (newPassword.length < 4) {
+        showStatus("forgotStatus", "Password must be at least 4 characters long.", "error");
+        return;
+      }
+
+      if (newPassword !== confirmPassword) {
+        showStatus("forgotStatus", "Password and confirm password do not match.", "error");
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/auth/reset-password`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email,
+            resetToken: forgotPasswordResetToken,
+            newPassword
+          })
+        });
+        const data = await res.json();
+
+        if (!res.ok || !data.success) {
+          throw new Error(data.message || "Password reset failed");
+        }
+
+        forgotPasswordResetToken = "";
+        document.getElementById("forgotOtp").value = "";
+        document.getElementById("forgotNewPassword").value = "";
+        document.getElementById("forgotConfirmPassword").value = "";
+        showStatus("forgotStatus", data.message || "Password has been reset successfully.", "success");
+      } catch (error) {
+        console.log("Forgot password reset error:", error);
+        showStatus("forgotStatus", error.message || "Password reset failed", "error");
+      }
     }
 
     (function preloadRememberedEmail() {

@@ -2,7 +2,9 @@ require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
+const crypto = require("crypto");
 const mysql = require("mysql2/promise");
+const nodemailer = require("nodemailer");
 const path = require("path");
 
 const app = express();
@@ -56,6 +58,100 @@ function normalizeReturnType(value) {
 
 function normalizeEmail(value) {
   return String(value || "").trim().toLowerCase();
+}
+
+const OTP_PURPOSES = {
+  SETTINGS_UNLOCK: "SETTINGS_UNLOCK",
+  PASSWORD_RESET: "PASSWORD_RESET"
+};
+
+const OTP_RESEND_COOLDOWN_SECONDS = 60;
+const OTP_EXPIRY_MINUTES = 10;
+const OTP_SESSION_EXPIRY_MINUTES = 15;
+const OTP_VERIFY_ATTEMPT_LIMIT = 5;
+const OTP_REQUEST_LIMIT_WINDOW_MINUTES = 15;
+const OTP_REQUEST_LIMIT_COUNT = 3;
+
+let mailTransporter = null;
+
+function hashSecret(value) {
+  return crypto.createHash("sha256").update(String(value || "")).digest("hex");
+}
+
+function generateOtpCode() {
+  return String(Math.floor(100000 + Math.random() * 900000));
+}
+
+function generateSessionToken() {
+  return crypto.randomBytes(32).toString("hex");
+}
+
+function getFutureDate(minutes) {
+  return new Date(Date.now() + minutes * 60 * 1000);
+}
+
+function normalizeOtpPurpose(value) {
+  const clean = String(value || "").trim().toUpperCase();
+  return Object.values(OTP_PURPOSES).includes(clean) ? clean : "";
+}
+
+function getMailTransporter() {
+  if (mailTransporter) return mailTransporter;
+
+  const host = String(process.env.SMTP_HOST || "").trim();
+  const port = Number(process.env.SMTP_PORT || 587);
+  const user = String(process.env.SMTP_USER || "").trim();
+  const pass = String(process.env.SMTP_PASS || "").trim();
+
+  if (!host || !port || !user || !pass) {
+    throw new Error("SMTP configuration is incomplete");
+  }
+
+  mailTransporter = nodemailer.createTransport({
+    host,
+    port,
+    secure: String(process.env.SMTP_SECURE || "").trim().toLowerCase() === "true" || port === 465,
+    auth: {
+      user,
+      pass
+    }
+  });
+
+  return mailTransporter;
+}
+
+async function sendOtpEmail({ email, otp, purpose }) {
+  const transporter = getMailTransporter();
+  const fromEmail = String(process.env.SMTP_FROM || process.env.SMTP_USER || "").trim();
+
+  if (!fromEmail) {
+    throw new Error("SMTP_FROM or SMTP_USER is required");
+  }
+
+  const isSettingsOtp = purpose === OTP_PURPOSES.SETTINGS_UNLOCK;
+  const subject = isSettingsOtp ? "ERP Settings Unlock Code" : "ERP Password Reset Code";
+  const heading = isSettingsOtp ? "Settings Unlock Verification" : "Password Reset Verification";
+  const description = isSettingsOtp
+    ? "Use the following verification code to unlock ERP settings."
+    : "Use the following verification code to reset your ERP password.";
+
+  await transporter.sendMail({
+    from: fromEmail,
+    to: email,
+    subject,
+    text: `${heading}\n\n${description}\n\nCode: ${otp}\n\nThis code expires in ${OTP_EXPIRY_MINUTES} minutes.\nIf you did not request this code, you can ignore this email.`,
+    html: `
+      <div style="font-family:Segoe UI,Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;border:1px solid #e5e7eb;border-radius:16px;background:#ffffff;color:#0f172a;">
+        <h2 style="margin:0 0 12px;font-size:22px;">${heading}</h2>
+        <p style="margin:0 0 18px;font-size:14px;line-height:1.6;color:#475569;">${description}</p>
+        <div style="margin:0 0 18px;padding:18px;border-radius:14px;background:#f8fafc;border:1px solid #e2e8f0;text-align:center;">
+          <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.12em;color:#64748b;margin-bottom:8px;">Verification Code</div>
+          <div style="font-size:32px;font-weight:800;letter-spacing:0.24em;color:#b7791f;">${otp}</div>
+        </div>
+        <p style="margin:0;font-size:13px;line-height:1.6;color:#64748b;">This code expires in ${OTP_EXPIRY_MINUTES} minutes. If you did not request this code, you can safely ignore this email.</p>
+      </div>
+    `
+  });
 }
 
 const PARTY_TYPES = [
@@ -845,6 +941,125 @@ async function getCompanySettingsForCompany(connection, companyId) {
     LIMIT 1
     `,
     [companyId]
+  );
+
+  return rows[0] || null;
+}
+
+async function cleanupOtpVerifications(connection) {
+  await connection.query(
+    `
+    DELETE FROM otp_verifications
+    WHERE
+      (expires_at IS NOT NULL AND expires_at < DATE_SUB(NOW(), INTERVAL 1 DAY))
+      OR (session_expires_at IS NOT NULL AND session_expires_at < DATE_SUB(NOW(), INTERVAL 1 DAY))
+      OR (consumed_at IS NOT NULL AND consumed_at < DATE_SUB(NOW(), INTERVAL 1 DAY))
+    `
+  );
+}
+
+async function findUserByEmail(email) {
+  const [rows] = await pool.query(
+    `
+    SELECT
+      u.*,
+      c.company_name,
+      c.owner_name AS company_owner_name,
+      c.owner_email AS company_owner_email,
+      c.status AS company_status
+    FROM users u
+    LEFT JOIN companies c ON c.id = u.company_id
+    WHERE LOWER(u.email) = LOWER(?)
+    LIMIT 1
+    `,
+    [email]
+  );
+
+  return rows.length ? rows[0] : null;
+}
+
+async function countRecentOtpRequests(connection, email, purpose) {
+  const [rows] = await connection.query(
+    `
+    SELECT COUNT(*) AS total
+    FROM otp_verifications
+    WHERE LOWER(email) = LOWER(?)
+      AND purpose = ?
+      AND created_at >= DATE_SUB(NOW(), INTERVAL ? MINUTE)
+    `,
+    [email, purpose, OTP_REQUEST_LIMIT_WINDOW_MINUTES]
+  );
+
+  return Number(rows[0]?.total || 0);
+}
+
+async function getLatestOtpRecord(connection, email, purpose) {
+  const [rows] = await connection.query(
+    `
+    SELECT *
+    FROM otp_verifications
+    WHERE LOWER(email) = LOWER(?)
+      AND purpose = ?
+    ORDER BY id DESC
+    LIMIT 1
+    `,
+    [email, purpose]
+  );
+
+  return rows[0] || null;
+}
+
+async function invalidateOtpPurposeForEmail(connection, email, purpose) {
+  await connection.query(
+    `
+    UPDATE otp_verifications
+    SET consumed_at = NOW(),
+        updated_at = NOW()
+    WHERE LOWER(email) = LOWER(?)
+      AND purpose = ?
+      AND consumed_at IS NULL
+    `,
+    [email, purpose]
+  );
+}
+
+async function getAllowedSettingsUnlockEmails(connection, access) {
+  const emailSet = new Set();
+  const pushEmail = (value) => {
+    const normalized = normalizeEmail(value);
+    if (normalized) emailSet.add(normalized);
+  };
+
+  pushEmail(access?.actingUser?.email);
+  pushEmail(access?.actingUser?.company_owner_email);
+
+  if (access?.companyScope !== null && access?.companyScope !== undefined) {
+    const settingsRow = await getCompanySettingsForCompany(connection, access.companyScope);
+    pushEmail(settingsRow?.ownerEmail);
+  }
+
+  return emailSet;
+}
+
+async function verifyOtpSessionToken(connection, { email, purpose, sessionToken, userId = null, companyId = null }) {
+  const tokenHash = hashSecret(sessionToken);
+  const [rows] = await connection.query(
+    `
+    SELECT *
+    FROM otp_verifications
+    WHERE LOWER(email) = LOWER(?)
+      AND purpose = ?
+      AND session_token_hash = ?
+      AND verified_at IS NOT NULL
+      AND consumed_at IS NULL
+      AND session_expires_at IS NOT NULL
+      AND session_expires_at >= NOW()
+      AND (? IS NULL OR user_id = ?)
+      AND (? IS NULL OR company_id <=> ?)
+    ORDER BY id DESC
+    LIMIT 1
+    `,
+    [email, purpose, tokenHash, userId, userId, companyId, companyId]
   );
 
   return rows[0] || null;
@@ -1866,6 +2081,31 @@ async function ensureSchema() {
     )
   `);
 
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS otp_verifications (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      email VARCHAR(255) NOT NULL,
+      user_id INT DEFAULT NULL,
+      company_id INT DEFAULT NULL,
+      purpose VARCHAR(50) NOT NULL,
+      otp_hash VARCHAR(255) NOT NULL,
+      expires_at DATETIME NOT NULL,
+      verified_at DATETIME DEFAULT NULL,
+      attempt_count INT DEFAULT 0,
+      resend_count INT DEFAULT 0,
+      last_sent_at DATETIME DEFAULT NULL,
+      blocked_until DATETIME DEFAULT NULL,
+      session_token_hash VARCHAR(255) DEFAULT NULL,
+      session_expires_at DATETIME DEFAULT NULL,
+      consumed_at DATETIME DEFAULT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      INDEX idx_otp_email_purpose (email, purpose),
+      INDEX idx_otp_expiry (expires_at),
+      INDEX idx_otp_session (session_expires_at)
+    )
+  `);
+
   await pool.query(
     `
     INSERT INTO metal_master (company_id, metal_code, metal_name, default_unit, status)
@@ -2085,6 +2325,25 @@ async function ensureSchema() {
     await addColumnIfMissing("company_settings", "updated_by", "INT DEFAULT NULL");
     await addColumnIfMissing("company_settings", "created_at", "TIMESTAMP DEFAULT CURRENT_TIMESTAMP");
     await addColumnIfMissing("company_settings", "updated_at", "TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+  }
+
+  if (await tableExists("otp_verifications")) {
+    await addColumnIfMissing("otp_verifications", "email", "VARCHAR(255) NOT NULL");
+    await addColumnIfMissing("otp_verifications", "user_id", "INT DEFAULT NULL");
+    await addColumnIfMissing("otp_verifications", "company_id", "INT DEFAULT NULL");
+    await addColumnIfMissing("otp_verifications", "purpose", "VARCHAR(50) NOT NULL");
+    await addColumnIfMissing("otp_verifications", "otp_hash", "VARCHAR(255) NOT NULL");
+    await addColumnIfMissing("otp_verifications", "expires_at", "DATETIME NOT NULL");
+    await addColumnIfMissing("otp_verifications", "verified_at", "DATETIME DEFAULT NULL");
+    await addColumnIfMissing("otp_verifications", "attempt_count", "INT DEFAULT 0");
+    await addColumnIfMissing("otp_verifications", "resend_count", "INT DEFAULT 0");
+    await addColumnIfMissing("otp_verifications", "last_sent_at", "DATETIME DEFAULT NULL");
+    await addColumnIfMissing("otp_verifications", "blocked_until", "DATETIME DEFAULT NULL");
+    await addColumnIfMissing("otp_verifications", "session_token_hash", "VARCHAR(255) DEFAULT NULL");
+    await addColumnIfMissing("otp_verifications", "session_expires_at", "DATETIME DEFAULT NULL");
+    await addColumnIfMissing("otp_verifications", "consumed_at", "DATETIME DEFAULT NULL");
+    await addColumnIfMissing("otp_verifications", "created_at", "TIMESTAMP DEFAULT CURRENT_TIMESTAMP");
+    await addColumnIfMissing("otp_verifications", "updated_at", "TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
   }
 
   console.log("Schema ensured ✅");
@@ -3352,6 +3611,389 @@ app.get("/settings/company", async (req, res) => {
   }
 });
 
+app.post("/otp/request", async (req, res) => {
+  let connection;
+
+  try {
+    const email = normalizeEmail(req.body.email);
+    const purpose = normalizeOtpPurpose(req.body.purpose);
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: "Email is required"
+      });
+    }
+
+    if (!purpose) {
+      return res.status(400).json({
+        success: false,
+        message: "OTP purpose is required"
+      });
+    }
+
+    connection = await pool.getConnection();
+    await cleanupOtpVerifications(connection);
+
+    let targetUser = null;
+    let targetCompanyId = null;
+    let actingUserId = null;
+
+    if (purpose === OTP_PURPOSES.SETTINGS_UNLOCK) {
+      const access = await resolveAccessContext(req, {
+        requireActingUser: true,
+        requireCompanyScope: false,
+        allowSuperAdminAll: true
+      });
+
+      if (!access.ok) {
+        return sendAccessError(res, access);
+      }
+
+      const allowedEmails = await getAllowedSettingsUnlockEmails(connection, access);
+      if (!allowedEmails.has(email)) {
+        return res.status(403).json({
+          success: false,
+          message: "Entered email is not allowed for settings verification"
+        });
+      }
+
+      targetUser = access.actingUser || null;
+      targetCompanyId = access.companyScope ?? getRequestedCompanyId(req);
+      actingUserId = access.actingUserId ?? null;
+    } else {
+      targetUser = await findUserByEmail(email);
+      if (!targetUser) {
+        return res.json({
+          success: true,
+          message: "If the email is registered, a verification code has been sent."
+        });
+      }
+
+      targetCompanyId = targetUser.company_id ?? null;
+      actingUserId = targetUser.id ?? null;
+    }
+
+    const recentCount = await countRecentOtpRequests(connection, email, purpose);
+    if (recentCount >= OTP_REQUEST_LIMIT_COUNT) {
+      return res.status(429).json({
+        success: false,
+        message: "Too many OTP requests. Please try again later."
+      });
+    }
+
+    const latestOtp = await getLatestOtpRecord(connection, email, purpose);
+    if (
+      latestOtp &&
+      latestOtp.last_sent_at &&
+      Date.now() - new Date(latestOtp.last_sent_at).getTime() < OTP_RESEND_COOLDOWN_SECONDS * 1000
+    ) {
+      return res.status(429).json({
+        success: false,
+        message: `Please wait ${OTP_RESEND_COOLDOWN_SECONDS} seconds before requesting another code.`
+      });
+    }
+
+    await invalidateOtpPurposeForEmail(connection, email, purpose);
+
+    const otpCode = generateOtpCode();
+    const otpHash = hashSecret(otpCode);
+
+    await connection.query(
+      `
+      INSERT INTO otp_verifications
+      (
+        email, user_id, company_id, purpose, otp_hash, expires_at,
+        attempt_count, resend_count, last_sent_at, blocked_until,
+        session_token_hash, session_expires_at, consumed_at, created_at, updated_at
+      )
+      VALUES (?, ?, ?, ?, ?, ?, 0, 0, NOW(), NULL, NULL, NULL, NULL, NOW(), NOW())
+      `,
+      [
+        email,
+        actingUserId,
+        targetCompanyId,
+        purpose,
+        otpHash,
+        getFutureDate(OTP_EXPIRY_MINUTES)
+      ]
+    );
+
+    await sendOtpEmail({
+      toEmail: email,
+      otpCode,
+      purpose
+    });
+
+    return res.json({
+      success: true,
+      message:
+        purpose === OTP_PURPOSES.SETTINGS_UNLOCK
+          ? "A verification code has been sent to your registered email."
+          : "If the email is registered, a verification code has been sent."
+    });
+  } catch (error) {
+    console.error("OTP request error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "OTP request failed",
+      error: error.message
+    });
+  } finally {
+    if (connection) connection.release();
+  }
+});
+
+app.post("/otp/verify", async (req, res) => {
+  let connection;
+
+  try {
+    const email = normalizeEmail(req.body.email);
+    const purpose = normalizeOtpPurpose(req.body.purpose);
+    const otp = String(req.body.otp || "").trim();
+
+    if (!email || !purpose || !otp) {
+      return res.status(400).json({
+        success: false,
+        message: "Email, purpose, and OTP are required"
+      });
+    }
+
+    connection = await pool.getConnection();
+    await cleanupOtpVerifications(connection);
+
+    let access = null;
+    let expectedUserId = null;
+    let expectedCompanyId = null;
+
+    if (purpose === OTP_PURPOSES.SETTINGS_UNLOCK) {
+      access = await resolveAccessContext(req, {
+        requireActingUser: true,
+        requireCompanyScope: false,
+        allowSuperAdminAll: true
+      });
+
+      if (!access.ok) {
+        return sendAccessError(res, access);
+      }
+
+      const allowedEmails = await getAllowedSettingsUnlockEmails(connection, access);
+      if (!allowedEmails.has(email)) {
+        return res.status(403).json({
+          success: false,
+          message: "Entered email is not allowed for settings verification"
+        });
+      }
+
+      expectedUserId = access.actingUserId ?? null;
+      expectedCompanyId = access.companyScope ?? getRequestedCompanyId(req);
+    } else {
+      const passwordResetUser = await findUserByEmail(email);
+      if (!passwordResetUser) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid or expired verification code"
+        });
+      }
+
+      expectedUserId = passwordResetUser.id ?? null;
+      expectedCompanyId = passwordResetUser.company_id ?? null;
+    }
+
+    const otpRow = await getLatestOtpRecord(connection, email, purpose);
+
+    if (!otpRow || otpRow.consumed_at) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired verification code"
+      });
+    }
+
+    if (otpRow.blocked_until && new Date(otpRow.blocked_until).getTime() > Date.now()) {
+      return res.status(429).json({
+        success: false,
+        message: "Too many failed attempts. Please request a new code later."
+      });
+    }
+
+    if (new Date(otpRow.expires_at).getTime() < Date.now()) {
+      await connection.query(
+        `
+        UPDATE otp_verifications
+        SET consumed_at = NOW(), updated_at = NOW()
+        WHERE id = ?
+        `,
+        [otpRow.id]
+      );
+
+      return res.status(400).json({
+        success: false,
+        message: "Verification code has expired"
+      });
+    }
+
+    if (
+      (expectedUserId !== null && Number(otpRow.user_id || 0) !== Number(expectedUserId)) ||
+      (expectedCompanyId !== null && Number(otpRow.company_id || 0) !== Number(expectedCompanyId))
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: "Verification request does not match the current user"
+      });
+    }
+
+    const otpMatches = hashSecret(otp) === otpRow.otp_hash;
+    if (!otpMatches) {
+      const nextAttempts = Number(otpRow.attempt_count || 0) + 1;
+      const reachedLimit = nextAttempts >= OTP_VERIFY_ATTEMPT_LIMIT;
+
+      await connection.query(
+        `
+        UPDATE otp_verifications
+        SET attempt_count = ?,
+            blocked_until = CASE WHEN ? THEN DATE_ADD(NOW(), INTERVAL 15 MINUTE) ELSE blocked_until END,
+            updated_at = NOW()
+        WHERE id = ?
+        `,
+        [nextAttempts, reachedLimit ? 1 : 0, otpRow.id]
+      );
+
+      return res.status(400).json({
+        success: false,
+        message: reachedLimit
+          ? "Too many failed attempts. Please request a new verification code."
+          : "Invalid verification code"
+      });
+    }
+
+    const sessionToken = generateSessionToken();
+    await connection.query(
+      `
+      UPDATE otp_verifications
+      SET verified_at = NOW(),
+          session_token_hash = ?,
+          session_expires_at = ?,
+          consumed_at = NULL,
+          updated_at = NOW()
+      WHERE id = ?
+      `,
+      [hashSecret(sessionToken), getFutureDate(OTP_SESSION_EXPIRY_MINUTES), otpRow.id]
+    );
+
+    return res.json({
+      success: true,
+      message:
+        purpose === OTP_PURPOSES.SETTINGS_UNLOCK
+          ? "Settings have been unlocked successfully."
+          : "Verification successful. You can now reset your password.",
+      purpose,
+      sessionToken
+    });
+  } catch (error) {
+    console.error("OTP verify error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "OTP verification failed",
+      error: error.message
+    });
+  } finally {
+    if (connection) connection.release();
+  }
+});
+
+app.post("/auth/reset-password", async (req, res) => {
+  let connection;
+
+  try {
+    const email = normalizeEmail(req.body.email);
+    const sessionToken = String(req.body.resetToken || req.body.sessionToken || "").trim();
+    const newPassword = String(req.body.newPassword || "").trim();
+
+    if (!email || !sessionToken || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Email, reset token, and new password are required"
+      });
+    }
+
+    if (newPassword.length < 4) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must be at least 4 characters long."
+      });
+    }
+
+    connection = await pool.getConnection();
+    await cleanupOtpVerifications(connection);
+
+    const user = await findUserByEmail(email);
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "Password reset session is invalid or expired"
+      });
+    }
+
+    const verifiedSession = await verifyOtpSessionToken(connection, {
+      email,
+      purpose: OTP_PURPOSES.PASSWORD_RESET,
+      sessionToken,
+      userId: user.id ?? null,
+      companyId: user.company_id ?? null
+    });
+
+    if (!verifiedSession) {
+      return res.status(400).json({
+        success: false,
+        message: "Password reset session is invalid or expired"
+      });
+    }
+
+    await connection.beginTransaction();
+
+    await connection.query(
+      `
+      UPDATE users
+      SET password = ?
+      WHERE id = ?
+      `,
+      [newPassword, user.id]
+    );
+
+    await connection.query(
+      `
+      UPDATE otp_verifications
+      SET consumed_at = NOW(), updated_at = NOW()
+      WHERE LOWER(email) = LOWER(?)
+        AND purpose = ?
+        AND consumed_at IS NULL
+      `,
+      [email, OTP_PURPOSES.PASSWORD_RESET]
+    );
+
+    await connection.commit();
+
+    return res.json({
+      success: true,
+      message: "Password has been reset successfully."
+    });
+  } catch (error) {
+    if (connection) {
+      try {
+        await connection.rollback();
+      } catch (_) {}
+    }
+    console.error("Reset password error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Password reset failed",
+      error: error.message
+    });
+  } finally {
+    if (connection) connection.release();
+  }
+});
+
 app.post("/settings/company", async (req, res) => {
   let connection;
 
@@ -3374,6 +4016,31 @@ app.post("/settings/company", async (req, res) => {
         message: "Company scope missing for settings save"
       });
     }
+    const ownerEmail = normalizeEmail(req.body.verificationEmail || req.body.unlockEmail || req.body.ownerEmail);
+    const settingsUnlockToken = String(req.body.settingsUnlockToken || "").trim();
+
+    if (!ownerEmail || !settingsUnlockToken) {
+      return res.status(403).json({
+        success: false,
+        message: "Settings unlock verification required"
+      });
+    }
+
+    const verifiedUnlock = await verifyOtpSessionToken(connection, {
+      email: ownerEmail,
+      purpose: OTP_PURPOSES.SETTINGS_UNLOCK,
+      sessionToken: settingsUnlockToken,
+      userId: access.actingUserId ?? null,
+      companyId
+    });
+
+    if (!verifiedUnlock) {
+      return res.status(403).json({
+        success: false,
+        message: "Settings unlock session is invalid or expired"
+      });
+    }
+
     const createdBy = access.actingUserId ?? getRequestedUserId(req);
     const payload = normalizeCompanySettingsRow({
       owner_email: req.body.ownerEmail,

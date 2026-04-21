@@ -241,18 +241,19 @@
             </div>
 
             <div class="input-box">
-              <label>Step Code</label>
-              <input type="password" id="settingsStepCode" placeholder="Enter verification code" />
+              <label>Verification Code</label>
+              <input type="password" id="settingsOtpCode" placeholder="Enter the 6-digit code" />
             </div>
           </div>
 
           <div class="btn-row">
+            <button class="secondary-btn" type="button" onclick="requestSettingsUnlockCode()">Send Code</button>
             <button class="primary-btn" type="button" onclick="unlockSettings()">Unlock Settings</button>
             <button class="secondary-btn" type="button" onclick="lockSettings()">Lock</button>
           </div>
 
           <div class="info-box">
-          Settings must be unlocked before saving.
+          Enter your registered email, request a verification code, and unlock settings before saving.
             These settings will now be saved <strong>company-wise</strong>.
           A Super Admin can view data for all companies, while a normal admin can only view data for their own company.
           </div>
@@ -315,7 +316,7 @@
           </div>
 
           <div class="preview-box" id="settingsPreviewBox">
-            Preview yahan dikhega...
+            Preview will appear here...
           </div>
         </div>
 
@@ -395,7 +396,7 @@
 
           <div class="info-box">
                   This may be used in the future for feature lock and unlock control.
-            Jaise: basic user ko limited features, premium user ko full features.
+            Example: basic users may have limited features, while premium users may have full access.
           </div>
         </div>
       </section>
@@ -405,7 +406,8 @@
   <script>
     const API_BASE = "https://erp-live-new-production.up.railway.app";
     const ERP_UNLOCK_KEY = "erpSettingsUnlocked";
-    const OWNER_STEP_CODE = "RPJ2026";
+    const ERP_UNLOCK_TOKEN_KEY = "erpSettingsUnlockToken";
+    const ERP_UNLOCK_EMAIL_KEY = "erpSettingsUnlockEmail";
 
     const defaultSettings = {
       ownerEmail: "",
@@ -617,7 +619,9 @@
     }
 
     function updateLockUI() {
-      const unlocked = sessionStorage.getItem(ERP_UNLOCK_KEY) === "true";
+      const unlocked =
+        sessionStorage.getItem(ERP_UNLOCK_KEY) === "true" &&
+        !!sessionStorage.getItem(ERP_UNLOCK_TOKEN_KEY);
       const status = document.getElementById("settingsLockStatus");
 
       if (status) {
@@ -663,33 +667,100 @@
         }
       });
 
-      const step = document.getElementById("settingsStepCode");
+      const step = document.getElementById("settingsOtpCode");
       if (step) step.disabled = false;
     }
 
-    function unlockSettings() {
-      const enteredCode = document.getElementById("settingsStepCode").value.trim();
+    async function requestSettingsUnlockCode() {
+      const enteredEmail = document.getElementById("ownerEmail").value.trim().toLowerCase();
+
+      if (!enteredEmail) {
+        showToast("Please enter your registered email.", "error");
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_BASE}/otp/request`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            purpose: "SETTINGS_UNLOCK",
+            email: enteredEmail,
+            actingUserId: getCurrentUserId(),
+            companyId: getCurrentCompanyId()
+          })
+        });
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+          throw new Error(result.message || "Failed to send verification code");
+        }
+
+        sessionStorage.removeItem(ERP_UNLOCK_KEY);
+        sessionStorage.removeItem(ERP_UNLOCK_TOKEN_KEY);
+        sessionStorage.setItem(ERP_UNLOCK_EMAIL_KEY, enteredEmail);
+        updateLockUI();
+        showToast(result.message || "A verification code has been sent to your registered email.", "success");
+      } catch (error) {
+        console.error("Settings OTP request error:", error);
+        showToast(error.message || "Failed to send verification code", "error");
+      }
+    }
+
+    async function unlockSettings() {
+      const enteredEmail = document.getElementById("ownerEmail").value.trim().toLowerCase();
+      const enteredCode = document.getElementById("settingsOtpCode").value.trim();
+
+      if (!enteredEmail) {
+        showToast("Please enter your registered email.", "error");
+        return;
+      }
 
       if (!enteredCode) {
-      showToast("Please enter the step code.", "error");
+        showToast("Please enter the verification code.", "error");
         return;
       }
 
-      if (enteredCode !== OWNER_STEP_CODE) {
-      showToast("The step code is incorrect.", "error");
-        return;
-      }
+      try {
+        const response = await fetch(`${API_BASE}/otp/verify`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            purpose: "SETTINGS_UNLOCK",
+            email: enteredEmail,
+            otp: enteredCode,
+            actingUserId: getCurrentUserId(),
+            companyId: getCurrentCompanyId()
+          })
+        });
+        const result = await response.json();
 
-      sessionStorage.setItem(ERP_UNLOCK_KEY, "true");
-      updateLockUI();
-    showToast("Settings have been unlocked.", "success");
+        if (!response.ok || !result.success) {
+          throw new Error(result.message || "Verification failed");
+        }
+
+        sessionStorage.setItem(ERP_UNLOCK_KEY, "true");
+        sessionStorage.setItem(ERP_UNLOCK_TOKEN_KEY, result.sessionToken || "");
+        sessionStorage.setItem(ERP_UNLOCK_EMAIL_KEY, enteredEmail);
+        updateLockUI();
+        showToast(result.message || "Settings have been unlocked successfully.", "success");
+      } catch (error) {
+        console.error("Settings unlock error:", error);
+        showToast(error.message || "Verification failed", "error");
+      }
     }
 
     function lockSettings() {
       sessionStorage.removeItem(ERP_UNLOCK_KEY);
+      sessionStorage.removeItem(ERP_UNLOCK_TOKEN_KEY);
+      sessionStorage.removeItem(ERP_UNLOCK_EMAIL_KEY);
       updateLockUI();
 
-      const step = document.getElementById("settingsStepCode");
+      const step = document.getElementById("settingsOtpCode");
       if (step) step.value = "";
 
     showToast("Settings have been locked.", "info");
@@ -750,7 +821,9 @@
     }
 
     async function saveSettings() {
-      const unlocked = sessionStorage.getItem(ERP_UNLOCK_KEY) === "true";
+      const unlocked =
+        sessionStorage.getItem(ERP_UNLOCK_KEY) === "true" &&
+        !!sessionStorage.getItem(ERP_UNLOCK_TOKEN_KEY);
 
       if (!unlocked) {
       showToast("Please unlock the settings first.", "error");
@@ -768,7 +841,9 @@
           body: JSON.stringify({
             ...settings,
             companyId: getCurrentCompanyId(),
-            actingUserId: getCurrentUserId()
+            actingUserId: getCurrentUserId(),
+            settingsUnlockToken: sessionStorage.getItem(ERP_UNLOCK_TOKEN_KEY) || "",
+            verificationEmail: sessionStorage.getItem(ERP_UNLOCK_EMAIL_KEY) || settings.ownerEmail
           })
         });
         const result = await response.json();
@@ -788,7 +863,9 @@
     }
 
     async function resetSettings() {
-      const unlocked = sessionStorage.getItem(ERP_UNLOCK_KEY) === "true";
+      const unlocked =
+        sessionStorage.getItem(ERP_UNLOCK_KEY) === "true" &&
+        !!sessionStorage.getItem(ERP_UNLOCK_TOKEN_KEY);
 
       if (!unlocked) {
       showToast("Please unlock first.", "error");
@@ -803,8 +880,11 @@
           },
           body: JSON.stringify({
             ...defaultSettings,
+            ownerEmail: document.getElementById("ownerEmail").value.trim(),
             companyId: getCurrentCompanyId(),
-            actingUserId: getCurrentUserId()
+            actingUserId: getCurrentUserId(),
+            settingsUnlockToken: sessionStorage.getItem(ERP_UNLOCK_TOKEN_KEY) || "",
+            verificationEmail: sessionStorage.getItem(ERP_UNLOCK_EMAIL_KEY) || document.getElementById("ownerEmail").value.trim()
           })
         });
         const result = await response.json();
@@ -883,6 +963,13 @@
 
       try {
         await loadSettingsToForm(false);
+        if (!document.getElementById("ownerEmail").value.trim()) {
+          const user = getLoggedInUser();
+          if (user?.email) {
+            document.getElementById("ownerEmail").value = String(user.email).trim();
+            renderPreview();
+          }
+        }
       } catch (error) {
         console.error("Settings load error:", error);
         showToast(error.message || "Settings load failed", "error");
