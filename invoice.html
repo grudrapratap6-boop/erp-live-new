@@ -318,7 +318,7 @@
           <div id="companyInfoChip" class="company-info-chip">Company: --</div>
 
           <h2>Invoice</h2>
-          <p>Barcode scan karo, item automatic invoice me add ho jayega.</p>
+          <p>Scan the barcode and the item will be added to the invoice automatically.</p>
 
           <div class="sub-card">
             <h3>Customer Details</h3>
@@ -397,7 +397,7 @@
               </div>
 
               <div class="scanner-note">
-                Mobile me back camera khulega. Scanner se barcode scan karo. Item automatic invoice me add ho jayega.
+          The back camera will open on mobile. Scan the barcode and the item will be added to the invoice automatically.
               </div>
             </div>
 
@@ -839,7 +839,7 @@
               <h4>No items yet</h4>
               <div class="product-summary-right">
                 <span class="weight-label">Status</span>
-                <div class="weight-value">Scan karo</div>
+              <div class="weight-value">Scan now</div>
               </div>
             </div>
           </div>
@@ -956,17 +956,17 @@
       const invoiceNumber = document.getElementById("invoiceNumber")?.value.trim() || "";
 
       if (!invoiceItems.length) {
-        showToast("Pehle barcode scan karo", "error");
+      showToast("Please scan a barcode first.", "error");
         return;
       }
 
       if (!customerName) {
-        showToast("Customer name fill karo", "error");
+      showToast("Please enter the customer name.", "error");
         return;
       }
 
       if (!invoiceNumber) {
-        showToast("Invoice number fill karo", "error");
+      showToast("Please enter the invoice number.", "error");
         return;
       }
 
@@ -974,7 +974,7 @@
         const result = await applyDraftDetailsToServer();
         renderInvoiceTable();
         focusInvoiceScanner();
-        showToast(result.message || "Barcode customer details ke saath update ho gaya", "success");
+      showToast(result.message || "The barcode has been updated with customer details.", "success");
       } catch (error) {
         console.log("Update barcode details error:", error);
         showToast(error.message || "Invoice draft update failed", "error");
@@ -983,7 +983,7 @@
 
     function sendToBilling() {
       if (!processedInvoiceItems.length) {
-        showToast("Pehle Update Barcode karo", "error");
+      showToast("Please update the barcode first.", "error");
         return;
       }
 
@@ -1123,7 +1123,7 @@
       const invoiceDate = document.getElementById("invoiceDate")?.value || "";
 
       if (!sourceItems.length) {
-        showToast("Invoice me items nahi hain", "error");
+      showToast("There are no items in the invoice.", "error");
         return;
       }
 
@@ -1148,7 +1148,7 @@
 
       const printWindow = window.open("", "_blank", "width=1200,height=900");
       if (!printWindow) {
-        showToast("Popup block ho gaya. Browser me popup allow karo.", "error");
+      showToast("The popup was blocked. Please allow popups in your browser.", "error");
         return;
       }
 
@@ -1286,7 +1286,7 @@
         try {
           const devices = await Html5Qrcode.getCameras();
           if (!devices || !devices.length) {
-            showToast("Camera nahi mila", "error");
+      showToast("No camera was found.", "error");
             return;
           }
 

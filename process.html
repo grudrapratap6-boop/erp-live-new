@@ -96,7 +96,7 @@
       <section class="page active">
         <div class="section-box">
           <h2>Process</h2>
-          <p>Yahan lot, raw weight, loss, karigar work aur process summary manage hoga.</p>
+          <p>Manage lots, raw weight, loss, karigar work, and process summaries here.</p>
 
           <div class="process-two-col">
             <div class="sub-card">
@@ -484,7 +484,7 @@
       const balance = finalWeight - used;
 
       if (!lotNo) {
-        showToast("Lot No daalo", "error", "Missing Field");
+      showToast("Please enter the lot number.", "error", "Missing Field");
         return;
       }
 
@@ -604,12 +604,12 @@
       const returned = Number(document.getElementById("karigarReturnWeight")?.value || 0);
 
       if (!name || !lot) {
-        showToast("Karigar name aur lot select karo", "error", "Missing Field");
+      showToast("Please select the karigar name and lot.", "error", "Missing Field");
         return;
       }
 
       if (given <= 0) {
-        showToast("Given weight sahi daalo", "error", "Invalid Weight");
+      showToast("Please enter a valid given weight.", "error", "Invalid Weight");
         return;
       }
 

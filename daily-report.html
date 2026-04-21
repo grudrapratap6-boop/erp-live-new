@@ -625,7 +625,7 @@
           <div class="report-page-intro">
             <div>
               <h2>Daily Report</h2>
-              <p>Selected day ka process, sticker, stock, billing, returns, expenses, transaction aur material movement ek hi page par polished business-report format me.</p>
+              <p>View the selected day's process, sticker, stock, billing, returns, expenses, transactions, and material movement in a single polished business report format.</p>
             </div>
             <div class="intro-badge-row">
               <span class="intro-pill"><i class="fas fa-file-pdf"></i> Full PDF Export</span>
@@ -1900,7 +1900,7 @@
     async function generateDailyReport(showSuccess = true) {
       const reportDate = getSelectedDate();
       if (!reportDate) {
-        showToast("Report date select karo", "error");
+      showToast("Please select a report date.", "error");
         return;
       }
 
@@ -1995,7 +1995,7 @@
       }
 
       if (!currentReport) {
-        showToast("Report generate nahi hua", "error");
+      showToast("The report could not be generated.", "error");
         return;
       }
 
@@ -2014,7 +2014,7 @@
       }
 
       if (!currentReport) {
-        showToast("Report generate nahi hua", "error");
+      showToast("The report could not be generated.", "error");
         return;
       }
 

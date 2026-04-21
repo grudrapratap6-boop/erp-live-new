@@ -1436,7 +1436,7 @@
       const name = String(input?.value || "").trim();
 
       if (!name) {
-        showToast("New item name daalo", "error");
+      showToast("Please enter the new item name.", "error");
         return;
       }
 
@@ -1532,7 +1532,7 @@
       }
 
       if (!party || !type || !date) {
-        showToast("Party, type aur date daalo", "error");
+      showToast("Please enter the party, type, and date.", "error");
         return;
       }
 
@@ -1542,22 +1542,22 @@
       const settlements = [];
 
       if ((type === "CASH_ADJUSTMENT") && !cashEntryType) {
-        showToast("Cash adjustment ke liye effect direction select karo", "error");
+      showToast("Please select the effect direction for the cash adjustment.", "error");
         return;
       }
 
       if ((type === "METAL_ADJUSTMENT") && !metalEntryType) {
-        showToast("Metal adjustment ke liye effect direction select karo", "error");
+      showToast("Please select the effect direction for the metal adjustment.", "error");
         return;
       }
 
       if ((type.includes("METAL") || type === "KARIGAR_ISSUE" || type === "KARIGAR_RECEIVE") && (!metalType || grossWeight <= 0)) {
-        showToast("Metal transaction ke liye metal aur weight required hai", "error");
+      showToast("Metal type and weight are required for a metal transaction.", "error");
         return;
       }
 
       if ((type.includes("PAYMENT") || type.includes("ADVANCE") || type === "CASH_ADJUSTMENT" || type === "KARIGAR_LABOUR") && amount <= 0) {
-        showToast("Cash transaction ke liye amount required hai", "error");
+      showToast("An amount is required for a cash transaction.", "error");
         return;
       }
 
@@ -1713,11 +1713,11 @@
       updateTransactionFormState();
 
       window.scrollTo({ top: 0, behavior: "smooth" });
-      showToast("History data form me load ho gaya. Save karoge to naya transaction banega.", "info");
+      showToast("History data has been loaded into the form. Saving will create a new transaction.", "info");
     }
 
     function deleteTransaction(id) {
-      showToast("Delete API abhi enabled nahi hai", "info");
+      showToast("The delete API is not enabled yet.", "info");
     }
 
     async function loadTransactionHistory() {

@@ -228,7 +228,7 @@
       <section class="page active">
         <div class="section-box">
           <h2>Billing</h2>
-          <p>Invoice se item auto billing me aayega. Yahan final bill, QR, due aur metal settlement sab manage hoga.</p>
+          <p>Items from the invoice will be added to billing automatically. You can manage the final bill, QR code, due amount, and metal settlement here.</p>
 
           <div class="company-info-box">
             <h3>Auto Company Settings</h3>
@@ -472,13 +472,13 @@
 
                 <div style="min-width:260px; flex:1;">
                   <div class="summary-chip-row">
-                    <div class="summary-chip">Grand Total: ₹ <span id="onlineGrandTotalText">0.00</span></div>
-                    <div class="summary-chip">Payable Now: ₹ <span id="onlinePayNowText">0.00</span></div>
+                    <div class="summary-chip">Grand Total: Rs. <span id="onlineGrandTotalText">0.00</span></div>
+                    <div class="summary-chip">Payable Now: Rs. <span id="onlinePayNowText">0.00</span></div>
                   </div>
 
                   <div class="info-note">
-                    Online select karte hi QR auto generate hoga.
-                    UPI settings se auto aayega.
+                    The QR code will be generated automatically when Online is selected.
+                    It will be fetched automatically from the UPI settings.
                   </div>
                 </div>
               </div>
@@ -805,7 +805,7 @@
       const lot = document.getElementById("billLot").value.trim();
 
       if (!itemName || !weight) {
-        showToast("Item name aur weight daalo", "error");
+      showToast("Please enter the item name and weight.", "error");
         return;
       }
 
@@ -880,7 +880,7 @@
         renderBillingTable();
         calculateBillingTotal();
         saveBillingItems();
-        if (showMessage) showToast("Invoice draft me billing ke liye item nahi mila", "info");
+      if (showMessage) showToast("No item was found in the invoice draft for billing.", "info");
         return true;
       }
 
@@ -910,7 +910,7 @@
       calculateBillingTotal();
       saveBillingItems();
 
-      if (showMessage) showToast("Invoice draft se items billing me load ho gaye", "success");
+      if (showMessage) showToast("Items from the invoice draft have been loaded into billing.", "success");
       return true;
     }
 
@@ -918,7 +918,7 @@
       const draftId = getInvoiceDraftIdFromUrl();
       if (!draftId) {
         if (showMessage) {
-          showToast("Invoice loading ab backend draft se hota hai", "info");
+      showToast("Invoice loading is now handled through backend drafts.", "info");
         }
         return;
       }
@@ -1185,7 +1185,7 @@
       }
 
       document.getElementById("duePreviewText").textContent = num(dueEl.value).toFixed(2);
-      document.getElementById("onlinePayNowText").textContent = num(paidEl.value || grandTotal).toFixed(2);
+                    <div class="summary-chip">Payable Now: Rs. <span id="onlinePayNowText">0.00</span></div>
       generatePaymentQr();
       updateQuickSummary();
       maybeAutoFinalize();
@@ -1257,16 +1257,16 @@
       const paidAmount = Number(document.getElementById("billPaidAmount")?.value || grandTotal || 0);
       const dueAmount = Number(document.getElementById("billDueAmount")?.value || 0);
 
-      const onlineGrandTotalText = document.getElementById("onlineGrandTotalText");
-      const onlinePayNowText = document.getElementById("onlinePayNowText");
+                    <div class="summary-chip">Grand Total: Rs. <span id="onlineGrandTotalText">0.00</span></div>
+                    <div class="summary-chip">Payable Now: Rs. <span id="onlinePayNowText">0.00</span></div>
       const duePreviewText = document.getElementById("duePreviewText");
 
-      if (onlineGrandTotalText) {
-        onlineGrandTotalText.textContent = isNaN(grandTotal) ? "0.00" : grandTotal.toFixed(2);
+                    <div class="summary-chip">Grand Total: Rs. <span id="onlineGrandTotalText">0.00</span></div>
+                    <div class="summary-chip">Grand Total: Rs. <span id="onlineGrandTotalText">0.00</span></div>
       }
 
-      if (onlinePayNowText) {
-        onlinePayNowText.textContent = isNaN(paidAmount) ? "0.00" : paidAmount.toFixed(2);
+                    <div class="summary-chip">Payable Now: Rs. <span id="onlinePayNowText">0.00</span></div>
+                    <div class="summary-chip">Payable Now: Rs. <span id="onlinePayNowText">0.00</span></div>
       }
 
       if (duePreviewText) {
@@ -1283,14 +1283,14 @@
       qrBox.innerHTML = "";
 
       if (!upiId) {
-        qrBox.innerHTML = `<div style="text-align:center; font-size:13px; color:#64748b; line-height:1.6;">Settings me permanent UPI ID save karo</div>`;
+        qrBox.innerHTML = `<div style="text-align:center; font-size:13px; color:#64748b; line-height:1.6;">Please save a permanent UPI ID in Settings.</div>`;
         return;
       }
 
       const payableNow = !isNaN(paidAmount) && paidAmount > 0 ? paidAmount : grandTotal;
 
       if (!payableNow || payableNow <= 0) {
-        qrBox.innerHTML = `<div style="text-align:center; font-size:13px; color:#64748b; line-height:1.6;">QR generate karne ke liye amount chahiye</div>`;
+        qrBox.innerHTML = `<div style="text-align:center; font-size:13px; color:#64748b; line-height:1.6;">An amount is required to generate the QR code.</div>`;
         return;
       }
 
@@ -1310,7 +1310,7 @@
         });
       } catch (error) {
         console.error("QR generation error:", error);
-        qrBox.innerHTML = `<div style="text-align:center; font-size:13px; color:#991b1b; line-height:1.6;">QR generate nahi ho paya</div>`;
+        qrBox.innerHTML = `<div style="text-align:center; font-size:13px; color:#991b1b; line-height:1.6;">The QR code could not be generated.</div>`;
       }
     }
 
@@ -1420,7 +1420,7 @@
 
     async function saveBillingRecord(showAlert = true) {
       if (!billingItems.length) {
-        showToast("Billing table me items nahi hain", "error");
+      showToast("There are no items in the billing table.", "error");
         return null;
       }
 
@@ -1494,7 +1494,7 @@
         }
 
         if (showAlert) {
-          showToast("Billing save ho gaya aur stock SOLD ho gaya", "success");
+      showToast("Billing has been saved and the stock has been marked as sold.", "success");
         }
 
         return record;
@@ -1705,7 +1705,7 @@
 
     function printBillingInvoice(saveBeforePrint = true) {
       if (!billingItems.length) {
-        showToast("Billing table me items nahi hain", "error");
+      showToast("There are no items in the billing table.", "error");
         return;
       }
 
@@ -1718,7 +1718,7 @@
 
       const printWindow = window.open("", "_blank", "width=1400,height=900");
       if (!printWindow) {
-        showToast("Popup block ho gaya", "error");
+      showToast("The popup was blocked.", "error");
         return;
       }
 
@@ -1737,7 +1737,7 @@
 
     function downloadBillingInvoice() {
       if (!billingItems.length) {
-        showToast("Billing table me items nahi hain", "error");
+      showToast("There are no items in the billing table.", "error");
         return;
       }
 
@@ -1824,3 +1824,4 @@
   </script>
 </body>
 </html>
+

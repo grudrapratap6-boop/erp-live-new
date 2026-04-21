@@ -236,7 +236,7 @@
 
           <div class="title">
             <h1>Return Management</h1>
-            <p>Return to stock aur damaged return dono yahin se manage honge.</p>
+            <p>Both return-to-stock and damaged returns can be managed here.</p>
           </div>
         </div>
 
@@ -256,7 +256,7 @@
           <div class="return-layout">
             <div class="sub-card">
               <h3>Save Return</h3>
-              <p class="muted-help">Barcode scan karo, item details auto fetch hongi, phir return save karo.</p>
+          <p class="muted-help">Scan the barcode, item details will be fetched automatically, then save the return.</p>
 
               <div class="form-grid">
                 <div class="input-box">
@@ -334,7 +334,7 @@
 
             <div class="sub-card">
               <h3>Selected Item</h3>
-              <p class="muted-help">Fetched item detail yahan lock rahegi taaki wrong return na save ho.</p>
+              <p class="muted-help">Fetched item details will remain locked here to prevent an incorrect return from being saved.</p>
               <div class="detail-grid">
                 <div class="detail-box">
                   <span>Barcode</span>
@@ -553,7 +553,7 @@
     async function fetchBarcodeDetails() {
       const barcode = safeText(document.getElementById("returnBarcode")?.value);
       if (!barcode) {
-        alert("Barcode enter karo");
+      alert("Please enter the barcode.");
         return;
       }
 
@@ -588,7 +588,7 @@
         }
 
         if (!foundItem) {
-          alert("Barcode stock me nahi mila");
+      alert("The barcode was not found in stock.");
           clearReturnForm(false);
           return;
         }
@@ -616,7 +616,7 @@
         fillReturnDetails(selectedReturnItem);
       } catch (error) {
         console.log("Return barcode fetch error:", error);
-        alert("Barcode details load nahi hui");
+      alert("Barcode details could not be loaded.");
       }
     }
 
@@ -669,7 +669,7 @@
 
     async function saveReturnEntry() {
       if (!selectedReturnItem) {
-        alert("Pehle barcode details fetch karo");
+      alert("Please fetch the barcode details first.");
         return;
       }
 

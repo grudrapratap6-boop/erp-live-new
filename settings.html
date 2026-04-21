@@ -251,9 +251,9 @@
           </div>
 
           <div class="info-box">
-            Settings save karne se pehle unlock karna zaroori hai.
-            Ye settings ab <strong>company-wise</strong> save hongi.
-            Super admin sab company ka data dekh sakta hai, normal admin sirf apni company ka.
+          Settings must be unlocked before saving.
+            These settings will now be saved <strong>company-wise</strong>.
+          A Super Admin can view data for all companies, while a normal admin can only view data for their own company.
           </div>
         </div>
 
@@ -355,7 +355,7 @@
           </div>
 
           <div class="info-box">
-            Isse billing/invoice page me values auto fill ho sakti hain.
+                  These values may be auto-filled on the billing and invoice pages.
           </div>
         </div>
 
@@ -393,7 +393,7 @@
           </div>
 
           <div class="info-box">
-            Aage future me feature lock/unlock ke liye ye kaam aayega.
+                  This may be used in the future for feature lock and unlock control.
             Jaise: basic user ko limited features, premium user ko full features.
           </div>
         </div>
@@ -574,7 +574,7 @@
 
       if (isSuperAdmin()) {
         label.textContent = "Super Admin Mode";
-        sub.textContent = "Aap global / superadmin scoped settings dekh rahe ho.";
+        sub.textContent = "You are viewing global / Super Admin scoped settings.";
         return;
       }
 
@@ -637,18 +637,18 @@
       const enteredCode = document.getElementById("settingsStepCode").value.trim();
 
       if (!enteredCode) {
-        showToast("Step code daalo", "error");
+      showToast("Please enter the step code.", "error");
         return;
       }
 
       if (enteredCode !== OWNER_STEP_CODE) {
-        showToast("Step code galat hai", "error");
+      showToast("The step code is incorrect.", "error");
         return;
       }
 
       sessionStorage.setItem(ERP_UNLOCK_KEY, "true");
       updateLockUI();
-      showToast("Settings unlocked ho gaya", "success");
+    showToast("Settings have been unlocked.", "success");
     }
 
     function lockSettings() {
@@ -658,7 +658,7 @@
       const step = document.getElementById("settingsStepCode");
       if (step) step.value = "";
 
-      showToast("Settings lock ho gaya", "info");
+    showToast("Settings have been locked.", "info");
     }
 
     async function loadSettingsToForm(showToastMessage = false) {
@@ -687,7 +687,7 @@
       renderPreview();
 
       if (showToastMessage) {
-        showToast("Settings reload ho gaya", "success");
+    showToast("Settings have been reloaded.", "success");
       }
     }
 
@@ -719,7 +719,7 @@
       const unlocked = sessionStorage.getItem(ERP_UNLOCK_KEY) === "true";
 
       if (!unlocked) {
-        showToast("Pehle settings unlock karo", "error");
+      showToast("Please unlock the settings first.", "error");
         return;
       }
 
@@ -745,7 +745,7 @@
 
         settingsCache = { ...defaultSettings, ...(result.settings || settings) };
         renderPreview();
-        showToast("Settings save ho gaya", "success");
+    showToast("Settings have been saved successfully.", "success");
         lockSettings();
       } catch (error) {
         console.error("Settings save error:", error);
@@ -757,7 +757,7 @@
       const unlocked = sessionStorage.getItem(ERP_UNLOCK_KEY) === "true";
 
       if (!unlocked) {
-        showToast("Pehle unlock karo", "error");
+      showToast("Please unlock first.", "error");
         return;
       }
 
@@ -781,7 +781,7 @@
 
         settingsCache = { ...defaultSettings, ...(result.settings || defaultSettings) };
         await loadSettingsToForm(false);
-        showToast("Default settings restore ho gaya", "success");
+    showToast("Default settings have been restored.", "success");
       } catch (error) {
         console.error("Settings reset error:", error);
         showToast(error.message || "Settings reset failed", "error");

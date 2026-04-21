@@ -389,7 +389,7 @@ function clearStickerForm(removeLastFromList = false) {
 function deleteStickerItem(barcode) {
   barcode = String(barcode || "").trim();
   if (!barcode) {
-    alert("Barcode missing hai");
+    alert("Barcode is missing.");
     return;
   }
 
@@ -440,13 +440,13 @@ function restoreLastDeletedSticker() {
   );
 
   if (!target) {
-    alert("Koi item restore ke liye nahi hai");
+    alert("No item is available to restore.");
     return;
   }
 
   const exists = stockItems.find((item) => item.barcode === target.barcode);
   if (exists && (exists.status || "IN_STOCK") !== "DELETED") {
-    alert("Item already stock me hai");
+    alert("This item is already in stock.");
     return;
   }
 
@@ -842,7 +842,7 @@ function printStickerSheet() {
   }
 
   if (!currentItem.barcode) {
-    alert("Barcode nahi mila. Pehle Edit karo ya barcode generate karo.");
+    alert("Barcode not found. Please edit the item first or generate a barcode.");
     return;
   }
 
@@ -897,7 +897,7 @@ function printStickerSheet() {
 
   const printWindow = window.open("", "_blank", "width=1200,height=900");
   if (!printWindow) {
-    alert("Popup block ho gaya");
+    alert("The popup was blocked.");
     return;
   }
 
@@ -1152,12 +1152,12 @@ function sellInvoiceItem() {
   const dueAmount = num(document.getElementById("invoiceDueAmount")?.value || 0);
 
   if (!customerName) {
-    alert("Customer name fill karo");
+    alert("Please enter the customer name.");
     return;
   }
 
   if (!invoiceItems || invoiceItems.length === 0) {
-    alert("Pehle item scan karke invoice me add karo");
+    alert("Please scan and add an item to the invoice first.");
     return;
   }
 
@@ -1316,7 +1316,7 @@ function printGSTInvoice() {
   const invoiceNumber = document.getElementById("invoiceNumber")?.value || "";
 
   if (!invoiceItems.length) {
-    alert("Invoice me items nahi hain");
+    alert("There are no items in the invoice.");
     return;
   }
 
@@ -1394,7 +1394,7 @@ function printGSTInvoice() {
 
   const printWindow = window.open("", "_blank", "width=1400,height=900");
   if (!printWindow) {
-    alert("Popup block ho gaya. Browser me popup allow karo.");
+    alert("The popup was blocked. Please allow popups in your browser.");
     return;
   }
 
@@ -1980,7 +1980,7 @@ function openBarcodeCamera() {
 
   if (!scannerBox || scannerRunning) return;
   if (typeof Html5Qrcode === "undefined") {
-    alert("Html5Qrcode library load nahi hui");
+    alert("The Html5Qrcode library failed to load.");
     return;
   }
 
@@ -1990,7 +1990,7 @@ function openBarcodeCamera() {
   Html5Qrcode.getCameras()
     .then((devices) => {
       if (!devices || devices.length === 0) {
-        alert("Camera device nahi mila");
+    alert("No camera device was found.");
         return;
       }
 
@@ -2044,12 +2044,12 @@ function openBarcodeCamera() {
         })
         .catch((err) => {
           console.log("Scanner start error:", err);
-          alert("Camera scanner start nahi hua");
+          alert("The camera scanner could not be started.");
         });
     })
     .catch((err) => {
       console.log("Camera access error:", err);
-      alert("Camera access nahi mila");
+      alert("Camera access was not granted.");
     });
 }
 
@@ -2323,7 +2323,7 @@ function deleteStickerByIndex(index) {
 
   const barcode = String(item.barcode || "").trim();
   if (!barcode) {
-    alert("Barcode missing hai");
+    alert("Barcode is missing.");
     return;
   }
 
@@ -2415,12 +2415,12 @@ function addStickerItem() {
   };
 
   if (!data.serial || !data.productName || !data.size || !data.weight) {
-    alert("Required fields fill karo");
+    alert("Please fill in all required fields.");
     return;
   }
 
   if (!data.barcode) {
-    alert("Pehle barcode generate karo");
+    alert("Please generate a barcode first.");
     return;
   }
 
@@ -2449,7 +2449,7 @@ if (selectedLot) {
   );
 
   if (alreadyExists) {
-    alert("Ye barcode already sticker list me hai");
+    alert("This barcode is already in the sticker list.");
     return;
   }
 
@@ -2465,7 +2465,7 @@ function addLot() {
   const lossWeight = Number(document.getElementById("lotLossWeight")?.value || 0);
 
   if (!lotNo) {
-    alert("Lot number daalo");
+    alert("Please enter the lot number.");
     return;
   }
 
@@ -2506,7 +2506,7 @@ function saveLot() {
   const loss = Number(document.getElementById("lotLoss").value || 0);
 
   if (!lotNo) {
-    alert("Lot number daalo");
+    alert("Please enter the lot number.");
     return;
   }
 
@@ -2541,7 +2541,7 @@ async function addStickerItem() {
     const editBarcode = document.getElementById("editStickerBarcode").value.trim();
 
     if (!productName || !weight) {
-      alert("Party aur Weight daalo");
+    alert("Please enter the party name and weight.");
       return;
     }
 

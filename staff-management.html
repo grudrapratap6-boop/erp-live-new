@@ -94,7 +94,7 @@
       <section class="page active">
         <div class="section-box">
           <h2>Staff / Karigar Management</h2>
-          <p>Yahan staff details, work entry, attendance, payment aur monthly summary manage hoga.</p>
+          <p>Manage staff details, work entries, attendance, payments, and monthly summaries here.</p>
 
           <div class="sub-card">
             <h3>Staff / Karigar</h3>
@@ -292,7 +292,7 @@
 
               <div class="input-box" style="grid-column: 1 / -1;">
                 <label for="paymentReason">Reason</label>
-                <textarea id="paymentReason" placeholder="Kyun liya / kisliye diya" style="min-height:80px; padding:10px;"></textarea>
+          <textarea id="paymentReason" placeholder="Reason / Purpose" style="min-height:80px; padding:10px;"></textarea>
               </div>
             </div>
 
@@ -497,7 +497,7 @@
       const address = document.getElementById("staffAddress").value.trim();
 
       if (!name) {
-        showToast("Staff name daalo", "error");
+      showToast("Please enter the staff name.", "error");
         return;
       }
 
@@ -632,13 +632,13 @@ async function loadStaffFromServer() {
       const returnTime = document.getElementById("workReturnTime").value;
 
       if (!name || !lotNo || !whatGiven) {
-        showToast("Staff name, lot no aur process type daalo", "error");
+      showToast("Please enter the staff name, lot number, and process type.", "error");
         return;
       }
 
       if (status === "GIVEN") {
         if (!givenWeight || !givenDate) {
-          showToast("Given weight aur given date daalo", "error");
+      showToast("Please enter the given weight and given date.", "error");
           return;
         }
 
@@ -668,7 +668,7 @@ async function loadStaffFromServer() {
 
       if (status === "RETURNED") {
         if (!returnWeight || !returnDate) {
-          showToast("Return weight aur return date daalo", "error");
+      showToast("Please enter the return weight and return date.", "error");
           return;
         }
 
@@ -680,7 +680,7 @@ async function loadStaffFromServer() {
         );
 
         if (targetIndex === -1) {
-          showToast("Matching GIVEN entry nahi mila", "error");
+      showToast("No matching GIVEN entry was found.", "error");
           return;
         }
 
@@ -730,7 +730,7 @@ async function loadStaffFromServer() {
       const outAmPm = document.getElementById("attendanceOutAmPm").value;
 
       if (!name || !date) {
-        showToast("Staff name aur date daalo", "error");
+      showToast("Please enter the staff name and date.", "error");
         return;
       }
 
@@ -791,7 +791,7 @@ async function loadStaffFromServer() {
       const reason = document.getElementById("paymentReason").value.trim();
 
       if (!name || !date || amount <= 0) {
-        showToast("Staff name, date, amount sahi daalo", "error");
+      showToast("Please enter a valid staff name, date, and amount.", "error");
         return;
       }
 
@@ -1015,7 +1015,7 @@ async function loadStaffFromServer() {
       const month = document.getElementById("attendanceFilterMonth").value;
 
       if (!name) {
-        showToast("Staff select karo", "error");
+      showToast("Please select a staff member.", "error");
         return;
       }
 

@@ -413,7 +413,7 @@
             </div>
 
             <div class="small-note">
-              Nayi company signup request yahan pending me dikhegi. Approve karne par company + admin user auto create ho jayenge.
+              New company signup requests will appear here as pending. Approving a request will automatically create the company and admin user.
             </div>
           </div>
 
@@ -450,7 +450,7 @@
             </div>
 
             <div class="small-note">
-              Staff approve hone ke baad hi login allow hoga. Company admin apni company ke staff ko role assign karega.
+              Login will be allowed only after staff approval. The company admin will assign roles to staff members in their company.
             </div>
           </div>
         </div>
@@ -811,7 +811,7 @@
     }
 
     async function approveCompanyRequest(requestId) {
-      const ok = confirm("Kya aap is company request ko approve karna chahte ho?");
+      const ok = confirm("Are you sure you want to approve this company request?");
       if (!ok) return;
 
       try {
@@ -841,7 +841,7 @@
     }
 
     async function rejectCompanyRequest(requestId) {
-      const ok = confirm("Kya aap is company request ko reject karna chahte ho?");
+      const ok = confirm("Are you sure you want to reject this company request?");
       if (!ok) return;
 
       try {
@@ -874,7 +874,7 @@
       const role = document.getElementById(`role-${requestId}`)?.value || "";
 
       if (!role) {
-        showToast("Pehle role select karo", "error");
+      showToast("Please select a role first.", "error");
         return;
       }
 
@@ -906,7 +906,7 @@
     }
 
     async function rejectUser(requestId) {
-      const ok = confirm("Kya aap is staff request ko reject karna chahte ho?");
+      const ok = confirm("Are you sure you want to reject this staff request?");
       if (!ok) return;
 
       try {
@@ -1045,7 +1045,7 @@
       currentCompanyId = loggedInUser.company_id ?? loggedInUser.companyId ?? null;
 
       if (!isSuperAdminUser && String(loggedInUser.role || "").toLowerCase() !== "admin") {
-        showToast("Sirf super admin ya company admin is page ko dekh sakta hai.", "error");
+      showToast("Only a Super Admin or Company Admin can view this page.", "error");
         window.location.href = "dashboard.html";
         return;
       }

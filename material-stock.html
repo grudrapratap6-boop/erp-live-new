@@ -274,7 +274,7 @@
           <div id="companyInfoChip" class="company-info-chip">Company: Loading...</div>
 
           <h2>Material Stock</h2>
-          <p>Yahan factory support materials ka master, inward, usage, current balance aur low stock alert manage hoga.</p>
+          <p>Manage factory support material masters, inward entries, usage, current balance, and low-stock alerts here.</p>
 
           <div class="material-summary-grid">
             <div class="summary-card">
@@ -315,7 +315,7 @@
                 <h3 style="margin:0;">Material Master</h3>
                 <span class="tag-chip"><i class="fas fa-layer-group"></i> Unique by category + name + variant + size + unit</span>
               </div>
-              <p class="muted-help">Plastic pola, sticker, lamination, packing aur factory material master yahan maintain karo.</p>
+          <p class="muted-help">Maintain plastic pola, stickers, lamination, packing, and factory material masters here.</p>
 
               <input type="hidden" id="materialEditId" />
 
@@ -384,7 +384,7 @@
                 <h3 style="margin:0;">Stock Movement</h3>
                 <span class="tag-chip"><i class="fas fa-arrow-right-arrow-left"></i> In / Out / Adjustment</span>
               </div>
-              <p class="muted-help">Material select karke inward, usage ya adjustment movement save karo.</p>
+          <p class="muted-help">Select a material and save inward, usage, or adjustment movements.</p>
 
               <div class="form-grid" style="margin-top:12px;">
                 <div class="input-box" style="grid-column: 1 / -1;">
@@ -438,7 +438,7 @@
             <div class="section-topline">
               <div>
                 <h3 style="margin:0 0 4px;">Search & Filter</h3>
-                <p class="muted-help">Stock table aur movement history dono yahin ke filters se control honge.</p>
+                <p class="muted-help">Both the stock table and movement history will be controlled by the filters here.</p>
               </div>
               <button type="button" class="secondary-btn" onclick="resetFilters()">Reset Filters</button>
             </div>
@@ -501,7 +501,7 @@
             <div class="section-topline">
               <div>
                 <h3 style="margin:0 0 4px;">Main Material Stock Table</h3>
-                <p class="muted-help">Current stock, inward, usage aur last movement ek jagah.</p>
+                <p class="muted-help">View current stock, inward entries, usage, and the latest movement in one place.</p>
               </div>
               <span class="tag-chip"><i class="fas fa-table"></i> Live company-scoped stock</span>
             </div>
@@ -536,7 +536,7 @@
             <div class="section-topline">
               <div>
                 <h3 style="margin:0 0 4px;">Recent Movement History</h3>
-                <p class="muted-help">Opening, stock in, stock out aur adjustments ka latest trail.</p>
+                <p class="muted-help">View the latest trail of opening, stock-in, stock-out, and adjustment entries.</p>
               </div>
               <span class="tag-chip"><i class="fas fa-clock-rotate-left"></i> Latest first</span>
             </div>
@@ -1047,7 +1047,7 @@
       const editId = Number(document.getElementById("materialEditId")?.value || 0);
 
       if (!data.category || !data.material_name || !data.unit) {
-        showToast("Category, material name aur unit required hai", "error");
+      showToast("Category, material name, and unit are required.", "error");
         return;
       }
 
@@ -1071,7 +1071,7 @@
 
         clearMaterialForm();
         await refreshMaterialPage();
-        showToast(result.message || "Material save ho gaya", "success");
+      showToast(result.message || "Material has been saved successfully.", "success");
       } catch (error) {
         console.log("Material save error:", error);
         showToast("Material save failed", "error");
@@ -1118,7 +1118,7 @@
       const remarks = document.getElementById("movementRemarks")?.value.trim() || "";
 
       if (!materialId || !movementType || qty === 0) {
-        showToast("Material, movement type aur quantity required hai", "error");
+      showToast("Material, movement type, and quantity are required.", "error");
         return;
       }
 
@@ -1147,7 +1147,7 @@
 
         clearMovementForm();
         await refreshMaterialPage();
-        showToast(result.message || "Movement save ho gaya", "success");
+      showToast(result.message || "Movement has been saved successfully.", "success");
       } catch (error) {
         console.log("Movement save error:", error);
         showToast("Movement save failed", "error");

@@ -904,7 +904,7 @@
 
         if (!isSuperAdmin()) {
           if (companyId === null || Number.isNaN(companyId)) {
-            showToast("Company access missing hai", "error");
+      showToast("Company access is missing.", "error");
             stockItems = [];
             renderHistory();
             return;
@@ -981,14 +981,14 @@
       const companyId = getCurrentCompanyId();
 
       if (!isSuperAdmin() && (companyId === null || Number.isNaN(companyId))) {
-        showToast("Company access missing hai", "error");
+      showToast("Company access is missing.", "error");
         return;
       }
 
       let data = getStickerFormData();
 
       if (!data.lot) {
-        showToast("Lot Number daalo", "error");
+      showToast("Please enter the lot number.", "error");
         return;
       }
 
@@ -1000,13 +1000,13 @@
       }
 
       if (!data.productName || !data.purity || !data.sku || !data.size || !data.weight) {
-        showToast("Serial, Product, Purity, SKU, Size, Weight aur Lot Number daalo", "error");
+      showToast("Please enter the serial, product, purity, SKU, size, weight, and lot number.", "error");
         return;
       }
 
       const expectedNextSerial = getNextSerialForLot(data.lot);
       if (Number(data.serial) < expectedNextSerial && isDuplicateLotSerialEverywhere(data.lot, data.serial)) {
-        showToast(`Lot ${data.lot} me serial ${data.serial} pehle se stock me hai`, "error");
+      showToast(`Serial ${data.serial} already exists in stock for lot ${data.lot}.`, "error");
         document.getElementById("stickerSerial").value = String(expectedNextSerial);
         return;
       }
@@ -1018,7 +1018,7 @@
       }
 
       if (isDuplicateLotSerialEverywhere(data.lot, data.serial)) {
-        showToast(`Lot ${data.lot} me serial ${data.serial} pehle se exist hai`, "error");
+      showToast(`Serial ${data.serial} already exists in lot ${data.lot}.`, "error");
         document.getElementById("stickerSerial").value = String(getNextSerialForLot(data.lot));
         return;
       }
@@ -1029,7 +1029,7 @@
         data = getStickerFormData();
 
         if (isDuplicateBarcodeEverywhere(data.barcode)) {
-          showToast("Barcode duplicate aa raha hai", "error");
+      showToast("A duplicate barcode was detected.", "error");
           return;
         }
       }
@@ -1061,21 +1061,21 @@
       savePendingItemsToLocal();
       renderStickerList();
       keepFieldsAndPrepareNext();
-      showToast("Item sticker list me add ho gaya", "success");
+      showToast("The item has been added to the sticker list.", "success");
     }
 
     async function savePendingToServer() {
       const companyId = getCurrentCompanyId();
 
       if (!isSuperAdmin() && (companyId === null || Number.isNaN(companyId))) {
-        showToast("Company access missing hai", "error");
+      showToast("Company access is missing.", "error");
         return;
       }
 
       const unsavedItems = pendingStickerItems.filter(item => !item.saved_to_server);
 
       if (!unsavedItems.length) {
-        showToast("Koi naya unsaved item nahi hai", "info");
+      showToast("There are no new unsaved items.", "info");
         return;
       }
 
@@ -1106,7 +1106,7 @@
           const result = await res.json();
 
           if (!result.success) {
-            showToast(result.message || "Kuch item save nahi hua", "error");
+      showToast(result.message || "Some items could not be saved.", "error");
             return;
           }
         }
@@ -1121,7 +1121,7 @@
         await loadFromServer();
         renderStickerList();
         updateNextSerialForCurrentLot();
-        showToast("Sab new item stock me save ho gaya ✅", "success");
+      showToast("All new items have been saved to stock.", "success");
       } catch (err) {
         console.log("Bulk save error:", err);
         showToast("Server save error", "error");
@@ -1161,17 +1161,17 @@
       const data = getInlineEditedValues(row, oldBarcode);
 
       if (!data.serial || !data.productName || !data.purity || !data.sku || !data.size || !data.weight || !data.lot) {
-        showToast("Serial, Product, Purity, SKU, Size, Weight aur Lot Number required hai", "error");
+      showToast("Serial, product, purity, SKU, size, weight, and lot number are required.", "error");
         return;
       }
 
       if (isDuplicateLotSerialEverywhere(data.lot, data.serial, oldBarcode)) {
-        showToast(`Lot ${data.lot} me serial ${data.serial} pehle se exist hai`, "error");
+      showToast(`Serial ${data.serial} already exists in lot ${data.lot}.`, "error");
         return;
       }
 
       if (isDuplicateBarcodeEverywhere(data.barcode, oldBarcode)) {
-        showToast("Barcode duplicate hai", "error");
+      showToast("The barcode is duplicated.", "error");
         return;
       }
 
@@ -1206,7 +1206,7 @@
       savePendingItemsToLocal();
       renderStickerList();
       renderLotButtons();
-      showToast("Pending item updated. Save All phir se dabana hoga", "success");
+      showToast("The pending item has been updated. Please click Save All again.", "success");
     }
 
     function attachInlineRowEvents() {
@@ -1241,7 +1241,7 @@
       renderLotButtons();
       renderStickerList();
       updateNextSerialForCurrentLot();
-      showToast("Item sticker list se delete ho gaya", "success");
+      showToast("The item has been removed from the sticker list.", "success");
     }
 
     function renderStickerList() {
@@ -1365,7 +1365,7 @@
       const visibleItems = [...pendingStickerItems];
 
       if (!visibleItems.length) {
-        showToast("Print ke liye sticker items nahi hai", "error");
+      showToast("There are no sticker items available for printing.", "error");
         return;
       }
 
@@ -1411,7 +1411,7 @@
 
       const win = window.open("", "_blank", "width=1200,height=900");
       if (!win) {
-        showToast("Popup block ho gaya", "error");
+      showToast("The popup was blocked.", "error");
         return;
       }
 
