@@ -40,12 +40,42 @@ const ERP_MENU_PAGE_BY_HREF = {
   "settings.html": "settings"
 };
 
+const ERP_AUTH_COOKIE_NAME = "erp_user_id";
+
 function getLoggedInUser() {
   try {
     return JSON.parse(localStorage.getItem("erpLoggedInUser")) || null;
   } catch (_) {
     return null;
   }
+}
+
+function setAuthCookie(user = null) {
+  const targetUser = user || getLoggedInUser();
+  const rawUserId = targetUser?.id ?? targetUser?.user_id ?? targetUser?.userId ?? "";
+  const userId = String(rawUserId || "").trim();
+
+  if (!userId) return;
+
+  document.cookie = `${ERP_AUTH_COOKIE_NAME}=${encodeURIComponent(userId)}; path=/; SameSite=Lax`;
+}
+
+function clearAuthCookie() {
+  document.cookie = `${ERP_AUTH_COOKIE_NAME}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax`;
+}
+
+function syncAuthCookie() {
+  const user = getLoggedInUser();
+  if (user) {
+    setAuthCookie(user);
+  } else {
+    clearAuthCookie();
+  }
+}
+
+function clearAuthSession() {
+  localStorage.removeItem("erpLoggedInUser");
+  clearAuthCookie();
 }
 
 function getCurrentCompanyId() {
@@ -119,10 +149,13 @@ function requireLogin() {
   const user = getLoggedInUser();
 
   if (!user) {
+    clearAuthCookie();
     showAccessMessage("Login required");
     window.location.href = "login.html";
     return false;
   }
+
+  syncAuthCookie();
 
   return true;
 }
@@ -205,3 +238,29 @@ function filterSidebarMenuByRole() {
     element.style.display = !user || canAccessPage(pageKey, user) ? "" : "none";
   });
 }
+
+function patchFetchWithAuthHeader() {
+  if (window.__erpFetchAuthPatched) return;
+  const originalFetch = window.fetch?.bind(window);
+  if (typeof originalFetch !== "function") return;
+
+  window.fetch = function (input, init = {}) {
+    const user = getLoggedInUser();
+    const userId = user?.id ?? user?.user_id ?? user?.userId ?? "";
+    const headers = new Headers(init.headers || (input instanceof Request ? input.headers : undefined) || {});
+
+    if (userId && !headers.has("x-user")) {
+      headers.set("x-user", String(userId));
+    }
+
+    return originalFetch(input, {
+      ...init,
+      headers
+    });
+  };
+
+  window.__erpFetchAuthPatched = true;
+}
+
+syncAuthCookie();
+patchFetchWithAuthHeader();

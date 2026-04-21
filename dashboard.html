@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
-<head> 
+<head>
+  <script src="js/auth-guard.js"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ERP Dashboard</title>
@@ -633,7 +634,12 @@
     });
 
     function logoutUser() {
-      localStorage.removeItem("erpLoggedInUser");
+      if (typeof clearAuthSession === "function") {
+        clearAuthSession();
+      } else {
+        localStorage.removeItem("erpLoggedInUser");
+        document.cookie = "erp_user_id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax";
+      }
       window.location.href = "login.html";
     }
 

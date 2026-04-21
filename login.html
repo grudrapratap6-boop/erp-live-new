@@ -769,6 +769,7 @@
 
         const user = normalizeLoggedInUser(data.user || {});
         localStorage.setItem("erpLoggedInUser", JSON.stringify(user));
+        document.cookie = `erp_user_id=${encodeURIComponent(String(user.id ?? ""))}; path=/; SameSite=Lax`;
 
         if (document.getElementById("rememberMe")?.checked) {
           localStorage.setItem("erpRememberedEmail", email);

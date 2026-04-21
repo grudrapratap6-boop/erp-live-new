@@ -13,6 +13,24 @@ const FRONTEND_ROOT = path.resolve(__dirname, "..", "..");
 const FRONTEND_INDEX_FILE = path.join(FRONTEND_ROOT, "index.html");
 const FRONTEND_CSS_DIR = path.join(FRONTEND_ROOT, "css");
 const FRONTEND_JS_DIR = path.join(FRONTEND_ROOT, "js");
+const PROTECTED_PAGES = new Set([
+  "dashboard.html",
+  "process.html",
+  "sticker.html",
+  "stock.html",
+  "billing.html",
+  "invoice.html",
+  "settings.html",
+  "staff-management.html",
+  "material-stock.html",
+  "daily-report.html",
+  "expense-manager.html",
+  "transaction.html",
+  "transaction-reports.html",
+  "return.html",
+  "admin-approval.html",
+  "sales-history.html"
+]);
 
 app.use(cors());
 app.use(express.json({ limit: "10mb" }));
@@ -43,6 +61,36 @@ process.on("uncaughtException", (err) => {
 process.on("unhandledRejection", (reason) => {
   console.error("UNHANDLED REJECTION:", reason);
 });
+
+function parseCookies(cookieHeader = "") {
+  return String(cookieHeader || "")
+    .split(";")
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .reduce((acc, part) => {
+      const separatorIndex = part.indexOf("=");
+      if (separatorIndex === -1) return acc;
+      const key = part.slice(0, separatorIndex).trim();
+      const value = part.slice(separatorIndex + 1).trim();
+      if (key) {
+        acc[key] = decodeURIComponent(value || "");
+      }
+      return acc;
+    }, {});
+}
+
+function requireAuthPage(req, res, next) {
+  const headerUser = String(req.headers["x-user"] || "").trim();
+  const cookies = parseCookies(req.headers.cookie || "");
+  const cookieUser = String(cookies.erp_user_id || "").trim();
+  const user = headerUser || cookieUser;
+
+  if (!user) {
+    return res.redirect("/login.html");
+  }
+
+  next();
+}
 
 function format3(value) {
   const n = Number(value || 0);
@@ -3447,16 +3495,26 @@ app.get("/", (req, res) => {
 });
 
 app.get("/:page", (req, res, next) => {
-  if (!req.params.page.endsWith(".html")) {
+  const page = String(req.params.page || "").trim();
+
+  if (!page.endsWith(".html")) {
     return next();
   }
 
-  const requestedFile = path.join(FRONTEND_ROOT, req.params.page);
-  return res.sendFile(requestedFile, (error) => {
-    if (error) {
-      return next();
-    }
-  });
+  const requestedFile = path.join(FRONTEND_ROOT, page);
+
+  const sendRequestedPage = () =>
+    res.sendFile(requestedFile, (error) => {
+      if (error) {
+        return next();
+      }
+    });
+
+  if (PROTECTED_PAGES.has(page)) {
+    return requireAuthPage(req, res, sendRequestedPage);
+  }
+
+  return sendRequestedPage();
 });
 
 app.get("/api/test", (req, res) => {
