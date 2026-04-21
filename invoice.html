@@ -182,7 +182,7 @@
 
     .scanner-note {
       margin-top: 10px;
-      font-size: 12px;
+      font-size: 13px;
       color: #6b7280;
       line-height: 1.5;
     }
@@ -199,16 +199,164 @@
     #scannerBox {
       margin-top: 12px;
       display: none;
-      background: #fff;
-      border: 1px solid #dbe2ea;
-      border-radius: 12px;
-      padding: 10px;
+      background:
+        radial-gradient(circle at top, rgba(217, 174, 103, 0.16), transparent 46%),
+        linear-gradient(180deg, #102033, #09111e);
+      border: 1px solid rgba(217, 174, 103, 0.26);
+      border-radius: 22px;
+      padding: 16px;
+      box-shadow: 0 22px 46px rgba(15, 23, 42, 0.24);
     }
 
     #reader {
       width: 100%;
-      max-width: 340px;
       margin: 0 auto;
+      border-radius: 22px;
+      overflow: hidden;
+      background: #020617;
+    }
+
+    #reader video,
+    #reader canvas {
+      width: 100% !important;
+      height: 100% !important;
+      min-height: 240px;
+      border-radius: 22px;
+      object-fit: cover;
+    }
+
+    .scanner-frame {
+      display: grid;
+      gap: 14px;
+    }
+
+    .scanner-frame-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      color: #f8fafc;
+      flex-wrap: wrap;
+    }
+
+    .scanner-frame-header h3 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 800;
+      color: #f8fafc;
+    }
+
+    .scanner-frame-header p {
+      margin: 4px 0 0;
+      font-size: 13px;
+      color: rgba(248, 250, 252, 0.82);
+    }
+
+    .scanner-close-inline {
+      min-height: 44px;
+      padding: 10px 16px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+      backdrop-filter: blur(10px);
+    }
+
+    .barcode-camera-shell {
+      position: relative;
+      width: 100%;
+      max-width: 720px;
+      margin: 0 auto;
+      border-radius: 24px;
+      overflow: hidden;
+      min-height: 250px;
+      background: #020617;
+    }
+
+    .barcode-scan-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      background:
+        linear-gradient(to bottom, rgba(2, 6, 23, 0.58), rgba(2, 6, 23, 0.16) 32%, rgba(2, 6, 23, 0.16) 68%, rgba(2, 6, 23, 0.64));
+    }
+
+    .barcode-scan-window {
+      width: min(86%, 560px);
+      height: clamp(96px, 22vw, 132px);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 18px;
+      background:
+        linear-gradient(180deg, rgba(15, 23, 42, 0.22), rgba(15, 23, 42, 0.08));
+      box-shadow:
+        inset 0 0 0 999px rgba(255, 255, 255, 0.02),
+        0 0 0 999px rgba(2, 6, 23, 0.08);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .barcode-scan-window::before,
+    .barcode-scan-window::after {
+      content: "";
+      position: absolute;
+      left: 16px;
+      right: 16px;
+      height: 1px;
+      background: rgba(255, 255, 255, 0.14);
+    }
+
+    .barcode-scan-window::before {
+      top: 18px;
+    }
+
+    .barcode-scan-window::after {
+      bottom: 18px;
+    }
+
+    .barcode-scan-line {
+      position: absolute;
+      left: 12px;
+      right: 12px;
+      height: 3px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(255,255,255,0), #f8d38f 18%, #ffe7ba 50%, #f8d38f 82%, rgba(255,255,255,0));
+      box-shadow: 0 0 18px rgba(248, 211, 143, 0.75);
+      animation: barcodeSweep 2.1s ease-in-out infinite;
+    }
+
+    .scanner-caption {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      color: rgba(248, 250, 252, 0.88);
+      font-size: 13px;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .scanner-caption i {
+      color: #f8d38f;
+    }
+
+    @keyframes barcodeSweep {
+      0% {
+        top: 18px;
+        opacity: 0.72;
+      }
+      50% {
+        top: calc(100% - 21px);
+        opacity: 1;
+      }
+      100% {
+        top: 18px;
+        opacity: 0.72;
+      }
     }
 
     .company-info-chip {
@@ -267,6 +415,28 @@
       .invoice-action-btn {
         width: 100%;
         min-height: 44px;
+      }
+
+      #scannerBox {
+        padding: 14px;
+        border-radius: 18px;
+      }
+
+      .scanner-frame-header {
+        align-items: stretch;
+      }
+
+      .scanner-close-inline {
+        width: 100%;
+      }
+
+      .barcode-camera-shell {
+        min-height: 220px;
+      }
+
+      .barcode-scan-window {
+        width: min(92%, 520px);
+        height: 96px;
       }
     }
   </style>
@@ -394,7 +564,29 @@
               </div>
 
               <div id="scannerBox">
-                <div id="reader"></div>
+                <div class="scanner-frame">
+                  <div class="scanner-frame-header">
+                    <div>
+                      <h3>Live Barcode Scanner</h3>
+                      <p>Align barcode within the line to scan</p>
+                    </div>
+                    <button class="scanner-close-inline" type="button" onclick="closeBarcodeCamera()">Close Scanner</button>
+                  </div>
+
+                  <div class="barcode-camera-shell">
+                    <div id="reader"></div>
+                    <div class="barcode-scan-overlay" aria-hidden="true">
+                      <div class="barcode-scan-window">
+                        <div class="barcode-scan-line"></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="scanner-caption">
+                    <i class="fas fa-barcode"></i>
+                    <span>Align barcode within the line to scan</span>
+                  </div>
+                </div>
               </div>
 
               <div class="input-box" style="margin-top:14px;">
@@ -402,13 +594,13 @@
                 <input
                   type="text"
                   id="invoiceBarcodeInput"
-                  placeholder="Scan Barcode"
+                  placeholder="Scan barcode or type and press Enter"
                   autocomplete="off"
                 />
               </div>
 
               <div class="scanner-note">
-          The back camera will open on mobile. Scan the barcode and the item will be added to the invoice automatically.
+          Scanner input is processed automatically. For manual typing, enter the barcode and press Enter.
               </div>
             </div>
 
@@ -450,6 +642,9 @@
     let scanDebounceTimer = null;
     let lastAutoScannedValue = "";
     let lastAutoScanTime = 0;
+    let lastInputEventTime = 0;
+    let rapidInputStreak = 0;
+    let scannerLikelyActive = false;
     let stockLoadedOnce = false;
     let currentInvoiceDraftId = null;
     let invoiceHeaderSyncTimer = null;
@@ -826,6 +1021,14 @@
       if (input) input.focus();
     }
 
+    function resetBarcodeInputTracking() {
+      clearTimeout(scanDebounceTimer);
+      scanDebounceTimer = null;
+      lastInputEventTime = 0;
+      rapidInputStreak = 0;
+      scannerLikelyActive = false;
+    }
+
     function getInvoiceSummary() {
       const sourceItems = processedInvoiceItems.length ? processedInvoiceItems : invoiceItems;
 
@@ -1108,7 +1311,22 @@
       }
 
       document.getElementById("invoiceBarcodeInput").value = "";
+      resetBarcodeInputTracking();
       focusInvoiceScanner();
+    }
+
+    function submitBarcodeInput(source = "manual") {
+      const input = document.getElementById("invoiceBarcodeInput");
+      if (!input) return;
+
+      const value = String(input.value || "").trim();
+      if (!value) return;
+
+      autoAddBarcode(value);
+
+      if (source !== "scanner") {
+        resetBarcodeInputTracking();
+      }
     }
 
     function bindAutoScanInput() {
@@ -1117,19 +1335,45 @@
 
       input.addEventListener("input", function () {
         const value = String(input.value || "").trim();
-        if (!value) return;
+        const now = Date.now();
 
-        clearTimeout(scanDebounceTimer);
-        scanDebounceTimer = setTimeout(() => {
-          autoAddBarcode(value);
-        }, 180);
+        if (!value) {
+          resetBarcodeInputTracking();
+          return;
+        }
+
+        if (lastInputEventTime && now - lastInputEventTime <= 45) {
+          rapidInputStreak += 1;
+        } else {
+          rapidInputStreak = 1;
+          scannerLikelyActive = false;
+        }
+
+        lastInputEventTime = now;
+
+        if (rapidInputStreak >= 4) {
+          scannerLikelyActive = true;
+        }
+
+        if (scannerLikelyActive) {
+          clearTimeout(scanDebounceTimer);
+          scanDebounceTimer = setTimeout(() => {
+            submitBarcodeInput("scanner");
+          }, 35);
+        }
       });
 
       input.addEventListener("keydown", function (e) {
         if (e.key === "Enter") {
           e.preventDefault();
-          const value = String(input.value || "").trim();
-          if (value) autoAddBarcode(value);
+          clearTimeout(scanDebounceTimer);
+          submitBarcodeInput(scannerLikelyActive ? "scanner" : "manual");
+          return;
+        }
+
+        if (e.key === "Escape") {
+          input.value = "";
+          resetBarcodeInputTracking();
         }
       });
     }
@@ -1319,8 +1563,11 @@
           { facingMode: "environment" },
           {
             fps: 15,
-            qrbox: { width: 250, height: 250 },
-            aspectRatio: 1.0
+            qrbox: (viewfinderWidth, viewfinderHeight) => ({
+              width: Math.min(viewfinderWidth - 36, 560),
+              height: Math.max(96, Math.min(132, Math.floor(viewfinderHeight * 0.28)))
+            }),
+            aspectRatio: 1.777
           },
           (decodedText) => {
             autoAddBarcode(decodedText);
@@ -1343,8 +1590,11 @@
             devices[0].id,
             {
               fps: 15,
-              qrbox: { width: 250, height: 250 },
-              aspectRatio: 1.0
+              qrbox: (viewfinderWidth, viewfinderHeight) => ({
+                width: Math.min(viewfinderWidth - 36, 560),
+                height: Math.max(96, Math.min(132, Math.floor(viewfinderHeight * 0.28)))
+              }),
+              aspectRatio: 1.777
             },
             (decodedText) => {
               autoAddBarcode(decodedText);
@@ -1363,6 +1613,8 @@
     function closeBarcodeCamera() {
       const scannerBox = document.getElementById("scannerBox");
       if (scannerBox) scannerBox.style.display = "none";
+
+      resetBarcodeInputTracking();
 
       if (html5QrCode && scannerRunning) {
         html5QrCode.stop().then(() => {
