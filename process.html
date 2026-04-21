@@ -147,19 +147,21 @@
 
             <div class="sub-card">
               <h3>Saved Process Lots</h3>
-              <table>
-                <thead>
-                  <tr>
-                    <th>Lot No</th>
-                    <th>Raw Weight</th>
-                    <th>Loss Weight</th>
-                    <th>Final Weight</th>
-                    <th>Used Weight</th>
-                    <th>Balance</th>
-                  </tr>
-                </thead>
-                <tbody id="processTableBody"></tbody>
-              </table>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Lot No</th>
+                      <th>Raw Weight</th>
+                      <th>Loss Weight</th>
+                      <th>Final Weight</th>
+                      <th>Used Weight</th>
+                      <th>Balance</th>
+                    </tr>
+                  </thead>
+                  <tbody id="processTableBody"></tbody>
+                </table>
+              </div>
             </div>
           </div>
 
@@ -199,17 +201,19 @@
 
             <div class="sub-card">
               <h3>Karigar Loss Report</h3>
-              <table>
-                <thead>
-                  <tr>
-                    <th>Karigar</th>
-                    <th>Total Given</th>
-                    <th>Total Returned</th>
-                    <th>Total Loss</th>
-                  </tr>
-                </thead>
-                <tbody id="karigarLossReportBody"></tbody>
-              </table>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Karigar</th>
+                      <th>Total Given</th>
+                      <th>Total Returned</th>
+                      <th>Total Loss</th>
+                    </tr>
+                  </thead>
+                  <tbody id="karigarLossReportBody"></tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div>
@@ -301,6 +305,7 @@
 
       const isCollapsed = localStorage.getItem(ERP_SIDEBAR_STORAGE_KEY) === "true";
       sidebar.classList.toggle("collapsed", isCollapsed);
+      syncSidebarUi();
     }
 
     function toggleSidebar() {
@@ -309,6 +314,37 @@
 
       sidebar.classList.toggle("collapsed");
       saveSidebarState(sidebar.classList.contains("collapsed"));
+      syncSidebarUi();
+    }
+
+    function syncSidebarUi() {
+      const sidebar = document.getElementById("sidebar");
+      if (!sidebar) return;
+
+      let overlay = document.getElementById("sidebarOverlay");
+      if (!overlay) {
+        overlay = document.createElement("button");
+        overlay.type = "button";
+        overlay.id = "sidebarOverlay";
+        overlay.className = "sidebar-overlay";
+        overlay.setAttribute("aria-label", "Close navigation");
+        overlay.addEventListener("click", closeSidebarMobile);
+        document.body.appendChild(overlay);
+      }
+
+      const isMobile = window.innerWidth <= 1000;
+      const isOpen = isMobile && !sidebar.classList.contains("collapsed");
+      overlay.classList.toggle("show", isOpen);
+      document.body.classList.toggle("sidebar-open", isOpen);
+    }
+
+    function closeSidebarMobile() {
+      const sidebar = document.getElementById("sidebar");
+      if (!sidebar) return;
+
+      sidebar.classList.add("collapsed");
+      saveSidebarState(true);
+      syncSidebarUi();
     }
 
     function bindSidebarMenuAutoClose() {
@@ -319,14 +355,18 @@
         if (link.dataset.sidebarBound === "true") return;
         link.dataset.sidebarBound = "true";
         link.addEventListener("click", () => {
-          sidebar.classList.add("collapsed");
-          saveSidebarState(true);
+          closeSidebarMobile();
         });
       });
     }
 
     applySidebarState();
     bindSidebarMenuAutoClose();
+    syncSidebarUi();
+    window.addEventListener("resize", syncSidebarUi);
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") closeSidebarMobile();
+    });
 
     function getItemCompanyId(item) {
       const raw = item?.company_id ?? item?.companyId ?? null;

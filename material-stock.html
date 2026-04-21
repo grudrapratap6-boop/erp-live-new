@@ -55,7 +55,7 @@
 
     table {
       width: 100%;
-      min-width: 1120px;
+      min-width: 960px;
       border-collapse: collapse;
       background: #fff;
     }
@@ -199,7 +199,7 @@
 
     @media (max-width: 1024px) {
       table {
-        min-width: 980px;
+        min-width: 900px;
       }
     }
 
@@ -212,7 +212,7 @@
 
     @media (max-width: 640px) {
       table {
-        min-width: 900px;
+        min-width: 820px;
       }
     }
   </style>
@@ -640,6 +640,7 @@
 
       const isCollapsed = localStorage.getItem(ERP_SIDEBAR_STORAGE_KEY) === "true";
       sidebar.classList.toggle("collapsed", isCollapsed);
+      syncSidebarUi();
     }
 
     function toggleSidebar() {
@@ -648,6 +649,34 @@
 
       sidebar.classList.toggle("collapsed");
       saveSidebarState(sidebar.classList.contains("collapsed"));
+      syncSidebarUi();
+    }
+
+    function syncSidebarUi() {
+      const sidebar = document.getElementById("sidebar");
+      if (!sidebar) return;
+      let overlay = document.getElementById("sidebarOverlay");
+      if (!overlay) {
+        overlay = document.createElement("button");
+        overlay.type = "button";
+        overlay.id = "sidebarOverlay";
+        overlay.className = "sidebar-overlay";
+        overlay.setAttribute("aria-label", "Close navigation");
+        overlay.addEventListener("click", closeSidebarMobile);
+        document.body.appendChild(overlay);
+      }
+      const isMobile = window.innerWidth <= 1000;
+      const isOpen = isMobile && !sidebar.classList.contains("collapsed");
+      overlay.classList.toggle("show", isOpen);
+      document.body.classList.toggle("sidebar-open", isOpen);
+    }
+
+    function closeSidebarMobile() {
+      const sidebar = document.getElementById("sidebar");
+      if (!sidebar) return;
+      sidebar.classList.add("collapsed");
+      saveSidebarState(true);
+      syncSidebarUi();
     }
 
     function bindSidebarMenuAutoClose() {
@@ -658,14 +687,18 @@
         if (link.dataset.sidebarBound === "true") return;
         link.dataset.sidebarBound = "true";
         link.addEventListener("click", () => {
-          sidebar.classList.add("collapsed");
-          saveSidebarState(true);
+          closeSidebarMobile();
         });
       });
     }
 
     applySidebarState();
     bindSidebarMenuAutoClose();
+    syncSidebarUi();
+    window.addEventListener("resize", syncSidebarUi);
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") closeSidebarMobile();
+    });
 
     function escapeHtml(value) {
       return String(value ?? "")

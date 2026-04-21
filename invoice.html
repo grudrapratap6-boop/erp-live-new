@@ -191,6 +191,10 @@
       vertical-align: middle;
     }
 
+    .scanner-right {
+      overflow-x: auto;
+    }
+
     #scannerBox {
       margin-top: 12px;
       display: none;
@@ -257,6 +261,11 @@
         min-width: auto;
         width: 100%;
         text-align: left;
+      }
+
+      .invoice-action-btn {
+        width: 100%;
+        min-height: 44px;
       }
     }
   </style>
@@ -402,20 +411,22 @@
             </div>
 
             <div class="scanner-right">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Barcode</th>
-                    <th>Product</th>
-                    <th>SKU</th>
-                    <th>Weight</th>
-                    <th>Size</th>
-                    <th>Lot</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody id="invoiceTableBody"></tbody>
-              </table>
+              <div class="table-wrap" style="margin-top:0;">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Barcode</th>
+                      <th>Product</th>
+                      <th>SKU</th>
+                      <th>Weight</th>
+                      <th>Size</th>
+                      <th>Lot</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="invoiceTableBody"></tbody>
+                </table>
+              </div>
             </div>
           </div>
 
@@ -511,6 +522,7 @@
 
       const isCollapsed = localStorage.getItem(ERP_SIDEBAR_STORAGE_KEY) === "true";
       sidebar.classList.toggle("collapsed", isCollapsed);
+      syncSidebarUi();
     }
 
     function toggleSidebar() {
@@ -519,6 +531,37 @@
 
       sidebar.classList.toggle("collapsed");
       saveSidebarState(sidebar.classList.contains("collapsed"));
+      syncSidebarUi();
+    }
+
+    function syncSidebarUi() {
+      const sidebar = document.getElementById("sidebar");
+      if (!sidebar) return;
+
+      let overlay = document.getElementById("sidebarOverlay");
+      if (!overlay) {
+        overlay = document.createElement("button");
+        overlay.type = "button";
+        overlay.id = "sidebarOverlay";
+        overlay.className = "sidebar-overlay";
+        overlay.setAttribute("aria-label", "Close navigation");
+        overlay.addEventListener("click", closeSidebarMobile);
+        document.body.appendChild(overlay);
+      }
+
+      const isMobile = window.innerWidth <= 1000;
+      const isOpen = isMobile && !sidebar.classList.contains("collapsed");
+      overlay.classList.toggle("show", isOpen);
+      document.body.classList.toggle("sidebar-open", isOpen);
+    }
+
+    function closeSidebarMobile() {
+      const sidebar = document.getElementById("sidebar");
+      if (!sidebar) return;
+
+      sidebar.classList.add("collapsed");
+      saveSidebarState(true);
+      syncSidebarUi();
     }
 
     function bindSidebarMenuAutoClose() {
@@ -529,14 +572,18 @@
         if (link.dataset.sidebarBound === "true") return;
         link.dataset.sidebarBound = "true";
         link.addEventListener("click", () => {
-          sidebar.classList.add("collapsed");
-          saveSidebarState(true);
+          closeSidebarMobile();
         });
       });
     }
 
     applySidebarState();
     bindSidebarMenuAutoClose();
+    syncSidebarUi();
+    window.addEventListener("resize", syncSidebarUi);
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") closeSidebarMobile();
+    });
 
     function renderProfileBox() {
       const box = document.getElementById("profileBox");
