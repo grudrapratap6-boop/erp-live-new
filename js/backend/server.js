@@ -13,6 +13,9 @@ const FRONTEND_ROOT = path.resolve(__dirname, "..", "..");
 const FRONTEND_INDEX_FILE = path.join(FRONTEND_ROOT, "index.html");
 const FRONTEND_CSS_DIR = path.join(FRONTEND_ROOT, "css");
 const FRONTEND_JS_DIR = path.join(FRONTEND_ROOT, "js");
+const FRONTEND_ICONS_DIR = path.join(FRONTEND_ROOT, "icons");
+const FRONTEND_MANIFEST_FILE = path.join(FRONTEND_ROOT, "manifest.json");
+const FRONTEND_SERVICE_WORKER_FILE = path.join(FRONTEND_ROOT, "service-worker.js");
 const PROTECTED_PAGES = new Set([
   "dashboard.html",
   "process.html",
@@ -3482,6 +3485,7 @@ async function ensureSuperAdminExists() {
    BASIC ROUTES
 ========================= */
 app.use("/css", express.static(FRONTEND_CSS_DIR));
+app.use("/icons", express.static(FRONTEND_ICONS_DIR));
 app.use("/js/backend", (req, res) => {
   return res.status(404).json({
     success: false,
@@ -3489,6 +3493,15 @@ app.use("/js/backend", (req, res) => {
   });
 });
 app.use("/js", express.static(FRONTEND_JS_DIR));
+
+app.get("/manifest.json", (req, res) => {
+  return res.sendFile(FRONTEND_MANIFEST_FILE);
+});
+
+app.get("/service-worker.js", (req, res) => {
+  res.setHeader("Cache-Control", "no-cache");
+  return res.sendFile(FRONTEND_SERVICE_WORKER_FILE);
+});
 
 app.get("/", (req, res) => {
   return res.sendFile(FRONTEND_INDEX_FILE);
