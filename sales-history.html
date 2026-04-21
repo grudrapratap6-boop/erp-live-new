@@ -225,8 +225,18 @@
               </div>
 
               <div class="summary-card">
-                <h4>Total Amount</h4>
+                <h4>Customer Amount</h4>
                 <p id="sumAmount">Rs. 0.00</p>
+              </div>
+
+              <div class="summary-card">
+                <h4>Company Amount</h4>
+                <p id="sumCompanyAmount">Rs. 0.00</p>
+              </div>
+
+              <div class="summary-card">
+                <h4>Employee Margin</h4>
+                <p id="sumMarginAmount">Rs. 0.00</p>
               </div>
             </div>
           </div>
@@ -243,10 +253,13 @@
                   <th>Date</th>
                   <th>Payment Mode</th>
                   <th>Payment Status</th>
+                  <th>Employee</th>
                   <th>Paid</th>
                   <th>Due</th>
                   <th>Total Items</th>
-                  <th>Total Amount</th>
+                  <th>Customer Amount</th>
+                  <th>Company Amount</th>
+                  <th>Margin</th>
                   <th>View</th>
                 </tr>
               </thead>
@@ -287,7 +300,7 @@
   </div>
 
   <script>
-    const API_BASE = "https://erp-backend-5ya9.onrender.com";
+    const API_BASE = "https://erp-live-new-production.up.railway.app";
     let salesHistoryData = [];
 
     function getLoggedInUser() {
@@ -568,7 +581,7 @@
       if (!filtered.length) {
         tbody.innerHTML = `
           <tr>
-            <td colspan="13" style="text-align:center;">No sales history found</td>
+            <td colspan="16" style="text-align:center;">No sales history found</td>
           </tr>
         `;
         renderSalesSummary([]);
@@ -581,9 +594,12 @@
         const gst = item.gst_number || item.gstNumber || "";
         const paymentStatus = item.payment_status || item.status || "";
         const totalAmount = Number(item.total_amount || item.totalAmount || 0);
+        const companyAmount = Number(item.company_total_amount || item.companyTotalAmount || 0);
+        const employeeMargin = Number(item.employee_margin_amount || item.employeeMarginAmount || 0);
         const paidAmount = Number(item.paid_amount || item.paidAmount || 0);
         const dueAmount = Number(item.due_amount || item.dueAmount || 0);
         const totalItems = Number(item.total_items || item.totalItems || 0);
+        const employeeName = item.employee_name || item.employeeName || "-";
 
         tbody.innerHTML += `
           <tr>
@@ -595,10 +611,13 @@
             <td>${item.invoice_date || item.invoiceDate || ""}</td>
             <td>${item.payment_mode || item.paymentMode || ""}</td>
             <td><span class="${getPaymentStatusClass(paymentStatus)}">${paymentStatus || "-"}</span></td>
+            <td>${employeeName}</td>
             <td>${paidAmount.toFixed(2)}</td>
             <td>${dueAmount.toFixed(2)}</td>
             <td>${totalItems}</td>
             <td>${totalAmount.toFixed(2)}</td>
+            <td>${companyAmount.toFixed(2)}</td>
+            <td>${employeeMargin.toFixed(2)}</td>
             <td>
               <button
                 type="button"
@@ -620,11 +639,15 @@
       const totalPaid = data.reduce((sum, item) => sum + Number(item.paid_amount || item.paidAmount || 0), 0);
       const totalDue = data.reduce((sum, item) => sum + Number(item.due_amount || item.dueAmount || 0), 0);
       const totalAmount = data.reduce((sum, item) => sum + Number(item.total_amount || item.totalAmount || 0), 0);
+      const totalCompanyAmount = data.reduce((sum, item) => sum + Number(item.company_total_amount || item.companyTotalAmount || 0), 0);
+      const totalMarginAmount = data.reduce((sum, item) => sum + Number(item.employee_margin_amount || item.employeeMarginAmount || 0), 0);
 
       document.getElementById("sumInvoices").textContent = totalInvoices;
       document.getElementById("sumPaid").textContent = formatMoney(totalPaid);
       document.getElementById("sumDue").textContent = formatMoney(totalDue);
       document.getElementById("sumAmount").textContent = formatMoney(totalAmount);
+      document.getElementById("sumCompanyAmount").textContent = formatMoney(totalCompanyAmount);
+      document.getElementById("sumMarginAmount").textContent = formatMoney(totalMarginAmount);
     }
 
     async function viewSaleItems(invoiceNumber, saleCompanyId = null) {

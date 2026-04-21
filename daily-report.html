@@ -727,10 +727,26 @@
                 <div class="summary-card">
                   <div class="metric-topline">
                     <span class="metric-icon">🧾</span>
-                    <div class="metric-title"><h4>Total Billing Amount</h4></div>
+                    <div class="metric-title"><h4>Customer Amount</h4></div>
                   </div>
                   <p id="sumBillingAmount" class="metric-value summary-value-money">Rs 0.00</p>
-                  <div class="summary-note">Daily invoice total</div>
+                  <div class="summary-note">Daily billed amount charged to customers</div>
+                </div>
+                <div class="summary-card">
+                  <div class="metric-topline">
+                    <span class="metric-icon">🏦</span>
+                    <div class="metric-title"><h4>Company Amount</h4></div>
+                  </div>
+                  <p id="sumCompanyBillingAmount" class="metric-value summary-value-money">Rs 0.00</p>
+                  <div class="summary-note">Daily company receivable amount</div>
+                </div>
+                <div class="summary-card">
+                  <div class="metric-topline">
+                    <span class="metric-icon">👤</span>
+                    <div class="metric-title"><h4>Employee Margin</h4></div>
+                  </div>
+                  <p id="sumEmployeeMarginAmount" class="metric-value summary-value-money">Rs 0.00</p>
+                  <div class="summary-note">Daily employee margin total</div>
                 </div>
                 <div class="summary-card">
                   <div class="metric-topline">
@@ -914,7 +930,7 @@
                     <span class="section-heading-icon">🧾</span>
                     <h3>Invoice / Billing Summary</h3>
                   </div>
-                  <p id="billingSummaryMeta">Saved invoice and billing totals</p>
+                  <p id="billingSummaryMeta">Saved invoice totals with company amount and employee margin</p>
                 </div>
                 <span class="report-tag"><i class="fas fa-file-invoice"></i> Billing</span>
               </div>
@@ -927,9 +943,12 @@
                       <th>Invoice Date</th>
                       <th>Payment Mode</th>
                       <th>Status</th>
+                      <th>Employee</th>
                       <th>Total Items</th>
                       <th>Total Weight</th>
-                      <th>Total Amount</th>
+                      <th>Customer Amount</th>
+                      <th>Company Amount</th>
+                      <th>Margin</th>
                       <th>Company</th>
                     </tr>
                   </thead>
@@ -976,7 +995,7 @@
                     <span class="section-heading-icon">📈</span>
                     <h3>Sales History Summary</h3>
                   </div>
-                  <p id="salesSummaryMeta">Sales history snapshot</p>
+                  <p id="salesSummaryMeta">Sales history with employee margin snapshot</p>
                 </div>
                 <span class="report-tag"><i class="fas fa-clock-rotate-left"></i> Sales History</span>
               </div>
@@ -987,9 +1006,12 @@
                       <th>Invoice No</th>
                       <th>Customer</th>
                       <th>Mobile</th>
+                      <th>Employee</th>
                       <th>Items</th>
                       <th>Weight</th>
-                      <th>Amount</th>
+                      <th>Customer Amount</th>
+                      <th>Company Amount</th>
+                      <th>Margin</th>
                       <th>Status</th>
                       <th>Created At</th>
                     </tr>
@@ -1070,7 +1092,7 @@
   <script src="js/auth.js"></script>
   <script src="js/toast.js"></script>
   <script>
-    const API_BASE = "https://erp-backend-5ya9.onrender.com";
+    const API_BASE = "https://erp-live-new-production.up.railway.app";
     const ERP_SIDEBAR_STORAGE_KEY = "erpSidebarCollapsed";
     let currentReport = null;
 
@@ -1375,6 +1397,8 @@
           normalReturns: 0,
           damagedReturns: 0,
           totalBillingAmount: 0,
+          totalCompanyAmount: 0,
+          totalEmployeeMargin: 0,
           totalBills: 0,
           totalExpenses: 0,
           totalTransactions: 0,
@@ -1387,9 +1411,9 @@
           sticker: { rows: [], totalCreated: 0 },
           stock: { addedRows: [], soldRows: [], addedCount: 0, soldCount: 0 },
           material: { rows: [], totalIn: 0, totalOut: 0, lowStockCount: 0 },
-          invoiceBilling: { rows: [], totalBills: 0, totalBillingAmount: 0 },
+          invoiceBilling: { rows: [], totalBills: 0, totalBillingAmount: 0, totalCompanyAmount: 0, totalEmployeeMargin: 0 },
           returns: { rows: [], totalReturns: 0, normalReturns: 0, damagedReturns: 0 },
-          salesHistory: { rows: [], totalSalesCount: 0, totalSalesAmount: 0 },
+          salesHistory: { rows: [], totalSalesCount: 0, totalSalesAmount: 0, totalCompanyAmount: 0, totalEmployeeMargin: 0 },
           expenses: { rows: [], totalExpenses: 0 },
           transactions: { rows: [], totalTransactions: 0 }
         }
@@ -1548,18 +1572,21 @@
         },
         {
           title: "Billing Summary",
-          meta: `${report.sections.invoiceBilling.totalBills || 0} bills | ${formatMoney(report.sections.invoiceBilling.totalBillingAmount || 0)}`,
+          meta: `${report.sections.invoiceBilling.totalBills || 0} bills | Customer ${formatMoney(report.sections.invoiceBilling.totalBillingAmount || 0)} | Company ${formatMoney(report.sections.invoiceBilling.totalCompanyAmount || 0)} | Margin ${formatMoney(report.sections.invoiceBilling.totalEmployeeMargin || 0)}`,
           tag: "🧾 Billing",
           table: createPdfTable(
-            ["Invoice", "Customer", "Date", "Mode", "Status", "Items", "Amount"],
+            ["Invoice", "Customer", "Date", "Mode", "Status", "Employee", "Items", "Customer", "Company", "Margin"],
             (report.sections.invoiceBilling.rows || []).map((item) => [
               item.invoice_number || "-",
               item.customer_name || "-",
               item.invoice_date || normalizeDay(item.created_at) || "-",
               item.payment_mode || "-",
               item.payment_status || "-",
+              item.employee_name || "-",
               String(item.total_items || 0),
-              formatMoney(item.total_amount || 0)
+              formatMoney(item.customer_total_amount || item.total_amount || 0),
+              formatMoney(item.company_total_amount || 0),
+              formatMoney(item.employee_margin_amount || 0)
             ])
           )
         },
@@ -1712,6 +1739,8 @@
       document.getElementById("sumNormalReturns").textContent = String(report.summary.normalReturns || 0);
       document.getElementById("sumDamagedReturns").textContent = String(report.summary.damagedReturns || 0);
       document.getElementById("sumBillingAmount").textContent = formatMoney(report.summary.totalBillingAmount || 0);
+      document.getElementById("sumCompanyBillingAmount").textContent = formatMoney(report.summary.totalCompanyAmount || 0);
+      document.getElementById("sumEmployeeMarginAmount").textContent = formatMoney(report.summary.totalEmployeeMargin || 0);
       document.getElementById("sumTotalBills").textContent = String(report.summary.totalBills || 0);
       document.getElementById("sumTotalExpenses").textContent = formatMoney(report.summary.totalExpenses || 0);
       document.getElementById("sumTotalTransactions").textContent = String(report.summary.totalTransactions || 0);
@@ -1821,17 +1850,20 @@
           <td>${escapeHtml(item.invoice_date || normalizeDay(item.created_at) || "-")}</td>
           <td>${escapeHtml(item.payment_mode || "-")}</td>
           <td>${activityBadge(String(item.payment_status || "-").toLowerCase() || "-")}</td>
+          <td>${escapeHtml(item.employee_name || "-")}</td>
           <td>${Number(item.total_items || 0)}</td>
           <td>${formatQty(item.total_weight || 0)}</td>
-          <td>${formatMoney(item.total_amount || 0)}</td>
+          <td>${formatMoney(item.customer_total_amount || item.total_amount || 0)}</td>
+          <td>${formatMoney(item.company_total_amount || 0)}</td>
+          <td>${formatMoney(item.employee_margin_amount || 0)}</td>
           <td>${escapeHtml(item.company_name || (isSuperAdmin() ? "All Companies" : (getCurrentCompanyNameSafe() || "-")))}</td>
         </tr>
       `);
       setSectionMeta(
         "billingSummaryMeta",
-        `${report.sections.invoiceBilling.totalBills || 0} bills | ${formatMoney(report.sections.invoiceBilling.totalBillingAmount || 0)}`
+        `${report.sections.invoiceBilling.totalBills || 0} bills | Customer ${formatMoney(report.sections.invoiceBilling.totalBillingAmount || 0)} | Company ${formatMoney(report.sections.invoiceBilling.totalCompanyAmount || 0)} | Margin ${formatMoney(report.sections.invoiceBilling.totalEmployeeMargin || 0)}`
       );
-      renderRows("billingTableBody", rows, 9);
+      renderRows("billingTableBody", rows, 12);
     }
 
     function renderReturnTable(report) {
@@ -1868,18 +1900,21 @@
           <td>${escapeHtml(item.invoice_number || "-")}</td>
           <td>${escapeHtml(item.customer_name || "-")}</td>
           <td>${escapeHtml(item.mobile || "-")}</td>
+          <td>${escapeHtml(item.employee_name || "-")}</td>
           <td>${Number(item.total_items || 0)}</td>
           <td>${formatQty(item.total_weight || 0)}</td>
-          <td>${formatMoney(item.total_amount || 0)}</td>
+          <td>${formatMoney(item.customer_total_amount || item.total_amount || 0)}</td>
+          <td>${formatMoney(item.company_total_amount || 0)}</td>
+          <td>${formatMoney(item.employee_margin_amount || 0)}</td>
           <td>${activityBadge(String(item.status || "ACTIVE").toLowerCase())}</td>
           <td>${escapeHtml(formatDateTime(item.created_at))}</td>
         </tr>
       `);
       setSectionMeta(
         "salesSummaryMeta",
-        `${report.sections.salesHistory.totalSalesCount || 0} sales rows | ${formatMoney(report.sections.salesHistory.totalSalesAmount || 0)}`
+        `${report.sections.salesHistory.totalSalesCount || 0} sales rows | Customer ${formatMoney(report.sections.salesHistory.totalSalesAmount || 0)} | Company ${formatMoney(report.sections.salesHistory.totalCompanyAmount || 0)} | Margin ${formatMoney(report.sections.salesHistory.totalEmployeeMargin || 0)}`
       );
-      renderRows("salesTableBody", rows, 8);
+      renderRows("salesTableBody", rows, 11);
     }
 
     function renderExpenseTable(report) {

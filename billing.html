@@ -297,12 +297,27 @@
               </div>
 
               <div class="input-box">
-                <label>Rate / Gram</label>
-                <input type="number" id="billRatePerGram" placeholder="Enter rate per gram" oninput="calculateBillingTotal()" />
+                <label>Employee Name</label>
+                <input type="text" id="billEmployeeName" placeholder="Enter employee name" />
               </div>
 
               <div class="input-box">
-                <label>MC (₹ per gram)</label>
+                <label>Selling Rate / Gram</label>
+                <input type="number" id="billRatePerGram" placeholder="Enter selling rate per gram" oninput="calculateBillingTotal()" />
+              </div>
+
+              <div class="input-box">
+                <label>Company Rate / Gram</label>
+                <input type="number" id="billCompanyRatePerGram" placeholder="Enter company rate per gram" oninput="calculateBillingTotal()" />
+              </div>
+
+              <div class="input-box">
+                <label>Margin / Gram</label>
+                <input type="text" id="billMarginPerGram" readonly />
+              </div>
+
+              <div class="input-box">
+                <label>MC (Rs per gram)</label>
                 <input type="number" id="billMcRate" placeholder="Enter MC per gram" oninput="calculateBillingTotal()" />
               </div>
 
@@ -332,8 +347,18 @@
               </div>
 
               <div class="input-box">
-                <label>Grand Total</label>
+                <label>Customer Total</label>
                 <input type="text" id="billGrandTotal" readonly />
+              </div>
+
+              <div class="input-box">
+                <label>Company Total</label>
+                <input type="text" id="billCompanyTotal" readonly />
+              </div>
+
+              <div class="input-box">
+                <label>Employee Margin</label>
+                <input type="text" id="billEmployeeMargin" readonly />
               </div>
             </div>
           </div>
@@ -344,7 +369,9 @@
             <div class="summary-chip-row">
               <div class="summary-chip">Total Count: <span id="billTotalCount">0</span></div>
               <div class="summary-chip">Total Weight: <span id="billTotalWeight">0.000</span> g</div>
-              <div class="summary-chip">Grand Total: ₹ <span id="billGrandTotalText">0.00</span></div>
+              <div class="summary-chip">Company Total: Rs <span id="billCompanyTotalText">0.00</span></div>
+              <div class="summary-chip">Employee Margin: Rs <span id="billEmployeeMarginText">0.00</span></div>
+              <div class="summary-chip">Customer Total: Rs <span id="billGrandTotalText">0.00</span></div>
               <div class="summary-chip">Status: <span id="billStatusChip" class="status-chip">Not Selected</span></div>
             </div>
           </div>
@@ -477,12 +504,14 @@
 
                 <div style="min-width:260px; flex:1;">
                   <div class="summary-chip-row">
-                    <div class="summary-chip">Grand Total: Rs. <span id="onlineGrandTotalText">0.00</span></div>
+                    <div class="summary-chip">Customer Total: Rs. <span id="onlineGrandTotalText">0.00</span></div>
+                    <div class="summary-chip">Company Total: Rs. <span id="onlineCompanyTotalText">0.00</span></div>
                     <div class="summary-chip">Payable Now: Rs. <span id="onlinePayNowText">0.00</span></div>
                   </div>
 
                   <div class="info-note">
                     The QR code will be generated automatically when Online is selected.
+                    Only the company total is included in the QR amount.
                     It will be fetched automatically from the UPI settings.
                   </div>
                 </div>
@@ -555,7 +584,7 @@
   </div>
 
   <script>
-    const API_BASE = "https://erp-backend-5ya9.onrender.com";
+    const API_BASE = "https://erp-live-new-production.up.railway.app";
 
     let billingItems = [];
     let removedBillingBarcodes = [];
@@ -729,6 +758,11 @@
 
       if (rateInput && !rateInput.value && s.default_rate_per_gram !== undefined && s.default_rate_per_gram !== "") {
         rateInput.value = s.default_rate_per_gram;
+      }
+
+      const companyRateInput = document.getElementById("billCompanyRatePerGram");
+      if (companyRateInput && !companyRateInput.value && s.default_rate_per_gram !== undefined && s.default_rate_per_gram !== "") {
+        companyRateInput.value = s.default_rate_per_gram;
       }
 
       if (mcInput && !mcInput.value && s.default_mc_rate !== undefined && s.default_mc_rate !== "") {
@@ -989,7 +1023,10 @@
         "billPaymentStatus",
         "billPaidAmount",
         "billDueAmount",
+        "billEmployeeName",
         "billRatePerGram",
+        "billCompanyRatePerGram",
+        "billMarginPerGram",
         "billMcRate",
         "billRoundOff",
         "billSubtotal",
@@ -997,6 +1034,8 @@
         "billSgst",
         "billIgst",
         "billGrandTotal",
+        "billCompanyTotal",
+        "billEmployeeMargin",
         "billUpiNote",
         "billDueNote",
         "billReminderMode",
@@ -1076,6 +1115,8 @@
 
     function updateQuickSummary() {
       const grandTotal = num(document.getElementById("billGrandTotal")?.value);
+      const companyTotal = num(document.getElementById("billCompanyTotal")?.value);
+      const employeeMargin = num(document.getElementById("billEmployeeMargin")?.value);
       const totalWeight = billingItems.reduce((sum, item) => sum + num(item.weight), 0);
       const totalCount = billingItems.length;
       const paymentStatus = document.getElementById("billPaymentStatus")?.value || "";
@@ -1084,6 +1125,10 @@
       document.getElementById("billTotalCount").textContent = totalCount;
       document.getElementById("billTotalWeight").textContent = totalWeight.toFixed(3);
       document.getElementById("billGrandTotalText").textContent = grandTotal.toFixed(2);
+      const companyTotalText = document.getElementById("billCompanyTotalText");
+      const employeeMarginText = document.getElementById("billEmployeeMarginText");
+      if (companyTotalText) companyTotalText.textContent = companyTotal.toFixed(2);
+      if (employeeMarginText) employeeMarginText.textContent = employeeMargin.toFixed(2);
 
       if (!statusChip) return;
 
@@ -1109,48 +1154,71 @@
     function calculateBillingTotal() {
       const billType = document.getElementById("billType").value || "GST";
       const taxType = document.getElementById("billTaxType").value || "CGST_SGST";
-      const rate = num(document.getElementById("billRatePerGram").value);
+      const sellingRate = num(document.getElementById("billRatePerGram").value);
+      const companyRate = num(document.getElementById("billCompanyRatePerGram").value || document.getElementById("billRatePerGram").value);
       const mcRate = num(document.getElementById("billMcRate").value);
       const roundOff = num(document.getElementById("billRoundOff").value);
 
-      let subtotal = 0;
+      let customerSubtotal = 0;
+      let companySubtotal = 0;
 
       billingItems = billingItems.map((item) => {
         const purityValue = num(item.purity) > 0 ? num(item.purity) : 100;
         const pureWeight = (num(item.weight) * purityValue) / 100;
-        const metalAmount = pureWeight * rate;
+        const sellingMetalAmount = pureWeight * sellingRate;
+        const companyMetalAmount = pureWeight * companyRate;
         const mcAmount = pureWeight * mcRate;
-        const totalPrice = metalAmount + mcAmount;
+        const customerLineAmount = sellingMetalAmount + mcAmount;
+        const companyLineAmount = companyMetalAmount + mcAmount;
+        const employeeMarginAmount = customerLineAmount - companyLineAmount;
 
-        subtotal += totalPrice;
+        customerSubtotal += customerLineAmount;
+        companySubtotal += companyLineAmount;
 
         return {
           ...item,
           pureWeight,
-          totalPrice
+          totalPrice: customerLineAmount,
+          customerLineAmount,
+          companyLineAmount,
+          employeeMarginAmount,
+          sellingRatePerGram: sellingRate,
+          companyRatePerGram: companyRate
         };
       });
 
       let cgst = 0;
       let sgst = 0;
       let igst = 0;
+      let companyCgst = 0;
+      let companySgst = 0;
+      let companyIgst = 0;
 
       if (billType === "GST") {
         if (taxType === "CGST_SGST") {
-          cgst = subtotal * 0.015;
-          sgst = subtotal * 0.015;
+          cgst = customerSubtotal * 0.015;
+          sgst = customerSubtotal * 0.015;
+          companyCgst = companySubtotal * 0.015;
+          companySgst = companySubtotal * 0.015;
         } else {
-          igst = subtotal * 0.03;
+          igst = customerSubtotal * 0.03;
+          companyIgst = companySubtotal * 0.03;
         }
       }
 
-      const grandTotal = subtotal + cgst + sgst + igst + roundOff;
+      const grandTotal = customerSubtotal + cgst + sgst + igst + roundOff;
+      const companyTotal = companySubtotal + companyCgst + companySgst + companyIgst;
+      const employeeMargin = grandTotal - companyTotal;
+      const marginPerGram = sellingRate - companyRate;
 
-      document.getElementById("billSubtotal").value = subtotal.toFixed(2);
+      document.getElementById("billSubtotal").value = customerSubtotal.toFixed(2);
       document.getElementById("billCgst").value = cgst.toFixed(2);
       document.getElementById("billSgst").value = sgst.toFixed(2);
       document.getElementById("billIgst").value = igst.toFixed(2);
       document.getElementById("billGrandTotal").value = grandTotal.toFixed(2);
+      document.getElementById("billCompanyTotal").value = companyTotal.toFixed(2);
+      document.getElementById("billEmployeeMargin").value = employeeMargin.toFixed(2);
+      document.getElementById("billMarginPerGram").value = marginPerGram.toFixed(2);
 
       renderBillingTable();
       saveBillingItems();
@@ -1166,7 +1234,7 @@
       const statusEl = document.getElementById("billPaymentStatus");
       const paidEl = document.getElementById("billPaidAmount");
       const dueEl = document.getElementById("billDueAmount");
-      const grandTotal = num(document.getElementById("billGrandTotal").value);
+      const companyTotal = num(document.getElementById("billCompanyTotal").value);
 
       if (mode === "Cash" || mode === "Online") {
         if (!statusEl.value || statusEl.value === "Due" || statusEl.value === "Metal Settled") {
@@ -1174,19 +1242,19 @@
         }
 
         if (statusEl.value === "Paid") {
-          paidEl.value = grandTotal.toFixed(2);
+          paidEl.value = companyTotal.toFixed(2);
           dueEl.value = "0.00";
         } else if (statusEl.value === "Partial") {
           const paid = num(paidEl.value);
-          dueEl.value = Math.max(grandTotal - paid, 0).toFixed(2);
+          dueEl.value = Math.max(companyTotal - paid, 0).toFixed(2);
         } else if (statusEl.value === "Due") {
           paidEl.value = "0.00";
-          dueEl.value = grandTotal.toFixed(2);
+          dueEl.value = companyTotal.toFixed(2);
         }
       } else if (mode === "Due") {
         statusEl.value = "Due";
         paidEl.value = "0.00";
-        dueEl.value = grandTotal.toFixed(2);
+        dueEl.value = companyTotal.toFixed(2);
       } else if (mode === "Metal") {
         statusEl.value = "Metal Settled";
         paidEl.value = "0.00";
@@ -1197,7 +1265,7 @@
     }
 
     function syncAmountsFromInputs() {
-      const grandTotal = num(document.getElementById("billGrandTotal").value);
+      const companyTotal = num(document.getElementById("billCompanyTotal").value);
       const paidEl = document.getElementById("billPaidAmount");
       const dueEl = document.getElementById("billDueAmount");
       const statusEl = document.getElementById("billPaymentStatus");
@@ -1206,24 +1274,23 @@
       const paid = num(paidEl.value);
 
       if (mode === "Cash" || mode === "Online") {
-        if (paid >= grandTotal && grandTotal > 0) {
+        if (paid >= companyTotal && companyTotal > 0) {
           statusEl.value = "Paid";
           dueEl.value = "0.00";
-        } else if (paid > 0 && paid < grandTotal) {
+        } else if (paid > 0 && paid < companyTotal) {
           statusEl.value = "Partial";
-          dueEl.value = Math.max(grandTotal - paid, 0).toFixed(2);
-        } else if (paid === 0 && grandTotal > 0) {
+          dueEl.value = Math.max(companyTotal - paid, 0).toFixed(2);
+        } else if (paid === 0 && companyTotal > 0) {
           statusEl.value = "Due";
-          dueEl.value = grandTotal.toFixed(2);
+          dueEl.value = companyTotal.toFixed(2);
         }
       }
 
       if (mode === "Due") {
-        dueEl.value = grandTotal.toFixed(2);
+        dueEl.value = companyTotal.toFixed(2);
       }
 
       document.getElementById("duePreviewText").textContent = num(dueEl.value).toFixed(2);
-                    <div class="summary-chip">Payable Now: Rs. <span id="onlinePayNowText">0.00</span></div>
       generatePaymentQr();
       updateQuickSummary();
       maybeAutoFinalize();
@@ -1292,19 +1359,18 @@
 
       const invoiceNo = String(document.getElementById("billInvoiceNumber")?.value || "BILL").trim();
       const grandTotal = Number(document.getElementById("billGrandTotal")?.value || 0);
-      const paidAmount = Number(document.getElementById("billPaidAmount")?.value || grandTotal || 0);
+      const companyTotal = Number(document.getElementById("billCompanyTotal")?.value || 0);
+      const paidAmount = Number(document.getElementById("billPaidAmount")?.value || companyTotal || 0);
       const dueAmount = Number(document.getElementById("billDueAmount")?.value || 0);
-
-                    <div class="summary-chip">Grand Total: Rs. <span id="onlineGrandTotalText">0.00</span></div>
-                    <div class="summary-chip">Payable Now: Rs. <span id="onlinePayNowText">0.00</span></div>
       const duePreviewText = document.getElementById("duePreviewText");
+      const onlineGrandTotalText = document.getElementById("onlineGrandTotalText");
+      const onlineCompanyTotalText = document.getElementById("onlineCompanyTotalText");
+      const onlinePayNowText = document.getElementById("onlinePayNowText");
 
-                    <div class="summary-chip">Grand Total: Rs. <span id="onlineGrandTotalText">0.00</span></div>
-                    <div class="summary-chip">Grand Total: Rs. <span id="onlineGrandTotalText">0.00</span></div>
-      }
-
-                    <div class="summary-chip">Payable Now: Rs. <span id="onlinePayNowText">0.00</span></div>
-                    <div class="summary-chip">Payable Now: Rs. <span id="onlinePayNowText">0.00</span></div>
+      if (onlineGrandTotalText) onlineGrandTotalText.textContent = grandTotal.toFixed(2);
+      if (onlineCompanyTotalText) onlineCompanyTotalText.textContent = companyTotal.toFixed(2);
+      if (onlinePayNowText) {
+        onlinePayNowText.textContent = (!isNaN(paidAmount) && paidAmount > 0 ? paidAmount : companyTotal).toFixed(2);
       }
 
       if (duePreviewText) {
@@ -1325,7 +1391,7 @@
         return;
       }
 
-      const payableNow = !isNaN(paidAmount) && paidAmount > 0 ? paidAmount : grandTotal;
+      const payableNow = !isNaN(paidAmount) && paidAmount > 0 ? paidAmount : companyTotal;
 
       if (!payableNow || payableNow <= 0) {
         qrBox.innerHTML = `<div style="text-align:center; font-size:13px; color:#64748b; line-height:1.6;">An amount is required to generate the QR code.</div>`;
@@ -1356,7 +1422,7 @@
       const invoiceNo = document.getElementById("billInvoiceNumber").value.trim() || "";
       const mode = document.getElementById("billPaymentMode").value || "";
       const status = document.getElementById("billPaymentStatus").value || "";
-      const grandTotal = document.getElementById("billGrandTotal").value || "0";
+      const grandTotal = document.getElementById("billCompanyTotal").value || document.getElementById("billGrandTotal").value || "0";
       const paidAmount = document.getElementById("billPaidAmount").value || "0";
       return companyScopedKey(`AUTO_PRINT_${invoiceNo}_${mode}_${status}_${grandTotal}_${paidAmount}`);
     }
@@ -1400,9 +1466,12 @@
       const paymentStatus = document.getElementById("billPaymentStatus").value || "";
       const paidAmount = num(document.getElementById("billPaidAmount").value || 0);
       const dueAmount = num(document.getElementById("billDueAmount").value || 0);
+      const employeeName = document.getElementById("billEmployeeName").value.trim() || "";
       const billType = document.getElementById("billType").value || "GST";
       const taxType = document.getElementById("billTaxType").value || "CGST_SGST";
       const ratePerGram = num(document.getElementById("billRatePerGram").value);
+      const companyRatePerGram = num(document.getElementById("billCompanyRatePerGram").value || document.getElementById("billRatePerGram").value);
+      const marginPerGram = num(document.getElementById("billMarginPerGram").value);
       const mcRate = num(document.getElementById("billMcRate").value);
       const roundOff = num(document.getElementById("billRoundOff").value);
       const subtotal = num(document.getElementById("billSubtotal").value);
@@ -1410,6 +1479,8 @@
       const sgst = num(document.getElementById("billSgst").value);
       const igst = num(document.getElementById("billIgst").value);
       const grandTotal = num(document.getElementById("billGrandTotal").value);
+      const companyTotal = num(document.getElementById("billCompanyTotal").value);
+      const employeeMargin = num(document.getElementById("billEmployeeMargin").value);
       const totalWeight = billingItems.reduce((sum, item) => sum + num(item.weight), 0);
 
       const dueNote = document.getElementById("billDueNote").value.trim() || "";
@@ -1430,16 +1501,24 @@
         paymentStatus,
         paidAmount,
         dueAmount,
+        employeeName,
         billType,
         taxType,
         ratePerGram,
+        sellingRatePerGram: ratePerGram,
+        companyRatePerGram,
+        marginPerGram,
         mcRate,
         roundOff,
         subtotal,
+        customerSubtotal: subtotal,
         cgst,
         sgst,
         igst,
         grandTotal,
+        customerTotal: grandTotal,
+        companyTotal,
+        employeeMargin,
         totalCount: billingItems.length,
         totalWeight,
         items: billingItems.map((item) => ({ ...item })),
@@ -1472,10 +1551,22 @@
         purity: item.purity || "",
         size: item.size || "",
         weight: num(item.weight),
+        pureWeight: num(item.pureWeight),
         metalType: item.metalType || item.metal_type || "",
         metal_type: item.metalType || item.metal_type || "",
         totalPrice: num(item.totalPrice),
         total_price: num(item.totalPrice),
+        companyRatePerGram: num(item.companyRatePerGram),
+        company_rate_per_gram: num(item.companyRatePerGram),
+        sellingRatePerGram: num(item.sellingRatePerGram),
+        selling_rate_per_gram: num(item.sellingRatePerGram),
+        customerLineAmount: num(item.customerLineAmount),
+        customer_line_amount: num(item.customerLineAmount),
+        companyLineAmount: num(item.companyLineAmount),
+        company_line_amount: num(item.companyLineAmount),
+        employeeMarginAmount: num(item.employeeMarginAmount),
+        employee_margin_amount: num(item.employeeMarginAmount),
+        employeeName: record.employeeName,
         lot: item.lot || "",
         lot_number: item.lot || ""
       }));
@@ -1497,13 +1588,21 @@
             paidAmount: record.paidAmount,
             dueAmount: record.dueAmount,
             totalAmount: record.grandTotal,
+            employeeName: record.employeeName,
             totalItems: record.totalCount,
             totalCount: record.totalCount,
             totalWeight: record.totalWeight,
             ratePerGram: record.ratePerGram,
+            companyRatePerGram: record.companyRatePerGram,
+            sellingRatePerGram: record.sellingRatePerGram,
+            marginPerGram: record.marginPerGram,
             mcRate: record.mcRate,
             roundOff: record.roundOff,
             subtotal: record.subtotal,
+            customerSubtotal: record.customerSubtotal,
+            customerTotal: record.customerTotal,
+            companyTotal: record.companyTotal,
+            employeeMargin: record.employeeMargin,
             metalPercent: record.metalPercent,
             metalPayable: record.metalPayable,
             metalNote: record.metalNote,
@@ -1575,7 +1674,11 @@
       const igst = num(record.igst).toFixed(2);
       const roundOff = num(record.roundOff).toFixed(2);
       const grandTotal = num(record.grandTotal).toFixed(2);
+      const companyTotal = num(record.companyTotal).toFixed(2);
+      const employeeMargin = num(record.employeeMargin).toFixed(2);
+      const employeeName = record.employeeName || "-";
       const ratePerGram = num(record.ratePerGram).toFixed(2);
+      const companyRatePerGram = num(record.companyRatePerGram).toFixed(2);
       const mcRate = num(record.mcRate).toFixed(2);
       const metalPercent = num(record.metalPercent).toFixed(2);
       const metalPayable = num(record.metalPayable).toFixed(3);
@@ -1596,6 +1699,7 @@
             <td>${item.lot || ""}</td>
             <td>${num(item.purity).toFixed(2)}</td>
             <td>${ratePerGram}</td>
+            <td>${companyRatePerGram}</td>
             <td>${mcRate}</td>
             <td>${num(item.totalPrice).toFixed(2)}</td>
           </tr>
@@ -1691,8 +1795,9 @@
           <th>Lot</th>
           <th>Purity</th>
           <th>₹ / Gram</th>
+          <th>Company Rs / Gram</th>
           <th>MC</th>
-          <th>Total Price</th>
+          <th>Customer Total</th>
         </tr>
       </thead>
       <tbody>
@@ -1700,17 +1805,18 @@
         <tr>
           <td colspan="3"><strong>Total</strong></td>
           <td><strong>${totalWeight.toFixed(3)}</strong></td>
-          <td colspan="5">--</td>
+          <td colspan="6">--</td>
           <td><strong>${subtotal}</strong></td>
         </tr>
       </tbody>
     </table>
 
-    <div style="margin-top:8px; font-size:14px; display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;">
-      <div><strong>Payment (${paymentStatus || "-"})</strong></div>
-      <div><strong>Payment Mode:</strong> ${paymentMode || "-"}</div>
-      <div><strong>Bill Type:</strong> ${billType}</div>
-    </div>
+      <div style="margin-top:8px; font-size:14px; display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+        <div><strong>Payment (${paymentStatus || "-"})</strong></div>
+        <div><strong>Payment Mode:</strong> ${paymentMode || "-"}</div>
+        <div><strong>Bill Type:</strong> ${billType}</div>
+        <div><strong>Employee:</strong> ${employeeName}</div>
+      </div>
 
     <div class="summary-grid">
       <div class="left-summary">

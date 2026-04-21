@@ -1671,6 +1671,15 @@ async function ensureSchema() {
       round_off DECIMAL(12,2) DEFAULT 0.00,
       subtotal DECIMAL(12,2) DEFAULT 0.00,
       total_amount DECIMAL(12,2) DEFAULT 0.00,
+      employee_name VARCHAR(255) DEFAULT '',
+      company_rate_per_gram DECIMAL(12,2) DEFAULT 0.00,
+      selling_rate_per_gram DECIMAL(12,2) DEFAULT 0.00,
+      margin_per_gram DECIMAL(12,2) DEFAULT 0.00,
+      customer_subtotal DECIMAL(12,2) DEFAULT 0.00,
+      customer_total_amount DECIMAL(12,2) DEFAULT 0.00,
+      company_subtotal DECIMAL(12,2) DEFAULT 0.00,
+      company_total_amount DECIMAL(12,2) DEFAULT 0.00,
+      employee_margin_amount DECIMAL(12,2) DEFAULT 0.00,
       status VARCHAR(50) DEFAULT 'ACTIVE',
       company_id INT DEFAULT NULL,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -1690,6 +1699,13 @@ async function ensureSchema() {
       weight DECIMAL(10,3) DEFAULT 0.000,
       lot_number VARCHAR(100) DEFAULT '',
       customer_name VARCHAR(255) DEFAULT '',
+      pure_weight DECIMAL(12,3) DEFAULT 0.000,
+      company_rate_per_gram DECIMAL(12,2) DEFAULT 0.00,
+      selling_rate_per_gram DECIMAL(12,2) DEFAULT 0.00,
+      customer_line_amount DECIMAL(12,2) DEFAULT 0.00,
+      company_line_amount DECIMAL(12,2) DEFAULT 0.00,
+      employee_margin_amount DECIMAL(12,2) DEFAULT 0.00,
+      employee_name VARCHAR(255) DEFAULT '',
       company_id INT DEFAULT NULL,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
@@ -2217,6 +2233,15 @@ async function ensureSchema() {
     await addColumnIfMissing("sales_history", "total_items", "INT DEFAULT 0");
     await addColumnIfMissing("sales_history", "total_weight", "DECIMAL(12,3) DEFAULT 0.000");
     await addColumnIfMissing("sales_history", "status", "VARCHAR(50) DEFAULT 'ACTIVE'");
+    await addColumnIfMissing("sales_history", "employee_name", "VARCHAR(255) DEFAULT ''");
+    await addColumnIfMissing("sales_history", "company_rate_per_gram", "DECIMAL(12,2) DEFAULT 0.00");
+    await addColumnIfMissing("sales_history", "selling_rate_per_gram", "DECIMAL(12,2) DEFAULT 0.00");
+    await addColumnIfMissing("sales_history", "margin_per_gram", "DECIMAL(12,2) DEFAULT 0.00");
+    await addColumnIfMissing("sales_history", "customer_subtotal", "DECIMAL(12,2) DEFAULT 0.00");
+    await addColumnIfMissing("sales_history", "customer_total_amount", "DECIMAL(12,2) DEFAULT 0.00");
+    await addColumnIfMissing("sales_history", "company_subtotal", "DECIMAL(12,2) DEFAULT 0.00");
+    await addColumnIfMissing("sales_history", "company_total_amount", "DECIMAL(12,2) DEFAULT 0.00");
+    await addColumnIfMissing("sales_history", "employee_margin_amount", "DECIMAL(12,2) DEFAULT 0.00");
   }
 
   if (await tableExists("sales_items")) {
@@ -2227,6 +2252,13 @@ async function ensureSchema() {
     await addColumnIfMissing("sales_items", "returned_at", "DATETIME DEFAULT NULL");
     await addColumnIfMissing("sales_items", "return_id", "INT DEFAULT NULL");
     await addColumnIfMissing("sales_items", "return_transaction_id", "INT DEFAULT NULL");
+    await addColumnIfMissing("sales_items", "pure_weight", "DECIMAL(12,3) DEFAULT 0.000");
+    await addColumnIfMissing("sales_items", "company_rate_per_gram", "DECIMAL(12,2) DEFAULT 0.00");
+    await addColumnIfMissing("sales_items", "selling_rate_per_gram", "DECIMAL(12,2) DEFAULT 0.00");
+    await addColumnIfMissing("sales_items", "customer_line_amount", "DECIMAL(12,2) DEFAULT 0.00");
+    await addColumnIfMissing("sales_items", "company_line_amount", "DECIMAL(12,2) DEFAULT 0.00");
+    await addColumnIfMissing("sales_items", "employee_margin_amount", "DECIMAL(12,2) DEFAULT 0.00");
+    await addColumnIfMissing("sales_items", "employee_name", "VARCHAR(255) DEFAULT ''");
   }
 
   if (await tableExists("return_history")) {
@@ -4670,9 +4702,13 @@ app.get("/getDailyReport", async (req, res) => {
         sh.invoice_date,
         sh.payment_mode,
         sh.payment_status,
+        sh.employee_name,
         sh.total_items,
         sh.total_weight,
         sh.total_amount,
+        sh.customer_total_amount,
+        sh.company_total_amount,
+        sh.employee_margin_amount,
         sh.paid_amount,
         sh.due_amount,
         sh.status,
@@ -4823,6 +4859,9 @@ app.get("/getDailyReport", async (req, res) => {
 
     const materialSummary = await getMaterialStockSummaryRows(companyId);
     const totalBillingAmount = invoiceRows.reduce((sum, row) => sum + Number(row.total_amount || 0), 0);
+    const totalCustomerAmount = invoiceRows.reduce((sum, row) => sum + Number(row.customer_total_amount || row.total_amount || 0), 0);
+    const totalCompanyAmount = invoiceRows.reduce((sum, row) => sum + Number(row.company_total_amount || 0), 0);
+    const totalEmployeeMargin = invoiceRows.reduce((sum, row) => sum + Number(row.employee_margin_amount || 0), 0);
     const totalBills = invoiceRows.length;
     const totalReturns = returnRows.length;
     const normalReturns = returnRows.filter((row) => normalizeReturnType(row.return_type) === "RETURN_TO_STOCK").length;
@@ -4848,6 +4887,9 @@ app.get("/getDailyReport", async (req, res) => {
         normalReturns,
         damagedReturns,
         totalBillingAmount,
+        totalCustomerAmount,
+        totalCompanyAmount,
+        totalEmployeeMargin,
         totalBills,
         totalExpenses,
         totalTransactions: transactionRows.length,
@@ -4886,7 +4928,10 @@ app.get("/getDailyReport", async (req, res) => {
         invoiceBilling: {
           rows: invoiceRows,
           totalBills,
-          totalBillingAmount
+          totalBillingAmount,
+          totalCustomerAmount,
+          totalCompanyAmount,
+          totalEmployeeMargin
         },
         returns: {
           rows: returnRows,
@@ -4897,7 +4942,10 @@ app.get("/getDailyReport", async (req, res) => {
         salesHistory: {
           rows: invoiceRows,
           totalSalesCount: totalBills,
-          totalSalesAmount: totalBillingAmount
+          totalSalesAmount: totalBillingAmount,
+          totalCustomerAmount,
+          totalCompanyAmount,
+          totalEmployeeMargin
         },
         expenses: {
           rows: expenseRows.map((row) => normalizeExpenseRow(row)),
@@ -7464,9 +7512,18 @@ app.post("/saveBilling", async (req, res) => {
       totalCount = 0,
       totalWeight = 0,
       ratePerGram = 0,
+      companyRatePerGram = 0,
+      sellingRatePerGram = 0,
+      marginPerGram = 0,
       mcRate = 0,
       roundOff = 0,
       subtotal = 0,
+      customerSubtotal = 0,
+      customerTotal = 0,
+      companySubtotal = 0,
+      companyTotal = 0,
+      employeeMargin = 0,
+      employeeName = "",
       metalPercent = 0,
       metalPayable = 0,
       metalNote = "",
@@ -7515,15 +7572,24 @@ app.post("/saveBilling", async (req, res) => {
         total_items,
         total_weight,
         rate_per_gram,
+        company_rate_per_gram,
+        selling_rate_per_gram,
+        margin_per_gram,
         mc_rate,
         round_off,
         subtotal,
+        customer_subtotal,
+        customer_total_amount,
+        company_subtotal,
+        company_total_amount,
+        employee_margin_amount,
+        employee_name,
         total_amount,
         status,
         company_id,
         created_at
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'ACTIVE', ?, NOW())
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'ACTIVE', ?, NOW())
       `,
       [
         cleanInvoiceNumber,
@@ -7538,10 +7604,19 @@ app.post("/saveBilling", async (req, res) => {
         finalTotalItems,
         Number(finalTotalWeight || 0),
         Number(ratePerGram || 0),
+        Number(companyRatePerGram || 0),
+        Number(sellingRatePerGram || ratePerGram || 0),
+        Number(marginPerGram || 0),
         Number(mcRate || 0),
         Number(roundOff || 0),
         Number(subtotal || 0),
-        Number(totalAmount || 0),
+        Number(customerSubtotal || subtotal || 0),
+        Number(customerTotal || totalAmount || 0),
+        Number(companySubtotal || 0),
+        Number(companyTotal || 0),
+        Number(employeeMargin || 0),
+        String(employeeName || "").trim(),
+        Number(totalAmount || customerTotal || 0),
         finalCompanyId
       ]
     );
@@ -7565,10 +7640,17 @@ app.post("/saveBilling", async (req, res) => {
           weight,
           lot_number,
           customer_name,
+          pure_weight,
+          company_rate_per_gram,
+          selling_rate_per_gram,
+          customer_line_amount,
+          company_line_amount,
+          employee_margin_amount,
+          employee_name,
           company_id,
           created_at
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
         `,
         [
           saleId,
@@ -7581,6 +7663,13 @@ app.post("/saveBilling", async (req, res) => {
           Number(item.weight || 0),
           String(item.lot || item.lot_number || "").trim(),
           String(customerName || "").trim(),
+          Number(item.pureWeight || item.pure_weight || 0),
+          Number(item.companyRatePerGram || item.company_rate_per_gram || companyRatePerGram || 0),
+          Number(item.sellingRatePerGram || item.selling_rate_per_gram || sellingRatePerGram || ratePerGram || 0),
+          Number(item.customerLineAmount || item.customer_line_amount || item.totalPrice || item.total_price || 0),
+          Number(item.companyLineAmount || item.company_line_amount || 0),
+          Number(item.employeeMarginAmount || item.employee_margin_amount || 0),
+          String(item.employeeName || employeeName || "").trim(),
           finalCompanyId
         ]
       );
