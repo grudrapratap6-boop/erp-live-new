@@ -8,7 +8,7 @@ const nodemailer = require("nodemailer");
 const path = require("path");
 
 const app = express();
-const PORT = Number(process.env.PORT || 8080);
+const PORT = process.env.PORT || 8080;
 const FRONTEND_ROOT = path.resolve(__dirname, "..", "..");
 const FRONTEND_INDEX_FILE = path.join(FRONTEND_ROOT, "index.html");
 const FRONTEND_CSS_DIR = path.join(FRONTEND_ROOT, "css");
@@ -39,22 +39,80 @@ app.use(cors());
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 
-const pool = mysql.createPool({
-  host: process.env.MYSQLHOST || "localhost",
-  user: process.env.MYSQLUSER || "root",
-  password: process.env.MYSQLPASSWORD || "",
-  database: process.env.MYSQLDATABASE || "erp_sankha",
+const MYSQL_ENV_KEYS = [
+  "MYSQLHOST",
+  "MYSQLUSER",
+  "MYSQLPASSWORD",
+  "MYSQLDATABASE",
+  "MYSQLPORT"
+];
+
+const SMTP_ENV_KEYS = [
+  "SMTP_HOST",
+  "SMTP_PORT",
+  "SMTP_USER",
+  "SMTP_PASS",
+  "SMTP_FROM"
+];
+
+function getMissingEnvKeys(keys) {
+  return keys.filter((key) => !String(process.env[key] || "").trim());
+}
+
+function logEnvStatus() {
+  const missingMysqlEnv = getMissingEnvKeys(MYSQL_ENV_KEYS);
+  const missingSmtpEnv = getMissingEnvKeys(SMTP_ENV_KEYS);
+
+  if (missingMysqlEnv.length) {
+    console.error(
+      `[CONFIG] Missing MySQL environment variables: ${missingMysqlEnv.join(", ")}`
+    );
+  }
+
+  if (missingSmtpEnv.length) {
+    console.warn(
+      `[CONFIG] Missing SMTP environment variables: ${missingSmtpEnv.join(", ")}. OTP email features will stay unavailable until these are set.`
+    );
+  }
+}
+
+const MYSQL_CONFIG = {
+  host: String(process.env.MYSQLHOST || "").trim(),
+  user: String(process.env.MYSQLUSER || "").trim(),
+  password: String(process.env.MYSQLPASSWORD || ""),
+  database: String(process.env.MYSQLDATABASE || "").trim(),
   port: Number(process.env.MYSQLPORT || 3306),
   waitForConnections: true,
   connectionLimit: 10,
-  queueLimit: 0
-});
+  queueLimit: 0,
+  connectTimeout: 10000
+};
+
+const pool = mysql.createPool(MYSQL_CONFIG);
+
+const startupStatus = {
+  port: PORT,
+  db: "pending",
+  smtp: "pending"
+};
 
 console.log("DB ENV CHECK:", {
-  host: process.env.MYSQLHOST || "localhost",
-  user: process.env.MYSQLUSER || "root",
-  database: process.env.MYSQLDATABASE || "erp_sankha",
-  port: process.env.MYSQLPORT || 3306
+  host: MYSQL_CONFIG.host || "(missing)",
+  user: MYSQL_CONFIG.user || "(missing)",
+  database: MYSQL_CONFIG.database || "(missing)",
+  port: MYSQL_CONFIG.port
+});
+
+console.log("SMTP ENV CHECK:", {
+  host: String(process.env.SMTP_HOST || "").trim() || "(missing)",
+  port: Number(process.env.SMTP_PORT || 587),
+  user: String(process.env.SMTP_USER || "").trim() || "(missing)",
+  from: String(process.env.SMTP_FROM || "").trim() || "(missing)"
+});
+
+console.log("PORT ENV CHECK:", {
+  raw: String(process.env.PORT || "").trim() || "(missing)",
+  resolved: PORT
 });
 
 process.on("uncaughtException", (err) => {
@@ -153,30 +211,51 @@ function getMailTransporter() {
   const port = Number(process.env.SMTP_PORT || 587);
   const user = String(process.env.SMTP_USER || "").trim();
   const pass = String(process.env.SMTP_PASS || "").trim();
+  const from = String(process.env.SMTP_FROM || "").trim();
 
-  if (!host || !port || !user || !pass) {
-    throw new Error("SMTP configuration is incomplete");
+  const missingSmtpEnv = getMissingEnvKeys(SMTP_ENV_KEYS);
+  if (missingSmtpEnv.length) {
+    throw new Error(
+      `SMTP configuration is incomplete. Missing: ${missingSmtpEnv.join(", ")}`
+    );
   }
 
   mailTransporter = nodemailer.createTransport({
     host,
     port,
-    secure: String(process.env.SMTP_SECURE || "").trim().toLowerCase() === "true" || port === 465,
+    secure: port === 465 ? true : false,
     auth: {
       user,
       pass
     }
   });
 
+  mailTransporter._erpFromEmail = from;
+
   return mailTransporter;
 }
 
-async function sendOtpEmail({ email, otp, purpose }) {
+async function testSmtpConnection() {
   const transporter = getMailTransporter();
-  const fromEmail = String(process.env.SMTP_FROM || process.env.SMTP_USER || "").trim();
+  await transporter.verify();
+}
+
+async function sendOtpEmail({ email, toEmail, otp, otpCode, purpose }) {
+  const transporter = getMailTransporter();
+  const targetEmail = normalizeEmail(email || toEmail);
+  const finalOtpCode = String(otp || otpCode || "").trim();
+  const fromEmail = String(process.env.SMTP_FROM || "").trim() || transporter._erpFromEmail;
 
   if (!fromEmail) {
-    throw new Error("SMTP_FROM or SMTP_USER is required");
+    throw new Error("SMTP_FROM is required");
+  }
+
+  if (!targetEmail) {
+    throw new Error("OTP email target is missing");
+  }
+
+  if (!finalOtpCode) {
+    throw new Error("OTP code is missing");
   }
 
   const isSettingsOtp = purpose === OTP_PURPOSES.SETTINGS_UNLOCK;
@@ -188,16 +267,16 @@ async function sendOtpEmail({ email, otp, purpose }) {
 
   await transporter.sendMail({
     from: fromEmail,
-    to: email,
+    to: targetEmail,
     subject,
-    text: `${heading}\n\n${description}\n\nCode: ${otp}\n\nThis code expires in ${OTP_EXPIRY_MINUTES} minutes.\nIf you did not request this code, you can ignore this email.`,
+    text: `${heading}\n\n${description}\n\nCode: ${finalOtpCode}\n\nThis code expires in ${OTP_EXPIRY_MINUTES} minutes.\nIf you did not request this code, you can ignore this email.`,
     html: `
       <div style="font-family:Segoe UI,Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;border:1px solid #e5e7eb;border-radius:16px;background:#ffffff;color:#0f172a;">
         <h2 style="margin:0 0 12px;font-size:22px;">${heading}</h2>
         <p style="margin:0 0 18px;font-size:14px;line-height:1.6;color:#475569;">${description}</p>
         <div style="margin:0 0 18px;padding:18px;border-radius:14px;background:#f8fafc;border:1px solid #e2e8f0;text-align:center;">
           <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.12em;color:#64748b;margin-bottom:8px;">Verification Code</div>
-          <div style="font-size:32px;font-weight:800;letter-spacing:0.24em;color:#b7791f;">${otp}</div>
+          <div style="font-size:32px;font-weight:800;letter-spacing:0.24em;color:#b7791f;">${finalOtpCode}</div>
         </div>
         <p style="margin:0;font-size:13px;line-height:1.6;color:#64748b;">This code expires in ${OTP_EXPIRY_MINUTES} minutes. If you did not request this code, you can safely ignore this email.</p>
       </div>
@@ -1545,8 +1624,11 @@ async function handleUserApprovalAction(req, res, { action = "approve", label = 
 
 async function testDbConnection() {
   const conn = await pool.getConnection();
-  await conn.ping();
-  conn.release();
+  try {
+    await conn.ping();
+  } finally {
+    conn.release();
+  }
 }
 
 async function tableExists(tableName) {
@@ -3572,7 +3654,9 @@ app.get("/health", async (req, res) => {
     return res.status(200).json({
       success: true,
       app: "ok",
-      db: "ok"
+      db: startupStatus.db,
+      smtp: startupStatus.smtp,
+      port: startupStatus.port
     });
   } catch (error) {
     console.error("Health check error:", error);
@@ -3580,6 +3664,8 @@ app.get("/health", async (req, res) => {
       success: false,
       app: "ok",
       db: "failed",
+      smtp: startupStatus.smtp,
+      port: startupStatus.port,
       error: error.message
     });
   }
@@ -10222,16 +10308,34 @@ app.use((err, req, res, next) => {
 /* =========================
    START SERVER
 ========================= */
-app.listen(PORT, "0.0.0.0", async () => {
+const server = app.listen(PORT, "0.0.0.0", async () => {
   console.log(`Server running on port ${PORT}`);
+  logEnvStatus();
 
   try {
     await testDbConnection();
-    console.log("MySQL Connected");
+    startupStatus.db = "connected";
+    console.log("[STARTUP] DB connected");
     await ensureSchema();
     await ensureSuperAdminExists();
   } catch (error) {
-    console.error("MySQL connection failed:", error);
+    startupStatus.db = "failed";
+    console.error("[STARTUP] DB connection failed:", error);
+    console.error("[STARTUP] DB error message:", error?.message || error);
   }
+
+  try {
+    await testSmtpConnection();
+    startupStatus.smtp = "connected";
+    console.log("[STARTUP] SMTP connected");
+  } catch (error) {
+    startupStatus.smtp = "failed";
+    console.error("[STARTUP] SMTP connection failed:", error);
+    console.error("[STARTUP] SMTP error message:", error?.message || error);
+  }
+});
+
+server.on("error", (error) => {
+  console.error("[STARTUP] Server failed to start:", error);
 });
 
