@@ -4,7 +4,7 @@
   "main": "js/backend/server.js",
   "scripts": {
     "start": "node js/backend/server.js",
-    "dev": "nodemon js/backend/server.js"
+    "dev": "node js/backend/server.js"
   },
   "dependencies": {
     "cors": "^2.8.6",

@@ -96,24 +96,39 @@ const startupStatus = {
   smtp: "pending"
 };
 
-console.log("DB ENV CHECK:", {
-  host: MYSQL_CONFIG.host || "(missing)",
-  user: MYSQL_CONFIG.user || "(missing)",
-  database: MYSQL_CONFIG.database || "(missing)",
-  port: MYSQL_CONFIG.port
-});
+function logDbStartupConfig() {
+  console.log("[STARTUP] DB CONFIG:", {
+    host: MYSQL_CONFIG.host || "(missing)",
+    database: MYSQL_CONFIG.database || "(missing)",
+    port: MYSQL_CONFIG.port
+  });
+}
 
-console.log("SMTP ENV CHECK:", {
-  host: String(process.env.SMTP_HOST || "").trim() || "(missing)",
-  port: Number(process.env.SMTP_PORT || 587),
-  user: String(process.env.SMTP_USER || "").trim() || "(missing)",
-  from: String(process.env.SMTP_FROM || "").trim() || "(missing)"
-});
+function logSmtpStartupConfig() {
+  console.log("[STARTUP] SMTP CONFIG:", {
+    host: String(process.env.SMTP_HOST || "").trim() || "(missing)",
+    port: Number(process.env.SMTP_PORT || 587),
+    user: String(process.env.SMTP_USER || "").trim() || "(missing)",
+    from: String(process.env.SMTP_FROM || "").trim() || "(missing)"
+  });
+}
 
-console.log("PORT ENV CHECK:", {
-  raw: String(process.env.PORT || "").trim() || "(missing)",
-  resolved: PORT
-});
+function logPortStartupConfig() {
+  console.log("[STARTUP] PORT CONFIG:", {
+    raw: String(process.env.PORT || "").trim() || "(missing)",
+    resolved: PORT
+  });
+}
+
+function validateDbStartupEnv() {
+  const missingMysqlEnv = getMissingEnvKeys(MYSQL_ENV_KEYS);
+
+  if (missingMysqlEnv.length) {
+    throw new Error(
+      `Missing required MySQL environment variables: ${missingMysqlEnv.join(", ")}`
+    );
+  }
+}
 
 process.on("uncaughtException", (err) => {
   console.error("UNCAUGHT EXCEPTION:", err);
@@ -3552,7 +3567,17 @@ async function findUserById(userId) {
 async function ensureSuperAdminExists() {
   try {
     const superAdminEmail = "grudrapratap0@gmail.com";
-    const superAdminPassword = process.env.SUPERADMIN_PASSWORD || "@ownerofshagoon";
+    const configuredSuperAdminPassword = String(process.env.SUPERADMIN_PASSWORD || "").trim();
+    const isFallbackSuperAdminPassword = !configuredSuperAdminPassword;
+    const superAdminPassword = configuredSuperAdminPassword || "@ownerofshagoon";
+
+    if (isFallbackSuperAdminPassword) {
+      console.warn(
+        "[STARTUP] SUPERADMIN_PASSWORD is missing. Using the built-in fallback password for startup compatibility."
+      );
+    } else {
+      console.log("[STARTUP] SUPERADMIN_PASSWORD detected. Syncing SuperAdmin account.");
+    }
 
     const [rows] = await pool.query(
       `SELECT id FROM users WHERE LOWER(email) = LOWER(?) LIMIT 1`,
@@ -10308,20 +10333,36 @@ app.use((err, req, res, next) => {
 /* =========================
    START SERVER
 ========================= */
-const server = app.listen(PORT, "0.0.0.0", async () => {
-  console.log(`Server running on port ${PORT}`);
+let server = null;
+
+async function bootstrapServer() {
+  logPortStartupConfig();
+  logDbStartupConfig();
+  logSmtpStartupConfig();
   logEnvStatus();
 
   try {
+    validateDbStartupEnv();
+    console.log("[STARTUP] Verifying MySQL connection...");
     await testDbConnection();
     startupStatus.db = "connected";
-    console.log("[STARTUP] DB connected");
+    console.log("[STARTUP] DB connection successful");
+
+    console.log("[STARTUP] Ensuring schema...");
     await ensureSchema();
+    console.log(
+      "[STARTUP] Schema ready: users, companies, stock, sales_history, sales_items"
+    );
+
+    console.log("[STARTUP] Ensuring SuperAdmin account...");
     await ensureSuperAdminExists();
+    console.log("[STARTUP] SuperAdmin startup sync completed");
   } catch (error) {
     startupStatus.db = "failed";
-    console.error("[STARTUP] DB connection failed:", error);
-    console.error("[STARTUP] DB error message:", error?.message || error);
+    console.error("[STARTUP] Fatal DB/schema startup failure:", error);
+    console.error("[STARTUP] Fatal DB/schema error message:", error?.message || error);
+    process.exit(1);
+    return;
   }
 
   try {
@@ -10333,9 +10374,20 @@ const server = app.listen(PORT, "0.0.0.0", async () => {
     console.error("[STARTUP] SMTP connection failed:", error);
     console.error("[STARTUP] SMTP error message:", error?.message || error);
   }
-});
 
-server.on("error", (error) => {
-  console.error("[STARTUP] Server failed to start:", error);
+  server = app.listen(PORT, "0.0.0.0", () => {
+    console.log(`[STARTUP] Server running on port ${PORT}`);
+  });
+
+  server.on("error", (error) => {
+    console.error("[STARTUP] Server failed to start:", error);
+    process.exit(1);
+  });
+}
+
+bootstrapServer().catch((error) => {
+  startupStatus.db = "failed";
+  console.error("[STARTUP] Unhandled bootstrap failure:", error);
+  process.exit(1);
 });
 
